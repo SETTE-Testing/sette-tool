@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This is the default SETTE build file for jPET runner projects. -->
+<project name="sette-jpet" default="main">
+	<property name="snippet-src.dir" location="snippet-src" />
+	<property name="build.dir" location="build" />
+	<property name="snippet.libs.dir" location="snippet-libs" />
+
+	<property name="source" value="1.7" />
+	<property name="target" value="1.7" />
+
+	<!-- target: main  -->
+	<target name="main" depends="compile" />
+
+	<!-- target: clean  -->
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<!-- target: compile  -->
+	<target name="compile" depends="clean">
+		<mkdir dir="${build.dir}" />
+		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}">
+			<classpath>
+				<fileset dir="${snippet.libs.dir}" includes="**/*.jar" />
+			</classpath>
+			<src path="${snippet-src.dir}" />
+		</javac>
+	</target>
+</project>

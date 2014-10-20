@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="sette-common" default="main">
+	<description>
+		With these build file the sette-common project can be easily compiled.
+    </description>
+
+	<property name="src.dir" location="src" />
+	<property name="build.dir" location="build" />
+
+	<property name="source" value="1.7" />
+	<property name="target" value="1.7" />
+
+	<!-- target: main  -->
+	<target name="main" depends="compile" />
+
+	<!-- target: clean  -->
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<!-- target: compile  -->
+	<target name="compile" depends="clean">
+		<mkdir dir="${build.dir}" />
+		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}">
+			<src path="${src.dir}" />
+		</javac>
+	</target>
+</project>

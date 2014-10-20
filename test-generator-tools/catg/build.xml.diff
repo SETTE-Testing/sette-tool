@@ -1,0 +1,68 @@
+--- build.xml	2012-11-13 16:25:16.000000000 +0100
++++ build-sette.xml	2014-10-09 10:24:28.310937600 +0200
+@@ -32,6 +32,11 @@
+   ~ Author: Koushik Sen (ksen@cs.berkeley.edu)
+   -->
+ 
++<!--
++  ~ Edited to be used with SETTE
++  ~ Editor: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>
++  -->
++
+ <project basedir="." default="build" name="CATG">
+   <property environment="env"/>
+   <property name="debuglevel" value="source,lines,vars"/>
+@@ -40,16 +45,16 @@
+ 
+     <path id="janala.classpath">
+         <pathelement location="out/production/janala"/>
+-        <pathelement location="out/production/tests"/>
+         <pathelement location="lib/asm-all-3.3.1.jar"/>
+         <pathelement location="lib/choco-solver-2.1.4.jar"/>
+         <pathelement location="lib/trove-3.0.3.jar"/>
++        <!-- SETTE: Snippet libraries should be added here -->
++        <!-- [SETTE][Libraries] -->
+     </path>
+ 
+     <target name="init" depends="clean">
+         <tstamp/>
+         <mkdir dir="out/production/janala"/>
+-        <mkdir dir="out/production/tests"/>
+     </target>
+ 
+     <target name="clean">
+@@ -57,7 +62,7 @@
+         <delete file="lib/iagent.jar"/>
+     </target>
+ 
+-    <target name="build" depends="build-project,build-tests, packup"/>
++    <target name="build" depends="build-project, packup"/>
+ 
+     <target depends="init" name="build-project">
+         <echo message="${ant.project.name}: ${ant.file}"/>
+@@ -66,22 +71,13 @@
+             <!--<compilerarg value="-Xlint:deprecated"/>-->
+             <src path="src/janala"/>
+             <src path="src/catg"/>
+-            <src path="src/database"/>
+-            <classpath refid="janala.classpath"/>
+-        </javac>
+-    </target>
+-
+-    <target depends="build-project" name="build-tests">
+-        <echo message="${ant.project.name}: ${ant.file}"/>
+-        <javac debug="true" debuglevel="${debuglevel}" destdir="out/production/tests"
+-               source="${source}" target="${target}" includeantruntime="false">
+-            <!--<compilerarg value="-Xlint:deprecated"/>-->
+-            <src path="src/tests"/>
++            <!-- SETTE: Snippet sources should be added here -->
++            <!-- [SETTE][Sources] -->
+             <classpath refid="janala.classpath"/>
+         </javac>
+     </target>
+ 
+-    <target name="packup" depends="build-project, build-tests">
++    <target name="packup" depends="build-project">
+         <delete dir="lib/META-INF"/>
+         <delete file="lib/iagent.jar"/>
+         <jar destfile="lib/iagent.jar"

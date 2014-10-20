@@ -1,0 +1,3 @@
+Website: http://costa.ls.fi.upm.es/pet/pet.php
+
+"PET is a research prototype which aims at automatically generating test cases from Java bytecode programs by relying on the technique of partial evaluation. The system receives as input a bytecode program and a set of optional parameters, including a description of a coverage criterion; and yields as output a set of test cases which guarantee that the selected coverage criterion is achieved and, optionally, a test case generator."

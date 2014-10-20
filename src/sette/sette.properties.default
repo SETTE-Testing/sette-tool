@@ -1,0 +1,39 @@
+#
+# SETTE configuration
+#
+
+# possible base directories (the first existing directory will be used)
+# Note: all other path settings in this file are handled as relative directories to the basedir
+basedir = /home/sette/sette|~/sette|/data/sette|/data
+
+# relative path to the directory containing the snippet project's directory
+snippet-dir = sette-snippets
+
+# name of the snippet project (make sure that the sette-snippets.properties file exists in the directory)
+snippet-project = sette-snippets
+
+#
+# Tool directories
+#
+
+# relative path to the CATG tool directory
+catg = sette-tool/test-generator-tools/catg/tool
+# relative path to the CATG VERSION file
+catg-version-file = sette-tool/test-generator-tools/catg/VERSION
+
+# relative path to the pet executable
+jpet = sette-tool/test-generator-tools/jpet/pet
+# relative path to default build.xml for generated jPET projects
+jpet-default-build.xml = sette-tool/test-generator-tools/jpet/sette-build.xml.default
+# relative path to the jPET VERSION file
+jpet-version-file = sette-tool/test-generator-tools/jpet/VERSION
+
+# relative path to RunJPF.jar
+spf = sette-tool/test-generator-tools/spf/jpf-core/build/RunJPF.jar
+# relative path to default build.xml for generated SPF projects
+spf-default-build.xml = sette-tool/test-generator-tools/spf/sette-build.xml.default
+# relative path to the SPF VERSION file
+spf-version-file = sette-tool/test-generator-tools/spf/VERSION
+
+# relative path to output directory
+output-dir = sette-results

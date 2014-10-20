@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="sette" default="main">
+	<description>
+		With these build file the sette project can be easily compiled.
+    </description>
+
+	<property name="src.dir" location="src" />
+	<property name="build.dir" location="build" />
+	<property name="dist.dir" location="dist" />
+	<property name="jar.copyto" value="../../" />
+	<property name="config.copyto" value="../../" />
+	<property name="config.filename" value="sette.properties.default" />
+
+	<property name="sette.base.build.xml" location="../sette-base/build.xml" />
+	<property name="sette.base.build.dir" location="../sette-base/build" />
+	<property name="sette.base.libs.dir" location="../sette-base/libs" />
+	<property name="sette.common.build.dir" location="../sette-common/build" />
+
+	<property name="source" value="1.7" />
+	<property name="target" value="1.7" />
+
+	<!-- target: main  -->
+	<target name="main" depends="compile, jar" />
+
+	<!-- target: clean  -->
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete file="${jar.copyto}/${ant.project.name}.jar" />
+		<delete file="${config.copyto}/${config.filename}" />
+	</target>
+
+	<!-- target: compile -->
+	<target name="compile" depends="clean">
+		<ant antfile="${sette.base.build.xml}" target="main" inheritall="no" />
+
+		<mkdir dir="${build.dir}" />
+		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}">
+			<classpath>
+				<pathelement path="${sette.base.build.dir}" />
+				<pathelement path="${sette.common.build.dir}" />
+				<fileset dir="${sette.base.libs.dir}" includes="**/*.jar" />
+			</classpath>
+			<src path="${src.dir}" />
+		</javac>
+	</target>
+
+	<!-- target: jar -->
+	<target name="jar" depends="compile">
+		<mkdir dir="${dist.dir}" />
+
+		<jar destfile="${dist.dir}/${ant.project.name}.jar">
+			<fileset dir="${build.dir}" />
+			<fileset dir="${sette.base.build.dir}" />
+			<fileset dir="${sette.common.build.dir}" />
+			<restrict>
+				<name name="**/*.class" />
+				<archives>
+					<zips>
+						<fileset dir="${sette.base.libs.dir}" includes="**/*.jar" />
+					</zips>
+				</archives>
+			</restrict>
+			<manifest>
+				<attribute name="Main-Class" value="hu.bme.mit.sette.run.Run" />
+			</manifest>
+		</jar>
+
+		<copy file="${dist.dir}/${ant.project.name}.jar" todir="${jar.copyto}" />
+		<copy file="${config.filename}" todir="${config.copyto}" />
+	</target>
+</project>

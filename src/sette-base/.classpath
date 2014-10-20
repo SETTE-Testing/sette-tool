@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/sette-common"/>
+	<classpathentry exported="true" kind="lib" path="libs/commons-io-2.4.jar" sourcepath="libs-sources/commons-io-2.4-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/javaparser-1.0.8.jar" sourcepath="libs/src/javaparser-1.0.8-sources"/>
+	<classpathentry exported="true" kind="lib" path="libs/simple-xml-2.7.1.jar" sourcepath="libs-sources/simple-xml-2.7.1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="libs/asm-all-5.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/junit-3.8.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/log4j-api-2.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/log4j-core-2.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/log4j-slf4j-impl-2.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/org.jacoco.agent-0.7.2.201409121644.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/org.jacoco.core-0.7.2.201409121644.jar" sourcepath="libs-sources/org.jacoco.0.7.2.src.zip"/>
+	<classpathentry exported="true" kind="lib" path="libs/org.jacoco.report-0.7.2.201409121644.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/slf4j-api-1.7.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/commons-collections4-4.0.jar" sourcepath="libs-sources/commons-collections4-4.0-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/commons-lang3-3.3.2.jar" sourcepath="libs-sources/commons-lang3-3.3.2-src.zip"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
