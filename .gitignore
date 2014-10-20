@@ -3,7 +3,7 @@
 #
 sette.jar
 sette.properties
-sette.sample.properties
+sette.properties.default
 
 #
 # Ant
