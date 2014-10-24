@@ -34,8 +34,10 @@ import hu.bme.mit.sette.common.util.process.ProcessRunner;
 import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
 import hu.bme.mit.sette.common.util.process.ProcessUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
     public SpfRunner(SnippetProject snippetProject,
@@ -59,7 +61,7 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
             public void onTick(ProcessRunner processRunner,
                     long elapsedTimeInMs) {
                 System.out
-                .println("ant build tick: " + elapsedTimeInMs);
+                        .println("ant build tick: " + elapsedTimeInMs);
             }
 
             @Override
@@ -74,21 +76,21 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
                 if (processRunner.getStdout().length() > 0) {
                     System.out.println("Ant build output:");
                     System.out
-                    .println("========================================");
+                            .println("========================================");
                     System.out.println(processRunner.getStdout()
                             .toString());
                     System.out
-                    .println("========================================");
+                            .println("========================================");
                 }
 
                 if (processRunner.getStderr().length() > 0) {
                     System.out.println("Ant build error output:");
                     System.out
-                    .println("========================================");
+                            .println("========================================");
                     System.out.println(processRunner.getStderr()
                             .toString());
                     System.out
-                    .println("========================================");
+                            .println("========================================");
                     System.out.println("Terminating");
                 }
             }
@@ -113,6 +115,9 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
             // throw new SetteGeneralException("SPF ant build has failed");
             throw new RuntimeException("SPF ant build has failed");
         }
+
+        System.out.println("Ant build done, press enter to continue");
+        new BufferedReader(new InputStreamReader(System.in)).readLine();
     }
 
     @Override
@@ -122,7 +127,7 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
         // TODO make better
         /*
          * e.g.:
-         *
+         * 
          * java -jar /data/workspaces/spf/jpf-core/build/RunJPF.jar
          * +shell.port=4242
          * /data/workspaces/spf/GeneralLibrary-SPF/src/generallibrary
@@ -134,7 +139,7 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
         String filenameBase = JavaFileUtils
                 .packageNameToFilename(snippet.getContainer()
                         .getJavaClass().getName())
-                        + "_" + snippet.getMethod().getName();
+                + "_" + snippet.getMethod().getName();
         File configFile = new File(getRunnerProjectSettings()
                 .getGeneratedDirectory(), filenameBase
                 + JavaFileUtils.FILE_EXTENSION_SEPARATOR
