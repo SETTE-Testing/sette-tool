@@ -36,7 +36,7 @@
 		<ant antfile="${sette.base.build.xml}" target="main" inheritall="no" />
 
 		<mkdir dir="${build.dir}" />
-		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}">
+		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}" debug="on">
 			<classpath>
 				<pathelement path="${sette.base.build.dir}" />
 				<pathelement path="${sette.common.build.dir}" />

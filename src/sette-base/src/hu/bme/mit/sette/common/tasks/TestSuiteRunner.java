@@ -51,6 +51,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
@@ -196,7 +197,7 @@ public class TestSuiteRunner extends SetteTask<Tool> {
 
         JaCoCoClassLoader classLoader = new JaCoCoClassLoader(
                 binaryDirectories, instrumenter, getSnippetProject()
-                .getClassLoader());
+                        .getClassLoader());
 
         // load test class
         // snippet class and other dependencies will be loaded and instrumented
@@ -221,13 +222,17 @@ public class TestSuiteRunner extends SetteTask<Tool> {
                     Throwable cause = e.getCause();
 
                     if (cause instanceof NullPointerException
-                            || cause instanceof ArrayIndexOutOfBoundsException) {
+                            || cause instanceof ArrayIndexOutOfBoundsException
+                            || cause instanceof AssertionFailedError) {
                         logger.warn(cause.getClass().getName() + ": "
+                                + m.getDeclaringClass().getName() + "."
                                 + m.getName());
                     } else {
-                        logger.error("Exception: " + m.getName());
-                        logger.error(e.getMessage(), e);
+                        logger.error("Exception: "
+                                + m.getDeclaringClass().getName() + "."
+                                + m.getName());
                     }
+                    logger.debug(e.getMessage(), e);
                 }
             } else {
                 logger.warn("Not test method: {}", m.getName());
@@ -335,7 +340,7 @@ public class TestSuiteRunner extends SetteTask<Tool> {
         coverageXml.setToolName(getTool().getName());
         coverageXml.setSnippetProjectElement(new SnippetProjectElement(
                 getSnippetProjectSettings().getBaseDirectory()
-                .getCanonicalPath()));
+                        .getCanonicalPath()));
 
         coverageXml.setSnippetElement(new SnippetElement(snippet
                 .getContainer().getJavaClass().getName(), snippet

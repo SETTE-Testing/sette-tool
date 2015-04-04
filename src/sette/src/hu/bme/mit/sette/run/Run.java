@@ -89,8 +89,8 @@ public final class Run {
     public static File OUTPUT_DIR;
 
     private static final String[] scenarios = new String[] { "exit",
-        "generator", "runner", "parser", "tests-generator",
-        "tests-run", "snippet-browser", "export-csv" };
+            "generator", "runner", "parser", "tests-generator",
+            "tests-run", "snippet-browser", "export-csv" };
 
     public static void main(String[] args) {
         LOG.debug("main() called");
@@ -166,10 +166,10 @@ public final class Run {
 
         if (basedir == null) {
             System.err
-            .println("basedir = " + Arrays.toString(basedirs));
+                    .println("basedir = " + Arrays.toString(basedirs));
             System.err
-            .println("ERROR: No valid basedir was found, please check "
-                    + SETTE_PROPERTIES);
+                    .println("ERROR: No valid basedir was found, please check "
+                            + SETTE_PROPERTIES);
             System.exit(2);
         }
 
@@ -179,14 +179,25 @@ public final class Run {
         OUTPUT_DIR = new File(basedir, outputDir);
 
         try {
-            new CatgTool(new File(BASEDIR, catgPath),
-                    readToolVersion(new File(BASEDIR, catgVersionFile)));
-            new JPetTool(new File(BASEDIR, jPETPath), new File(BASEDIR,
-                    jPETDefaultBuildXml), readToolVersion(new File(
-                            BASEDIR, jPETVersionFile)));
-            new SpfTool(new File(BASEDIR, spfPath), new File(BASEDIR,
-                    spfDefaultBuildXml), readToolVersion(new File(
-                            BASEDIR, spfVersionFile)));
+            String catgVersion = readToolVersion(new File(BASEDIR,
+                    catgVersionFile));
+            if (catgVersion != null) {
+                new CatgTool(new File(BASEDIR, catgPath), catgVersion);
+            }
+
+            String jPetVersion = readToolVersion(new File(BASEDIR,
+                    jPETVersionFile));
+            if (jPetVersion != null) {
+                new JPetTool(new File(BASEDIR, jPETPath), new File(
+                        BASEDIR, jPETDefaultBuildXml), jPetVersion);
+            }
+
+            String spfVersion = readToolVersion(new File(BASEDIR,
+                    spfVersionFile));
+            if (spfVersion != null) {
+                new SpfTool(new File(BASEDIR, spfPath), new File(
+                        BASEDIR, spfDefaultBuildXml), spfVersion);
+            }
 
             // TODO stuff
             stuff(args);
@@ -308,7 +319,9 @@ public final class Run {
             break;
 
         case "export-csv":
-            exportCSV(Run.createSnippetProject(true));
+            out.print("Target file: ");
+            String file = in.readLine();
+            exportCSV(Run.createSnippetProject(true), new File(file));
             break;
 
         default:
@@ -460,8 +473,8 @@ public final class Run {
         throw new UnsupportedOperationException("Static class");
     }
 
-    private static void exportCSV(SnippetProject snippetProject)
-            throws Exception {
+    private static void exportCSV(SnippetProject snippetProject,
+            File file) throws Exception {
         // TODO enhance this method
         Tool[] tools = ToolRegister.toArray();
 
@@ -562,7 +575,14 @@ public final class Run {
             }
         }
 
-        System.out.println(sb.toString());
+        try {
+            FileUtils.write(file, sb);
+        } catch (IOException e) {
+            System.err.println("Operation failed");
+            e.printStackTrace();
+        }
+
+        // System.out.println(sb.toString());
 
         // StringBuilder sb = new StringBuilder(testCaseToolInputs.size() *
         // 100);
