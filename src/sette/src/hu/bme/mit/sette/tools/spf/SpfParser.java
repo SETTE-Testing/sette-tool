@@ -82,6 +82,13 @@ public class SpfParser extends RunResultParser<SpfTool> {
                     .startsWith("***********Warning: everything false")) {
                 // TODO enhance
                 // now skip
+            } else if (snippet.getMethod().toString()
+                    .contains("_Constants")
+                    || snippet.getMethod().toString()
+                            .contains(".always()")) {
+                // TODO JPF/SPF compilation differences between javac and ecj:
+                // https://groups.google.com/forum/#!topic/java-pathfinder/jhOkvLx-SKE
+                // now just accept
             } else {
                 // TODO error handling
 
@@ -105,232 +112,253 @@ public class SpfParser extends RunResultParser<SpfTool> {
             // TODO enhance
             inputsXml.setResultType(ResultType.S);
 
-            LineIterator lines = FileUtils.lineIterator(outputFile);
+            if (snippet.getMethod().toString().contains("_Constants")
+                    || snippet.getMethod().toString()
+                            .contains(".always()")) {
+                // TODO JPF/SPF compilation differences between javac and ecj:
+                // https://groups.google.com/forum/#!topic/java-pathfinder/jhOkvLx-SKE
+                // now just accept
 
-            // find input lines
-
-            List<String> inputLines = new ArrayList<>();
-            boolean shouldCollect = false;
-            while (lines.hasNext()) {
-                String line = lines.next();
-                if (line.trim()
-                        .equals("====================================================== Method Summaries")) {
-                    shouldCollect = true;
-                } else if (shouldCollect) {
-                    if (line.startsWith("======================================================")) {
-                        // start of next section
-                        shouldCollect = false;
-                        break;
-                    } else {
-                        if (!StringUtils.isBlank(line)) {
-                            inputLines.add(line.trim());
-                        }
-                    }
-                }
-            }
-
-            // close iterator
-            lines.close();
-
-            // remove duplicates
-            inputLines = new ArrayList<>(
-                    new LinkedHashSet<>(inputLines));
-
-            System.out.println(snippet.getMethod());
-            String firstLine = inputLines.get(0);
-            assert (firstLine.startsWith("Inputs: "));
-            firstLine = firstLine.substring(7).trim();
-            String[] parameterStrings = StringUtils.split(firstLine,
-                    ',');
-            ParameterType[] parameterTypes = new ParameterType[parameterStrings.length];
-
-            if (inputLines.size() == 2
-                    && inputLines.get(1).startsWith(
-                            "No path conditions for")) {
-                InputElement input = new InputElement();
-                for (int i = 0; i < parameterStrings.length; i++) {
-                    // no path conditions, only considering the "default" inputs
-                    Class<?> type = snippet.getMethod()
-                            .getParameterTypes()[i];
-                    parameterTypes[i] = getParameterType(type);
-                    input.getParameters().add(
-                            new ParameterElement(parameterTypes[i],
-                                    getDefaultParameterString(type)));
-                }
-                inputsXml.getGeneratedInputs().add(input);
+                // no inputs for constant tests, just call them once
+                inputsXml.getGeneratedInputs().add(new InputElement());
             } else {
-                // parse parameter types
+                LineIterator lines = FileUtils.lineIterator(outputFile);
 
-                Class<?>[] paramsJavaClass = snippet.getMethod()
-                        .getParameterTypes();
+                // find input lines
 
-                for (int i = 0; i < parameterStrings.length; i++) {
-                    String parameterString = parameterStrings[i];
-                    Class<?> pjc = ClassUtils
-                            .primitiveToWrapper(paramsJavaClass[i]);
-
-                    if (parameterString.endsWith("SYMINT")) {
-                        if (pjc == Boolean.class) {
-                            parameterTypes[i] = ParameterType.BOOLEAN;
-                        } else if (pjc == Byte.class) {
-                            parameterTypes[i] = ParameterType.BYTE;
-                        } else if (pjc == Short.class) {
-                            parameterTypes[i] = ParameterType.SHORT;
-                        } else if (pjc == Integer.class) {
-                            parameterTypes[i] = ParameterType.INT;
-                        } else if (pjc == Long.class) {
-                            parameterTypes[i] = ParameterType.LONG;
+                List<String> inputLines = new ArrayList<>();
+                boolean shouldCollect = false;
+                while (lines.hasNext()) {
+                    String line = lines.next();
+                    if (line.trim()
+                            .equals("====================================================== Method Summaries")) {
+                        shouldCollect = true;
+                    } else if (shouldCollect) {
+                        if (line.startsWith("======================================================")) {
+                            // start of next section
+                            shouldCollect = false;
+                            break;
                         } else {
-                            // int for something else
-                            parameterTypes[i] = ParameterType.INT;
+                            if (!StringUtils.isBlank(line)) {
+                                inputLines.add(line.trim());
+                            }
                         }
-                    } else if (parameterString.endsWith("SYMREAL")) {
-                        if (pjc == Float.class) {
-                            parameterTypes[i] = ParameterType.FLOAT;
-                        } else if (pjc == Float.class) {
-                            parameterTypes[i] = ParameterType.DOUBLE;
-                        } else {
-                            // int for something else
-                            parameterTypes[i] = ParameterType.DOUBLE;
-                        }
-                    } else if (parameterString.endsWith("SYMSTRING")) {
-                        parameterTypes[i] = ParameterType.EXPRESSION;
-                    } else {
-                        // TODO error handling
-                        // int for something else
-                        System.err.println(parameterString);
-                        throw new RuntimeException("PARSER PROBLEM");
                     }
                 }
 
-                // example
-                // inheritsAPIGuessTwoPrimitives(11,-2147483648(don't care)) -->
-                // "java.lang.IllegalArgumentException..."
-                // inheritsAPIGuessTwoPrimitives(9,11) -->
-                // "java.lang.IllegalArgumentException..."
-                // inheritsAPIGuessTwoPrimitives(7,9) -->
-                // "java.lang.RuntimeException: Out of range..."
-                // inheritsAPIGuessTwoPrimitives(4,1) --> Return Value: 1
-                // inheritsAPIGuessTwoPrimitives(0,0) --> Return Value: 0
-                // inheritsAPIGuessTwoPrimitives(9,-88) -->
-                // "java.lang.IllegalArgumentException..."
-                // inheritsAPIGuessTwoPrimitives(-88,-2147483648(don't care))
-                // --> "java.lang.IllegalArgumentException..."
+                // close iterator
+                lines.close();
 
-                String ps = String.format(
-                        "^%s\\((.*)\\)\\s+-->\\s+(.*)$", snippet
-                        .getMethod().getName());
+                // remove duplicates
+                inputLines = new ArrayList<>(new LinkedHashSet<>(
+                        inputLines));
 
-                // ps = String.format("^%s(.*)\\s+-->\\s+(.*)$",
-                // snippet.getMethod()
-                // .getName());
-                ps = String
-                        .format("^(%s\\.)?%s(.*)\\s+-->\\s+(.*)$",
-                                snippet.getContainer().getJavaClass()
-                                .getName(), snippet.getMethod()
-                                .getName());
-                Pattern p = Pattern.compile(ps);
+                System.out.println(snippet.getMethod());
 
-                // parse inputs
-                int i = -1;
-                for (String line : inputLines) {
-                    i++;
+                String firstLine = inputLines.get(0);
+                assert (firstLine.startsWith("Inputs: "));
+                firstLine = firstLine.substring(7).trim();
+                String[] parameterStrings = StringUtils.split(
+                        firstLine, ',');
+                ParameterType[] parameterTypes = new ParameterType[parameterStrings.length];
 
-                    if (i == 0) {
-                        // first line
-                        continue;
-                    } else if (StringUtils.isEmpty(line)) {
-                        continue;
+                if (inputLines.size() == 2
+                        && inputLines.get(1).startsWith(
+                                "No path conditions for")) {
+                    InputElement input = new InputElement();
+                    for (int i = 0; i < parameterStrings.length; i++) {
+                        // no path conditions, only considering the "default"
+                        // inputs
+                        Class<?> type = snippet.getMethod()
+                                .getParameterTypes()[i];
+                        parameterTypes[i] = getParameterType(type);
+                        input.getParameters()
+                                .add(new ParameterElement(
+                                        parameterTypes[i],
+                                        getDefaultParameterString(type)));
+                    }
+                    inputsXml.getGeneratedInputs().add(input);
+                } else {
+                    // parse parameter types
+
+                    Class<?>[] paramsJavaClass = snippet.getMethod()
+                            .getParameterTypes();
+
+                    for (int i = 0; i < parameterStrings.length; i++) {
+                        String parameterString = parameterStrings[i];
+                        Class<?> pjc = ClassUtils
+                                .primitiveToWrapper(paramsJavaClass[i]);
+
+                        if (parameterString.endsWith("SYMINT")) {
+                            if (pjc == Boolean.class) {
+                                parameterTypes[i] = ParameterType.BOOLEAN;
+                            } else if (pjc == Byte.class) {
+                                parameterTypes[i] = ParameterType.BYTE;
+                            } else if (pjc == Short.class) {
+                                parameterTypes[i] = ParameterType.SHORT;
+                            } else if (pjc == Integer.class) {
+                                parameterTypes[i] = ParameterType.INT;
+                            } else if (pjc == Long.class) {
+                                parameterTypes[i] = ParameterType.LONG;
+                            } else {
+                                // int for something else
+                                parameterTypes[i] = ParameterType.INT;
+                            }
+                        } else if (parameterString.endsWith("SYMREAL")) {
+                            if (pjc == Float.class) {
+                                parameterTypes[i] = ParameterType.FLOAT;
+                            } else if (pjc == Float.class) {
+                                parameterTypes[i] = ParameterType.DOUBLE;
+                            } else {
+                                // int for something else
+                                parameterTypes[i] = ParameterType.DOUBLE;
+                            }
+                        } else if (parameterString
+                                .endsWith("SYMSTRING")) {
+                            parameterTypes[i] = ParameterType.EXPRESSION;
+                        } else {
+                            // TODO error handling
+                            // int for something else
+                            System.err.println(parameterString);
+                            throw new RuntimeException("PARSER PROBLEM");
+                        }
                     }
 
-                    Matcher m = p.matcher(line);
+                    // example
+                    // inheritsAPIGuessTwoPrimitives(11,-2147483648(don't care))
+                    // -->
+                    // "java.lang.IllegalArgumentException..."
+                    // inheritsAPIGuessTwoPrimitives(9,11) -->
+                    // "java.lang.IllegalArgumentException..."
+                    // inheritsAPIGuessTwoPrimitives(7,9) -->
+                    // "java.lang.RuntimeException: Out of range..."
+                    // inheritsAPIGuessTwoPrimitives(4,1) --> Return Value: 1
+                    // inheritsAPIGuessTwoPrimitives(0,0) --> Return Value: 0
+                    // inheritsAPIGuessTwoPrimitives(9,-88) -->
+                    // "java.lang.IllegalArgumentException..."
+                    // inheritsAPIGuessTwoPrimitives(-88,-2147483648(don't
+                    // care))
+                    // --> "java.lang.IllegalArgumentException..."
 
-                    if (m.matches()) {
-                        String paramsString = StringUtils.substring(m
-                                .group(2).trim(), 1, -1);
-                        String resultString = m.group(3).trim();
+                    String ps = String.format(
+                            "^%s\\((.*)\\)\\s+-->\\s+(.*)$", snippet
+                                    .getMethod().getName());
 
-                        paramsString = StringUtils.replace(
-                                paramsString, "(don't care)", "");
+                    // ps = String.format("^%s(.*)\\s+-->\\s+(.*)$",
+                    // snippet.getMethod()
+                    // .getName());
+                    ps = String.format(
+                            "^(%s\\.)?%s(.*)\\s+-->\\s+(.*)$", snippet
+                                    .getContainer().getJavaClass()
+                                    .getName(), snippet.getMethod()
+                                    .getName());
+                    Pattern p = Pattern.compile(ps);
 
-                        String[] paramsStrings = StringUtils.split(
-                                paramsString, ',');
+                    // parse inputs
+                    int i = -1;
+                    for (String line : inputLines) {
+                        i++;
 
-                        InputElement input = new InputElement();
+                        if (i == 0) {
+                            // first line
+                            continue;
+                        } else if (StringUtils.isEmpty(line)) {
+                            continue;
+                        }
 
-                        // if index error -> lesser inputs than parameters
-                        for (int j = 0; j < parameterTypes.length; j++) {
-                            if (parameterTypes[j] == ParameterType.BOOLEAN
-                                    && paramsStrings[j]
-                                            .contains("-2147483648")) {
-                                // don't care -> 0
-                                paramsStrings[j] = "false";
-                            }
+                        Matcher m = p.matcher(line);
 
-                            ParameterElement pe = new ParameterElement(
-                                    parameterTypes[j],
-                                    paramsStrings[j].trim());
+                        if (m.matches()) {
+                            String paramsString = StringUtils
+                                    .substring(m.group(2).trim(), 1, -1);
+                            String resultString = m.group(3).trim();
 
-                            try {
-                                // just check the type format
-                                pe.validate();
-                            } catch (Exception e) {
-                                // TODO error handling
-                                System.out.println(parameterTypes[j]);
-                                System.out.println(paramsStrings[j]);
-                                System.out.println(pe.getType());
-                                System.out.println(pe.getValue());
-                                e.printStackTrace();
+                            paramsString = StringUtils.replace(
+                                    paramsString, "(don't care)", "");
 
-                                System.err
-                                .println("=============================");
-                                System.err.println(snippet.getMethod());
-                                System.err
-                                .println("=============================");
-                                for (String lll : inputLines) {
-                                    System.err.println(lll);
+                            String[] paramsStrings = StringUtils.split(
+                                    paramsString, ',');
+
+                            InputElement input = new InputElement();
+
+                            // if index error -> lesser inputs than parameters
+                            for (int j = 0; j < parameterTypes.length; j++) {
+                                if (parameterTypes[j] == ParameterType.BOOLEAN
+                                        && paramsStrings[j]
+                                                .contains("-2147483648")) {
+                                    // don't care -> 0
+                                    paramsStrings[j] = "false";
                                 }
-                                System.err
-                                .println("=============================");
 
-                                System.exit(-1);
+                                ParameterElement pe = new ParameterElement(
+                                        parameterTypes[j],
+                                        paramsStrings[j].trim());
+
+                                try {
+                                    // just check the type format
+                                    pe.validate();
+                                } catch (Exception e) {
+                                    // TODO error handling
+                                    System.out
+                                            .println(parameterTypes[j]);
+                                    System.out
+                                            .println(paramsStrings[j]);
+                                    System.out.println(pe.getType());
+                                    System.out.println(pe.getValue());
+                                    e.printStackTrace();
+
+                                    System.err
+                                            .println("=============================");
+                                    System.err.println(snippet
+                                            .getMethod());
+                                    System.err
+                                            .println("=============================");
+                                    for (String lll : inputLines) {
+                                        System.err.println(lll);
+                                    }
+                                    System.err
+                                            .println("=============================");
+
+                                    System.exit(-1);
+                                }
+
+                                input.getParameters().add(pe);
                             }
 
-                            input.getParameters().add(pe);
-                        }
+                            if (resultString
+                                    .startsWith("Return Value:")) {
+                                // has retval, nothing to do
+                            } else {
+                                // exception; example (" is present inside the
+                                // string!!!):
+                                // "java.lang.ArithmeticException: div by 0..."
+                                // "java.lang.IndexOutOfBoundsException: Index: 1, Size: 5..."
 
-                        if (resultString.startsWith("Return Value:")) {
-                            // has retval, nothing to do
+                                int pos = resultString.indexOf(':');
+                                if (pos < 0) {
+                                    // not found :, search for ...
+                                    pos = resultString.indexOf("...");
+                                }
+
+                                String ex = resultString.substring(1,
+                                        pos);
+                                input.setExpected(ex);
+
+                                // System.err.println(resultString);
+                                // System.err.println(ex);
+                                // // input.setExpected(expected);
+                            }
+
+                            inputsXml.getGeneratedInputs().add(input);
                         } else {
-                            // exception; example (" is present inside the
-                            // string!!!):
-                            // "java.lang.ArithmeticException: div by 0..."
-                            // "java.lang.IndexOutOfBoundsException: Index: 1, Size: 5..."
-
-                            int pos = resultString.indexOf(':');
-                            if (pos < 0) {
-                                // not found :, search for ...
-                                pos = resultString.indexOf("...");
-                            }
-
-                            String ex = resultString.substring(1, pos);
-                            input.setExpected(ex);
-
-                            // System.err.println(resultString);
-                            // System.err.println(ex);
-                            // // input.setExpected(expected);
+                            System.err.println("NO MATCH");
+                            System.err.println(ps);
+                            System.err.println(line);
+                            throw new Exception("NO MATCH: " + line);
                         }
-
-                        inputsXml.getGeneratedInputs().add(input);
-                    } else {
-                        System.err.println("NO MATCH");
-                        System.err.println(ps);
-                        System.err.println(line);
-                        throw new Exception("NO MATCH: " + line);
                     }
                 }
             }
-
             inputsXml.validate();
         }
     }
