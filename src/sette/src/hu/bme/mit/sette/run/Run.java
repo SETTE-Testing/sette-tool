@@ -253,12 +253,20 @@ public final class Run {
         System.out.println("Snippet project name: " + SNIPPET_PROJECT);
         System.out.println("Output directory: " + OUTPUT_DIR);
 
-        System.out.println("CATG directory: "
-                + ToolRegister.get(CatgTool.class).getToolDirectory());
-        System.out.println("jPET executable: "
-                + ToolRegister.get(JPetTool.class).getPetExecutable());
-        System.out.println("SPF JAR: "
-                + ToolRegister.get(SpfTool.class).getToolJAR());
+        if (ToolRegister.get(CatgTool.class) != null) {
+            System.out.println("CATG directory: "
+                    + ToolRegister.get(CatgTool.class)
+                            .getToolDirectory());
+        }
+        if (ToolRegister.get(JPetTool.class) != null) {
+            System.out.println("jPET executable: "
+                    + ToolRegister.get(JPetTool.class)
+                            .getPetExecutable());
+        }
+        if (ToolRegister.get(SpfTool.class) != null) {
+            System.out.println("SPF JAR: "
+                    + ToolRegister.get(SpfTool.class).getToolJAR());
+        }
 
         System.out.println("Tools:");
         for (Tool tool : ToolRegister.toArray()) {
