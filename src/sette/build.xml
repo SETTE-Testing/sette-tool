@@ -16,8 +16,8 @@
 	<property name="sette.base.libs.dir" location="../sette-base/libs" />
 	<property name="sette.common.build.dir" location="../sette-common/build" />
 
-	<property name="source" value="1.7" />
-	<property name="target" value="1.7" />
+	<property name="source" value="1.8" />
+	<property name="target" value="1.8" />
 
 	<!-- target: main  -->
 	<target name="main" depends="compile, jar" />

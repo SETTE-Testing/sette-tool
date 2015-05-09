@@ -80,7 +80,7 @@ public final class SpfTool extends Tool {
 
     @Override
     public JavaVersion getSupportedJavaVersion() {
-        return JavaVersion.JAVA_7;
+        return JavaVersion.JAVA_8;
     }
 
     @Override

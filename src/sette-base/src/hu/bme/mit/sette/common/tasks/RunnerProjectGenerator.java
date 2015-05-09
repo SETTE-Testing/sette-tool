@@ -65,7 +65,7 @@ import org.apache.commons.lang3.Validate;
  *            the type of the tool
  */
 public abstract class RunnerProjectGenerator<T extends Tool> extends
-SetteTask<T> {
+        SetteTask<T> {
     /** The Eclipse project. */
     private EclipseProject eclipseProject;
 
@@ -115,7 +115,7 @@ SetteTask<T> {
             String message = String.format(
                     "The runner project generation has failed\n"
                             + "(phase: [%s])\n(tool: [%s])", phase,
-                            getTool().getFullName());
+                    getTool().getFullName());
             throw new RunnerProjectGeneratorException(message, this, e);
         }
     }
@@ -130,8 +130,8 @@ SetteTask<T> {
         Validate.isTrue(
                 getSnippetProject().getState().equals(
                         SnippetProject.State.PARSED),
-                        "The snippet project must be parsed (state: [%s]) ",
-                        getSnippetProject().getState().name());
+                "The snippet project must be parsed (state: [%s]) ",
+                getSnippetProject().getState().name());
 
         // TODO snippet proj. val. can fail even if it is valid
         // getSnippetProjectSettings().validateExists();
@@ -164,9 +164,9 @@ SetteTask<T> {
                 .getLibraryFiles()) {
             cp.addEntry(Kind.LIBRARY,
                     getSnippetProjectSettings()
-                    .getLibraryDirectoryPath()
-                    + '/'
-                    + libraryFile.getName());
+                            .getLibraryDirectoryPath()
+                            + '/'
+                            + libraryFile.getName());
         }
     }
 
@@ -186,10 +186,10 @@ SetteTask<T> {
      *             transformation.
      */
     private void writeRunnerProject() throws IOException,
-    ParseException, ParserConfigurationException,
-    TransformerException {
+            ParseException, ParserConfigurationException,
+            TransformerException {
         // TODO revise whole method
-        // TODO now using JAPA, which does not support Java 7 -> maybe ANTLR
+        // TODO now using JAPA, which does not support Java 7/8 -> maybe ANTLR
         // supports
         // better
 
@@ -201,19 +201,19 @@ SetteTask<T> {
 
         StringBuilder infoFileData = new StringBuilder();
         infoFileData.append("Tool name: " + getTool().getName())
-        .append('\n');
+                .append('\n');
         infoFileData.append("Tool version: " + getTool().getVersion())
-        .append('\n');
+                .append('\n');
         infoFileData.append(
                 "Tool supported Java version: "
                         + getTool().getSupportedJavaVersion()).append(
-                                '\n');
+                '\n');
 
         // TODO externalise somewhere the date format string
         String generatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-        .format(new Date());
+                .format(new Date());
         infoFileData.append("Generated at: ").append(generatedAt)
-        .append('\n');
+                .append('\n');
 
         String id = generatedAt + ' ' + getTool().getName() + " ("
                 + getTool().getVersion() + ')';
@@ -252,11 +252,12 @@ SetteTask<T> {
                             if (annotStr
                                     .startsWith("@SetteSnippetContainer")
                                     && annotStr
-                                    .contains("requiredJavaVersion")
+                                            .contains("requiredJavaVersion")
                                     && annotStr
-                                    .contains("JavaVersion.JAVA_7")
+                                            .contains("JavaVersion.JAVA_7")
                                     && !getTool().supportsJavaVersion(
                                             JavaVersion.JAVA_7)) {
+                                // TODO support java version JAVA_8
                                 // TODO error handling
                                 // remove file
                                 System.err.println("Skipping file: "
