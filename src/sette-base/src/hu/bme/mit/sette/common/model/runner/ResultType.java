@@ -41,9 +41,9 @@ public enum ResultType {
     TM("T/M"),
     /** Input generation was successful. */
     S("S"),
-    /** Input generation was successful but did not produce maximum covarege. */
+    /** Input generation was successful but did not produce maximum coverage. */
     NC("NC"),
-    /** Input generation was succesful and produced maximum coverage. */
+    /** Input generation was successful and produced maximum coverage. */
     C("C");
 
     /** The string representation. */

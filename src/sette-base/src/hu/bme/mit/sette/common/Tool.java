@@ -108,6 +108,13 @@ public abstract class Tool implements Comparable<Tool> {
     }
 
     /**
+     * Returns the type of the generated output of the tool
+     * 
+     * @return the type of the generated output of the tool
+     */
+    public abstract ToolOutputType getOutputType();
+
+    /**
      * Returns the latest Java version which is supported by the tool.
      *
      * @return the latest Java version which is supported by the tool.
@@ -167,7 +174,7 @@ public abstract class Tool implements Comparable<Tool> {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override
@@ -183,7 +190,7 @@ public abstract class Tool implements Comparable<Tool> {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -193,7 +200,7 @@ public abstract class Tool implements Comparable<Tool> {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

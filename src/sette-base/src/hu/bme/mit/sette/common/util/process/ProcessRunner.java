@@ -47,7 +47,7 @@ public final class ProcessRunner {
      */
     private static final int WAIT_BEFORE_DESTROY = 100;
 
-    /** The timeout in ms. */
+    /** The timeout in ms (zero means no timeout). */
     private int timeoutInMs = 0;
 
     /** The poll interval in ms. */
@@ -112,13 +112,13 @@ public final class ProcessRunner {
         RunnableReader stdoutReader = new RunnableReader(
                 new BufferedReader(new InputStreamReader(
                         process.getInputStream())), stdoutData,
-                        readerBufferSize);
+                readerBufferSize);
         stdoutReader.addListener(new StdoutReaderListener());
 
         RunnableReader stderrReader = new RunnableReader(
                 new BufferedReader(new InputStreamReader(
                         process.getErrorStream())), stderrData,
-                        readerBufferSize);
+                readerBufferSize);
         stderrReader.addListener(new StderrReaderListener());
 
         Thread stdoutReaderThread = new Thread(stdoutReader);
@@ -205,7 +205,7 @@ public final class ProcessRunner {
     /**
      * Gets the timeout in ms.
      *
-     * @return the timeout in ms
+     * @return the timeout in ms (zero means no timeout)
      */
     public int getTimeoutInMs() {
         return timeoutInMs;
@@ -215,7 +215,7 @@ public final class ProcessRunner {
      * Sets the timeout in ms.
      *
      * @param pTimeoutInMs
-     *            the new timeout in ms
+     *            the new timeout in ms (zero means no timeout)
      */
     public void setTimeoutInMs(final int pTimeoutInMs) {
         timeoutInMs = pTimeoutInMs;
@@ -392,10 +392,10 @@ public final class ProcessRunner {
      * {@link StderrReaderListener} classes.
      */
     private abstract class BaseRunnableReaderListener implements
-    RunnableReaderListener {
+            RunnableReaderListener {
         /*
          * (non-Javadoc)
-         *
+         * 
          * @see hu.bme.mit.sette.common.util.process.RunnableReaderListener
          * #onIOException(hu.bme.mit.sette.common.util.process.RunnableReader,
          * java.io.IOException)
@@ -410,7 +410,7 @@ public final class ProcessRunner {
 
         /*
          * (non-Javadoc)
-         *
+         * 
          * @see hu.bme.mit.sette.common.util.process.RunnableReaderListener
          * #onComplete(hu.bme.mit.sette.common.util.process.RunnableReader)
          */
@@ -424,10 +424,10 @@ public final class ProcessRunner {
      * listeners of the {@link ProcessRunner}.
      */
     private final class StdoutReaderListener extends
-    BaseRunnableReaderListener {
+            BaseRunnableReaderListener {
         /*
          * (non-Javadoc)
-         *
+         * 
          * @see
          * hu.bme.mit.sette.common.util.process.RunnableReaderListener#onRead
          * (hu.bme.mit.sette.common.util.process.RunnableReader, int)
@@ -447,10 +447,10 @@ public final class ProcessRunner {
      * listeners of the {@link ProcessRunner}.
      */
     private final class StderrReaderListener extends
-    BaseRunnableReaderListener {
+            BaseRunnableReaderListener {
         /*
          * (non-Javadoc)
-         *
+         * 
          * @see
          * hu.bme.mit.sette.common.util.process.RunnableReaderListener#onRead
          * (hu.bme.mit.sette.common.util.process.RunnableReader, int)

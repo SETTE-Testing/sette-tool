@@ -110,6 +110,14 @@ public final class JaCoCoClassLoader extends ClassLoader {
         }
     }
 
+    public Class<?> tryLoadClass(String name) {
+        try {
+            return loadClass(name);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
     /**
      * Finds the corresponding binary file for the specified class.
      *

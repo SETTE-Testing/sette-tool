@@ -23,7 +23,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package hu.bme.mit.sette.tools.spf;
+package hu.bme.mit.sette.tools.randoop;
 
 import hu.bme.mit.sette.common.Tool;
 import hu.bme.mit.sette.common.ToolOutputType;
@@ -37,13 +37,13 @@ import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 
 import java.io.File;
 
-public final class SpfTool extends Tool {
+public final class RandoopTool extends Tool {
     private final File toolJAR;
     private final File defaultBuildXml;
 
-    public SpfTool(File toolJAR, File defaultBuildXml, String version)
-            throws SetteConfigurationException {
-        super("SPF", "Symbolic Pathfinder", version);
+    public RandoopTool(File toolJAR, File defaultBuildXml,
+            String version) throws SetteConfigurationException {
+        super("Randoop", "Randoop", version);
         this.toolJAR = toolJAR;
         this.defaultBuildXml = defaultBuildXml;
 
@@ -59,7 +59,7 @@ public final class SpfTool extends Tool {
             v.validate();
         } catch (ValidatorException e) {
             throw new SetteConfigurationException(
-                    "The SPF JAR is invalid: " + toolJAR, e);
+                    "The Randoop JAR is invalid: " + toolJAR, e);
         }
 
         return toolJAR;
@@ -72,7 +72,7 @@ public final class SpfTool extends Tool {
             v.validate();
         } catch (ValidatorException e) {
             throw new SetteConfigurationException(
-                    "The default SPF build.xml is invalid: "
+                    "The default Randoop build.xml is invalid: "
                             + defaultBuildXml, e);
         }
 
@@ -81,29 +81,30 @@ public final class SpfTool extends Tool {
 
     @Override
     public ToolOutputType getOutputType() {
-        return ToolOutputType.INPUT_VALUES;
+        return ToolOutputType.JUNIT3_TEST_CASES;
     }
 
     @Override
     public JavaVersion getSupportedJavaVersion() {
-        return JavaVersion.JAVA_8;
+        return JavaVersion.JAVA_7;
     }
 
     @Override
-    public SpfGenerator createRunnerProjectGenerator(
+    public RandoopGenerator createRunnerProjectGenerator(
             SnippetProject snippetProject, File outputDirectory) {
-        return new SpfGenerator(snippetProject, outputDirectory, this);
+        return new RandoopGenerator(snippetProject, outputDirectory,
+                this);
     }
 
     @Override
-    public SpfRunner createRunnerProjectRunner(
+    public RandoopRunner createRunnerProjectRunner(
             SnippetProject snippetProject, File outputDirectory) {
-        return new SpfRunner(snippetProject, outputDirectory, this);
+        return new RandoopRunner(snippetProject, outputDirectory, this);
     }
 
     @Override
     public RunResultParser<?> createRunResultParser(
             SnippetProject snippetProject, File outputDirectory) {
-        return new SpfParser(snippetProject, outputDirectory, this);
+        return new RandoopParser(snippetProject, outputDirectory, this);
     }
 }

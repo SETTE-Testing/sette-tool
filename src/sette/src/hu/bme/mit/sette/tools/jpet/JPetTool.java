@@ -26,6 +26,7 @@
 package hu.bme.mit.sette.tools.jpet;
 
 import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.exceptions.SetteConfigurationException;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectSettings;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
@@ -60,7 +61,7 @@ public final class JPetTool extends Tool {
         try {
             FileValidator v = new FileValidator(petExecutable);
             v.type(FileType.REGULAR_FILE).readable(true)
-            .executable(true);
+                    .executable(true);
             v.validate();
         } catch (ValidatorException e) {
             throw new SetteConfigurationException(
@@ -83,6 +84,11 @@ public final class JPetTool extends Tool {
         }
 
         return defaultBuildXml;
+    }
+
+    @Override
+    public ToolOutputType getOutputType() {
+        return ToolOutputType.INPUT_VALUES;
     }
 
     @Override
@@ -113,8 +119,8 @@ public final class JPetTool extends Tool {
             Snippet snippet) {
         return new File(getTestCasesDirectory(runnerProjectSettings),
                 RunnerProjectUtils.getSnippetBaseFilename(snippet)
-                + JavaFileUtils.FILE_EXTENSION_SEPARATOR
-                + "xml");
+                        + JavaFileUtils.FILE_EXTENSION_SEPARATOR
+                        + "xml");
     }
 
     @Override

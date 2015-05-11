@@ -42,6 +42,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +75,7 @@ import org.simpleframework.xml.stream.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestSuiteRunner extends SetteTask<Tool> {
+public final class TestSuiteRunner extends SetteTask<Tool> {
     private static final Logger logger = LoggerFactory
             .getLogger(TestSuiteRunner.class);
 
@@ -194,7 +195,6 @@ public class TestSuiteRunner extends SetteTask<Tool> {
         runtime.startup(data);
 
         // create class loader
-
         JaCoCoClassLoader classLoader = new JaCoCoClassLoader(
                 binaryDirectories, instrumenter, getSnippetProject()
                         .getClassLoader());
@@ -202,40 +202,44 @@ public class TestSuiteRunner extends SetteTask<Tool> {
         // load test class
         // snippet class and other dependencies will be loaded and instrumented
         // on the fly
-        Class<?> testClass = classLoader.loadClass(testClassName);
+        List<Class<?>> testClasses = loadTestClasses(classLoader,
+                testClassName);
 
-        TestCase testClassInstance = (TestCase) testClass.newInstance();
-
-        // invoke test methods
-        // TODO separate collect and invoke
-        for (Method m : testClass.getDeclaredMethods()) {
-            if (m.isSynthetic()) {
-                // skip synthetic method
-                continue;
-            }
-
-            if (m.getName().startsWith("test")) {
-                logger.trace("Invoking: " + m.getName());
-                try {
-                    m.invoke(testClassInstance);
-                } catch (InvocationTargetException e) {
-                    Throwable cause = e.getCause();
-
-                    if (cause instanceof NullPointerException
-                            || cause instanceof ArrayIndexOutOfBoundsException
-                            || cause instanceof AssertionFailedError) {
-                        logger.warn(cause.getClass().getName() + ": "
-                                + m.getDeclaringClass().getName() + "."
-                                + m.getName());
-                    } else {
-                        logger.error("Exception: "
-                                + m.getDeclaringClass().getName() + "."
-                                + m.getName());
-                    }
-                    logger.debug(e.getMessage(), e);
+        // invoke test methods in each test class
+        for (Class<?> testClass : testClasses) {
+            TestCase testClassInstance = (TestCase) testClass
+                    .newInstance();
+            // TODO separate collect and invoke
+            for (Method m : testClass.getDeclaredMethods()) {
+                if (m.isSynthetic()) {
+                    // skip synthetic method
+                    continue;
                 }
-            } else {
-                logger.warn("Not test method: {}", m.getName());
+
+                if (m.getName().startsWith("test")) {
+                    logger.trace("Invoking: " + m.getName());
+                    try {
+                        m.invoke(testClassInstance);
+                    } catch (InvocationTargetException e) {
+                        Throwable cause = e.getCause();
+
+                        if (cause instanceof NullPointerException
+                                || cause instanceof ArrayIndexOutOfBoundsException
+                                || cause instanceof AssertionFailedError) {
+                            logger.warn(cause.getClass().getName()
+                                    + ": "
+                                    + m.getDeclaringClass().getName()
+                                    + "." + m.getName());
+                        } else {
+                            logger.error("Exception: "
+                                    + m.getDeclaringClass().getName()
+                                    + "." + m.getName());
+                        }
+                        logger.debug(e.getMessage(), e);
+                    }
+                } else {
+                    logger.warn("Not test method: {}", m.getName());
+                }
             }
         }
 
@@ -466,6 +470,55 @@ public class TestSuiteRunner extends SetteTask<Tool> {
         htmlData.append("</html>\n");
 
         FileUtils.write(htmlFile, htmlData);
+    }
+
+    private List<Class<?>> loadTestClasses(
+            JaCoCoClassLoader classLoader, String testClassName) {
+        List<Class<?>> testClasses = new ArrayList<>();
+
+        Class<?> testClass = classLoader.tryLoadClass(testClassName);
+
+        if (testClass != null) {
+            // one class containing the test cases
+            testClasses.add(testClass);
+        } else {
+            // one package containing the test cases
+            String testPackageName = testClassName;
+            // try to load the class for the test suite (it is not used by
+            // SETTE)
+            testClassName = testPackageName + ".Tests";
+
+            if (classLoader.tryLoadClass(testClassName) == null) {
+                // no test suite class
+                // TODO
+                System.err.println("No test suite class for "
+                        + testClassName);
+            }
+
+            int i = 0;
+            while (true) {
+                // load the i-th test class (i starts at zero)
+                testClass = classLoader.tryLoadClass(testClassName + i);
+
+                if (testClass != null) {
+                    testClasses.add(testClass);
+                } else {
+                    // the i-th test class does not exists
+                    if (classLoader.tryLoadClass(testClassName + (i + 1)) != null) {
+                        // but the (i+1)-th test class exists -> problem
+                        throw new RuntimeException(
+                                "i-th does not, but (i+1)-th exists! i="
+                                        + i);
+                    } else {
+                        // ok, all test classes were found
+                        break;
+                    }
+                }
+
+                i++;
+            }
+        }
+        return testClasses;
     }
 
     // TODO needed anymore?

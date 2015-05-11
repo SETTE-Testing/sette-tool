@@ -210,7 +210,6 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
         // run process
         ProcessRunner pr = new ProcessRunner();
         pr.setCommand(cmd);
-        ;
 
         pr.setWorkingDirectory(getRunnerProjectSettings()
                 .getBaseDirectory());

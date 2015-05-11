@@ -35,5 +35,12 @@ spf-default-build.xml = sette-tool/test-generator-tools/spf/sette-build.xml.defa
 # relative path to the SPF VERSION file
 spf-version-file = sette-tool/test-generator-tools/spf/VERSION
 
+# relative path to randoop.jar
+randoop = sette-tool/test-generator-tools/randoop/randoop.jar
+# relative path to default build.xml for generated Randoop projects
+randoop-default-build.xml = sette-tool/test-generator-tools/randoop/sette-build.xml.default
+# relative path to the Randoop VERSION file
+randoop-version-file = sette-tool/test-generator-tools/randoop/VERSION
+
 # relative path to output directory
 output-dir = sette-results

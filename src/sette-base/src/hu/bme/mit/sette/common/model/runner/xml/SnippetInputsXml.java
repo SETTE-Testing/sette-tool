@@ -42,7 +42,7 @@ import org.simpleframework.xml.Root;
 public final class SnippetInputsXml extends SnippetBaseXml {
     /** The generated inputs. */
     @ElementList(name = "generatedInputs", entry = "input",
-            type = InputElement.class)
+            type = InputElement.class, required = false)
     private List<InputElement> generatedInputs;
 
     /**
@@ -74,7 +74,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * hu.bme.mit.sette.common.model.runner.xml.SnippetBaseXml#validate2(hu.
      * bme.mit.sette.common.validator.GeneralValidator)
@@ -88,8 +88,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
         }
 
         if (generatedInputs == null) {
-            validator.addException("The list of generated inputs "
-                    + "must not be null");
+            // tag is omitted
         } else {
             for (InputElement input : generatedInputs) {
                 try {

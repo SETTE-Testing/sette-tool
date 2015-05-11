@@ -29,6 +29,7 @@ import hu.bme.mit.sette.GeneratorUI;
 import hu.bme.mit.sette.ParserUI;
 import hu.bme.mit.sette.RunnerUI;
 import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.ToolRegister;
 import hu.bme.mit.sette.common.exceptions.SetteException;
 import hu.bme.mit.sette.common.model.runner.ResultType;
@@ -48,6 +49,7 @@ import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 import hu.bme.mit.sette.snippetbrowser.SnippetBrowser;
 import hu.bme.mit.sette.tools.catg.CatgTool;
 import hu.bme.mit.sette.tools.jpet.JPetTool;
+import hu.bme.mit.sette.tools.randoop.RandoopTool;
 import hu.bme.mit.sette.tools.spf.SpfTool;
 
 import java.awt.EventQueue;
@@ -125,6 +127,11 @@ public final class Run {
         String spfDefaultBuildXml = prop
                 .getProperty("spf-default-build.xml");
         String spfVersionFile = prop.getProperty("spf-version-file");
+        String randoopPath = prop.getProperty("randoop");
+        String randoopVersionFile = prop
+                .getProperty("randoop-version-file");
+        String randoopDefaultBuildXml = prop
+                .getProperty("randoop-default-build.xml");
         String outputDir = prop.getProperty("output-dir");
 
         Validate.notEmpty(basedirs,
@@ -142,6 +149,9 @@ public final class Run {
                 + SETTE_PROPERTIES);
         Validate.notBlank(spfPath, "The property spf must be set in "
                 + SETTE_PROPERTIES);
+        Validate.notBlank(randoopPath,
+                "The property randoop must be set in "
+                        + SETTE_PROPERTIES);
         Validate.notBlank(outputDir,
                 "The property output-dir must be set in "
                         + SETTE_PROPERTIES);
@@ -197,6 +207,14 @@ public final class Run {
             if (spfVersion != null) {
                 new SpfTool(new File(BASEDIR, spfPath), new File(
                         BASEDIR, spfDefaultBuildXml), spfVersion);
+            }
+
+            String randoopVersion = readToolVersion(new File(BASEDIR,
+                    randoopVersionFile));
+            if (randoopVersion != null) {
+                new RandoopTool(new File(BASEDIR, randoopPath),
+                        new File(BASEDIR, randoopDefaultBuildXml),
+                        randoopVersion);
             }
 
             // TODO stuff
@@ -267,6 +285,10 @@ public final class Run {
             System.out.println("SPF JAR: "
                     + ToolRegister.get(SpfTool.class).getToolJAR());
         }
+        if (ToolRegister.get(RandoopTool.class) != null) {
+            System.out.println("Randoop JAR: "
+                    + ToolRegister.get(RandoopTool.class).getToolJAR());
+        }
 
         System.out.println("Tools:");
         for (Tool tool : ToolRegister.toArray()) {
@@ -278,37 +300,39 @@ public final class Run {
 
         // get scenario
         String scenario = Run.readScenario(args, in, out);
-        if (scenario == null) {
+        if (scenario == null || "exit".equals(scenario)) {
             return;
         }
 
-        switch (scenario) {
-        case "exit":
-            break;
+        SnippetProject snippetProject = Run.createSnippetProject(true);
+        Tool tool = Run.readTool(in, out);
 
+        switch (scenario) {
         case "generator":
-            new GeneratorUI(Run.createSnippetProject(true),
-                    Run.readTool(in, out)).run(in, out);
+            new GeneratorUI(snippetProject, tool).run(in, out);
             break;
 
         case "runner":
-            new RunnerUI(Run.createSnippetProject(true), Run.readTool(
-                    in, out)).run(in, out);
+            new RunnerUI(snippetProject, tool).run(in, out);
             break;
 
         case "parser":
-            new ParserUI(Run.createSnippetProject(true), Run.readTool(
-                    in, out)).run(in, out);
+            new ParserUI(snippetProject, tool).run(in, out);
             break;
 
         case "tests-generator":
-            new TestSuiteGenerator(Run.createSnippetProject(true),
-                    OUTPUT_DIR, Run.readTool(in, out)).generate();
+            if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
+                new TestSuiteGenerator(snippetProject, OUTPUT_DIR, tool)
+                        .generate();
+            } else {
+                System.out
+                        .println("This tool has already generated a test suite");
+            }
             break;
 
         case "tests-run":
-            new TestSuiteRunner(Run.createSnippetProject(true),
-                    OUTPUT_DIR, Run.readTool(in, out)).analyze();
+            new TestSuiteRunner(snippetProject, OUTPUT_DIR, tool)
+                    .analyze();
             break;
 
         case "snippet-browser":
@@ -316,8 +340,8 @@ public final class Run {
                 @Override
                 public void run() {
                     try {
-                        SnippetBrowser frame = new SnippetBrowser(Run
-                                .createSnippetProject(true));
+                        SnippetBrowser frame = new SnippetBrowser(
+                                snippetProject);
                         frame.setVisible(true);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -329,7 +353,7 @@ public final class Run {
         case "export-csv":
             out.print("Target file: ");
             String file = in.readLine();
-            exportCSV(Run.createSnippetProject(true), new File(file));
+            exportCSV(snippetProject, new File(file));
             break;
 
         default:

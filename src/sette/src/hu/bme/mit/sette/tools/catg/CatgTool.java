@@ -26,6 +26,7 @@
 package hu.bme.mit.sette.tools.catg;
 
 import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.exceptions.SetteConfigurationException;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.snippets.JavaVersion;
@@ -60,6 +61,11 @@ public final class CatgTool extends Tool {
         }
 
         return toolDirectory;
+    }
+    
+    @Override
+    public ToolOutputType getOutputType() {
+        return ToolOutputType.INPUT_VALUES;
     }
 
     @Override

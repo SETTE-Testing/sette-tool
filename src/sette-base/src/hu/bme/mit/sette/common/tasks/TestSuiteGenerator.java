@@ -135,16 +135,16 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                         + classSimpleName;
 
                 java.append("package ").append(pkg.getName())
-                .append(";\n");
+                        .append(";\n");
                 java.append("\n");
                 java.append("import junit.framework.TestCase;\n");
                 java.append("import ")
-                .append(container.getJavaClass().getName())
-                .append(";\n");
+                        .append(container.getJavaClass().getName())
+                        .append(";\n");
                 java.append("\n");
                 java.append("public final class ")
-                .append(classSimpleName)
-                .append(" extends TestCase {\n");
+                        .append(classSimpleName)
+                        .append(" extends TestCase {\n");
 
                 int i = 0;
                 for (InputElement inputElement : inputsXml
@@ -152,14 +152,14 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                     i++;
 
                     java.append("    public void test_").append(i)
-                    .append("() throws Exception {\n");
+                            .append("() throws Exception {\n");
 
                     // heap
                     if (StringUtils.isNotBlank(inputElement.getHeap())) {
                         for (String heapLine : inputElement.getHeap()
                                 .split("\\r?\\n")) {
                             java.append("        ").append(heapLine)
-                            .append('\n');
+                                    .append('\n');
                         }
 
                         java.append("        \n");
@@ -174,8 +174,8 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                                 inputElement);
                         java.append("            fail();\n");
                         java.append("        } catch (")
-                        .append(inputElement.getExpected())
-                        .append(" e) {\n");
+                                .append(inputElement.getExpected())
+                                .append(" e) {\n");
                         java.append("        }\n");
                     } else {
                         java.append("        ");
@@ -190,7 +190,7 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
 
                 File testsFile = new File(testsDir,
                         JavaFileUtils
-                        .classNameToSourceFilename(className));
+                                .classNameToSourceFilename(className));
                 FileUtils.write(testsFile, java.toString());
 
                 // import junit.framework.TestCase;
@@ -303,7 +303,7 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
             final Class<?> javaClass, final Method method,
             final InputElement inputElement) {
         sb.append(javaClass.getSimpleName()).append('.')
-        .append(method.getName());
+                .append(method.getName());
         sb.append("(");
 
         for (AbstractParameterElement parameter : inputElement
