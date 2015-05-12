@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 public final class RandoopRunner extends
         RunnerProjectRunner<RandoopTool> {
@@ -158,9 +159,18 @@ public final class RandoopRunner extends
         // + "_" + snippet.getMethod().getName();
 
         // create command
+        String classpath = randoopJar.getCanonicalPath()
+                + SystemUtils.PATH_SEPARATOR + "build";
 
-        String classpath = randoopJar.getCanonicalPath() + ':'
-                + "build";
+        for (File libraryFile : getSnippetProject().getFiles()
+                .getLibraryFiles()) {
+            classpath += SystemUtils.PATH_SEPARATOR
+                    + getSnippetProjectSettings()
+                            .getLibraryDirectoryPath()
+                    + SystemUtils.FILE_SEPARATOR
+                    + libraryFile.getName();
+        }
+
         int timelimit = (getTimeoutInMs() + 500) / 1000; // ceil
         String junitPackageName = snippet.getContainer().getJavaClass()
                 .getName()

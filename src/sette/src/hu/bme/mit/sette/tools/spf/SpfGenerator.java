@@ -41,6 +41,7 @@ import java.lang.reflect.Method;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
     public SpfGenerator(SnippetProject snippetProject,
@@ -98,13 +99,15 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
 
                 jpfConfig.symbolicMethod.add(symbMethod);
 
-                jpfConfig.classpath = "build/";
+                jpfConfig.classpath = "build"
+                        + SystemUtils.FILE_SEPARATOR;
 
                 for (File libraryFile : getSnippetProject().getFiles()
                         .getLibraryFiles()) {
                     jpfConfig.classpath += ','
                             + getSnippetProjectSettings()
-                            .getLibraryDirectoryPath() + '/'
+                                    .getLibraryDirectoryPath()
+                            + SystemUtils.FILE_SEPARATOR
                             + libraryFile.getName();
                 }
 
@@ -133,11 +136,11 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
 
                 main.codeLines().add(
                         javaClass.getSimpleName()
-                        + '.'
-                        + method.getName()
-                        + '('
-                        + StringUtils.join(parameterLiterals,
-                                ", ") + ");");
+                                + '.'
+                                + method.getName()
+                                + '('
+                                + StringUtils.join(parameterLiterals,
+                                        ", ") + ");");
 
                 // save files
                 String relativePath = JavaFileUtils
@@ -149,7 +152,7 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
 
                 File targetJPFFile = new File(
                         getRunnerProjectSettings()
-                        .getGeneratedDirectory(),
+                                .getGeneratedDirectory(),
                         relativePathJPF);
                 FileUtils.forceMkdir(targetJPFFile.getParentFile());
                 FileUtils.write(targetJPFFile, jpfConfig.generate()
@@ -157,7 +160,7 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
 
                 File targetMainFile = new File(
                         getRunnerProjectSettings()
-                        .getGeneratedDirectory(),
+                                .getGeneratedDirectory(),
                         relativePathMain);
                 FileUtils.forceMkdir(targetMainFile.getParentFile());
                 FileUtils.write(targetMainFile, main.generateJavaCode()

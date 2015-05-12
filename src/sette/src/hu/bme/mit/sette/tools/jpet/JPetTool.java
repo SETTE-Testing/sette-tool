@@ -33,7 +33,6 @@ import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
 import hu.bme.mit.sette.common.util.JavaFileUtils;
 import hu.bme.mit.sette.common.validator.FileType;
 import hu.bme.mit.sette.common.validator.FileValidator;
@@ -124,7 +123,7 @@ public final class JPetTool extends Tool {
     }
 
     @Override
-    public RunResultParser<?> createRunResultParser(
+    public JPetParser createRunResultParser(
             SnippetProject snippetProject, File outputDirectory) {
         return new JPetParser(snippetProject, outputDirectory, this);
     }

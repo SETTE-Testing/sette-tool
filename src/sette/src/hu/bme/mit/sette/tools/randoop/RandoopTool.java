@@ -30,7 +30,6 @@ import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.exceptions.SetteConfigurationException;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
 import hu.bme.mit.sette.common.validator.FileType;
 import hu.bme.mit.sette.common.validator.FileValidator;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
@@ -103,7 +102,7 @@ public final class RandoopTool extends Tool {
     }
 
     @Override
-    public RunResultParser<?> createRunResultParser(
+    public RandoopParser createRunResultParser(
             SnippetProject snippetProject, File outputDirectory) {
         return new RandoopParser(snippetProject, outputDirectory, this);
     }

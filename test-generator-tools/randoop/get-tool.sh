@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script downloads jPET.
+# This script downloads Randoop.
 
 CWD="$(
   cd "$(dirname "$(readlink "$0" || printf %s "$0")")"
