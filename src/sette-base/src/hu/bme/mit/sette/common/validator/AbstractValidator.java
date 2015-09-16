@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.validator;
 
 import hu.bme.mit.sette.common.validator.exceptions.ValidationException;
@@ -54,12 +52,12 @@ public abstract class AbstractValidator<T> {
     /**
      * Instantiates a new abstract validator.
      *
-     * @param pSubject
+     * @param subject
      *            the subject
      */
-    public AbstractValidator(final T pSubject) {
-        this.subject = pSubject;
-        this.exceptions = new ArrayList<>();
+    public AbstractValidator(T subject) {
+        this.subject = subject;
+        exceptions = new ArrayList<>();
         children = new ArrayList<>();
     }
 
@@ -132,7 +130,7 @@ public abstract class AbstractValidator<T> {
      * @param exception
      *            the exception
      */
-    public final void addException(final ValidationException exception) {
+    public final void addException(ValidationException exception) {
         Validate.notNull("The exception must not be null");
         this.exceptions.add(exception);
     }
@@ -143,7 +141,7 @@ public abstract class AbstractValidator<T> {
      * @param message
      *            the message
      */
-    public final void addException(final String message) {
+    public final void addException(String message) {
         addException(message, null);
     }
 
@@ -155,8 +153,7 @@ public abstract class AbstractValidator<T> {
      * @param cause
      *            the cause
      */
-    public abstract void addException(final String message,
-            final Throwable cause);
+    public abstract void addException(String message, Throwable cause);
 
     /**
      * Gets the children validators of this validator.
@@ -184,8 +181,7 @@ public abstract class AbstractValidator<T> {
      * @param collection
      *            the collection
      */
-    private void addChildrenTo(
-            final Collection<AbstractValidator<?>> collection) {
+    private void addChildrenTo(Collection<AbstractValidator<?>> collection) {
         collection.add(this);
         for (AbstractValidator<?> v : this.children) {
             v.addChildrenTo(collection);
@@ -210,8 +206,7 @@ public abstract class AbstractValidator<T> {
      * @param collection
      *            the collection
      */
-    private void addExceptionsTo(
-            final Collection<ValidationException> collection) {
+    private void addExceptionsTo(Collection<ValidationException> collection) {
         collection.addAll(this.exceptions);
         for (AbstractValidator<?> v : this.children) {
             v.addExceptionsTo(collection);
@@ -224,21 +219,19 @@ public abstract class AbstractValidator<T> {
      * @param validator
      *            the validator
      */
-    public final void addChild(final AbstractValidator<?> validator) {
+    public final void addChild(AbstractValidator<?> validator) {
         // TODO avoid circles
         Validate.notNull("The validator must not be null");
         this.children.add(validator);
     }
 
     /**
-     * Adds the given validator to this as a child if the given validator is
-     * invalid.
+     * Adds the given validator to this as a child if the given validator is invalid.
      *
      * @param validator
      *            the validator
      */
-    public final void addChildIfInvalid(
-            final AbstractValidator<?> validator) {
+    public final void addChildIfInvalid(AbstractValidator<?> validator) {
         // TODO avoid circles
         Validate.notNull("The validator must not be null");
         if (!validator.isValid()) {

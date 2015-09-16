@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import hu.bme.mit.sette.common.Tool;
@@ -50,30 +48,25 @@ abstract class SetteTask<T extends Tool> {
     /**
      * Instantiates a new SETTE task.
      *
-     * @param pSnippetProject
+     * @param snippetProject
      *            the snippet project
      * @param outputDirectory
      *            the output directory
      * @param tool
      *            the tool
      */
-    public SetteTask(final SnippetProject pSnippetProject,
-            final File outputDirectory, final T tool) {
-        Validate.notNull(pSnippetProject,
-                "The snippet project must not be null");
-        Validate.isTrue(
-                pSnippetProject.getState().equals(
-                        SnippetProject.State.PARSED),
-                        "The snippet project must be parsed (state: [%s]) ",
-                        pSnippetProject.getState().name());
+    public SetteTask(SnippetProject snippetProject, File outputDirectory, T tool) {
+        Validate.notNull(snippetProject, "The snippet project must not be null");
+        Validate.isTrue(snippetProject.getState().equals(SnippetProject.State.PARSED),
+                "The snippet project must be parsed (state: [%s]) ",
+                snippetProject.getState().name());
 
-        Validate.notNull(outputDirectory,
-                "The output directory must not be null");
+        Validate.notNull(outputDirectory, "The output directory must not be null");
         Validate.notNull(tool, "The tool must not be null");
 
-        this.snippetProject = pSnippetProject;
-        this.runnerProjectSettings = new RunnerProjectSettings<>(
-                pSnippetProject.getSettings(), outputDirectory, tool);
+        this.snippetProject = snippetProject;
+        this.runnerProjectSettings = new RunnerProjectSettings<>(snippetProject.getSettings(),
+                outputDirectory, tool);
     }
 
     /**

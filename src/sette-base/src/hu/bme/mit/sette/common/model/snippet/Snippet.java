@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.annotations.SetteIncludeCoverage;
@@ -49,11 +47,10 @@ import org.apache.commons.lang3.Validate;
  */
 public final class Snippet {
     /**
-     * Pattern for method strings in @SetteIncludeCoverage annotation. An
-     * example matching the pattern: "methodName(int, my.pkg.MyClass)"
+     * Pattern for method strings in @SetteIncludeCoverage annotation. An example matching the
+     * pattern: "methodName(int, my.pkg.MyClass)"
      */
-    public static final Pattern METHOD_STRING_PATTERN = Pattern
-            .compile("(.+)\\((.*)\\)");
+    public static final Pattern METHOD_STRING_PATTERN = Pattern.compile("(.+)\\((.*)\\)");
 
     /** The snippet container. */
     private final SnippetContainer container;
@@ -76,39 +73,34 @@ public final class Snippet {
     /**
      * Instantiates a new snippet.
      *
-     * @param pContainer
+     * @param container
      *            the snippet container
-     * @param pMethod
+     * @param method
      *            the method
      * @param classLoader
      *            the class loader for loading snippet project classes
      * @throws ValidatorException
      *             if validation has failed
      */
-    Snippet(final SnippetContainer pContainer, final Method pMethod,
-            final ClassLoader classLoader) throws ValidatorException {
-        Validate.notNull(pContainer, "The container must not be null");
-        Validate.notNull(pMethod, "The method must not be null");
-        Validate.isTrue(
-                pContainer.getJavaClass().equals(
-                        pMethod.getDeclaringClass()),
-                        "The method must be declared in the "
-                                + "Java class of the container\n"
-                                + "(container.javaClass: [%s])\n"
-                                + "(method.declaringClass: [%s])",
-                                pContainer.getJavaClass(), pMethod.getDeclaringClass());
+    Snippet(SnippetContainer container, Method method, ClassLoader classLoader)
+            throws ValidatorException {
+        Validate.notNull(container, "The container must not be null");
+        Validate.notNull(method, "The method must not be null");
+        Validate.isTrue(container.getJavaClass().equals(method.getDeclaringClass()),
+                "The method must be declared in the Java class of the container\n"
+                        + "(container.javaClass: [%s])\n(method.declaringClass: [%s])",
+                container.getJavaClass(), method.getDeclaringClass());
 
-        container = pContainer;
-        method = pMethod;
+        this.container = container;
+        this.method = method;
         inputFactory = null; // should be set later by setter method
 
         // start validation
-        MethodValidator v = new MethodValidator(pMethod);
+        MethodValidator v = new MethodValidator(method);
         // modifiers are checked by the container when parsing the Java class
 
         // check SETTE annotations
-        AnnotationMap methodAnnots = SetteAnnotationUtils
-                .getSetteAnnotations(pMethod);
+        AnnotationMap methodAnnots = SetteAnnotationUtils.getSetteAnnotations(method);
 
         SetteRequiredStatementCoverage reqStmtCovAnnot;
         SetteIncludeCoverage inclCovAnnot;
@@ -116,21 +108,17 @@ public final class Snippet {
         reqStmtCovAnnot = (SetteRequiredStatementCoverage) methodAnnots
                 .get(SetteRequiredStatementCoverage.class);
 
-        inclCovAnnot = (SetteIncludeCoverage) methodAnnots
-                .get(SetteIncludeCoverage.class);
+        inclCovAnnot = (SetteIncludeCoverage) methodAnnots.get(SetteIncludeCoverage.class);
 
         if (reqStmtCovAnnot == null) {
             v.addException("Method must have the annotation @"
-                    + SetteRequiredStatementCoverage.class
-                    .getSimpleName());
+                    + SetteRequiredStatementCoverage.class.getSimpleName());
         }
 
         if ((inclCovAnnot != null && methodAnnots.size() != 2)
                 || (inclCovAnnot == null && methodAnnots.size() != 1)) {
-            v.addException("Method must not have any SETTE annotation "
-                    + "other than @"
-                    + SetteRequiredStatementCoverage.class.getName()
-                    + " and @"
+            v.addException("Method must not have any SETTE annotation other than @"
+                    + SetteRequiredStatementCoverage.class.getName() + " and @"
                     + SetteIncludeCoverage.class.getSimpleName());
         }
 
@@ -141,10 +129,8 @@ public final class Snippet {
             if (value < SetteRequiredStatementCoverage.MIN
                     || value > SetteRequiredStatementCoverage.MAX) {
                 v.addException(String.format(
-                        "Required statement coverage must be "
-                                + "between %.2f%% and %.2f%%",
-                                SetteRequiredStatementCoverage.MIN,
-                                SetteRequiredStatementCoverage.MAX));
+                        "Required statement coverage must be between %.2f%% and %.2f%%",
+                        SetteRequiredStatementCoverage.MIN, SetteRequiredStatementCoverage.MAX));
             }
 
             requiredStatementCoverage = value;
@@ -170,9 +156,8 @@ public final class Snippet {
      * @param classLoader
      *            the class loader for loading snippet project classes
      */
-    private void parseIncludedMethods(
-            final SetteIncludeCoverage annotation,
-            final MethodValidator v, final ClassLoader classLoader) {
+    private void parseIncludedMethods(SetteIncludeCoverage annotation, MethodValidator v,
+            ClassLoader classLoader) {
         if (annotation == null) {
             return;
         }
@@ -188,8 +173,7 @@ public final class Snippet {
         }
 
         if (ArrayUtils.contains(includedClasses, null)) {
-            v.addException("The included class list "
-                    + "must not contain null elements");
+            v.addException("The included class list must not contain null elements");
             shouldParse = false;
         }
 
@@ -199,15 +183,12 @@ public final class Snippet {
         }
 
         if (ArrayUtils.contains(includedMethodStrings, null)) {
-            v.addException("The included method list "
-                    + "must not contain null elements");
+            v.addException("The included method list must not contain null elements");
             shouldParse = false;
         }
 
-        if (!ArrayUtils.isSameLength(includedClasses,
-                includedMethodStrings)) {
-            v.addException("The included class list and method list "
-                    + "must have the same length");
+        if (!ArrayUtils.isSameLength(includedClasses, includedMethodStrings)) {
+            v.addException("The included class list and method list must have the same length");
             shouldParse = false;
         }
 
@@ -215,13 +196,11 @@ public final class Snippet {
             // check and add methods
             for (int i = 0; i < includedClasses.length; i++) {
                 Class<?> includedClass = includedClasses[i];
-                String includedMethodString = includedMethodStrings[i]
-                        .trim();
+                String includedMethodString = includedMethodStrings[i].trim();
 
                 if (includedMethodString.equals("*")) {
                     // add all non-synthetic constructors
-                    for (Constructor<?> c : includedClass
-                            .getDeclaredConstructors()) {
+                    for (Constructor<?> c : includedClass.getDeclaredConstructors()) {
                         if (!c.isSynthetic()) {
                             addIncludedConstructor(c, v);
                         }
@@ -233,8 +212,7 @@ public final class Snippet {
                         }
                     }
                 } else {
-                    parseIncludedMethod(includedClass,
-                            includedMethodString, v, classLoader);
+                    parseIncludedMethod(includedClass, includedMethodString, v, classLoader);
                 }
             }
         }
@@ -252,28 +230,23 @@ public final class Snippet {
      * @param classLoader
      *            the class loader for loading snippet project classes
      */
-    private void parseIncludedMethod(final Class<?> includedClass,
-            final String includedMethodString, final MethodValidator v,
-            final ClassLoader classLoader) {
-        Matcher matcher = Snippet.METHOD_STRING_PATTERN
-                .matcher(includedMethodString);
+    private void parseIncludedMethod(Class<?> includedClass, String includedMethodString,
+            MethodValidator v, ClassLoader classLoader) {
+        Matcher matcher = Snippet.METHOD_STRING_PATTERN.matcher(includedMethodString);
 
         if (!matcher.matches() || matcher.groupCount() != 2) {
             // invalid method string
             String message = String.format(
                     "The included method string must match "
-                            + "the required format.\n"
-                            + "(includedMethodString: [%s])",
-                            includedMethodString);
+                            + "the required format.\n(includedMethodString: [%s])",
+                    includedMethodString);
             v.addException(message);
         } else {
             // valid method string
             String includedMethodName = matcher.group(1).trim();
-            String[] paramTypeStrings = StringUtils.split(
-                    matcher.group(2), ',');
+            String[] paramTypeStrings = StringUtils.split(matcher.group(2), ',');
             Class<?>[] paramTypes = new Class<?>[paramTypeStrings.length];
-            boolean isConstructor = includedMethodName
-                    .equals(includedClass.getSimpleName());
+            boolean isConstructor = includedMethodName.equals(includedClass.getSimpleName());
             boolean shouldAdd = true; // only add if there was no problem with
             // the parameters
 
@@ -284,26 +257,20 @@ public final class Snippet {
                 if (StringUtils.isBlank(parameterTypeString)) {
                     // blank parameter type string
                     String message = String.format(
-                            "The included method string has "
-                                    + "a blank parameter type.\n"
-                                    + "(includedMethodString: [%s])\n"
-                                    + "(index: [%d])",
-                                    includedMethodString, i);
+                            "The included method string has a blank parameter type.\n"
+                                    + "(includedMethodString: [%s])\n(index: [%d])",
+                            includedMethodString, i);
                     v.addException(message);
                     shouldAdd = false;
                 } else {
                     try {
-                        paramTypes[i] = ClassUtils.getClass(
-                                classLoader, parameterTypeString);
+                        paramTypes[i] = ClassUtils.getClass(classLoader, parameterTypeString);
                     } catch (ClassNotFoundException e) {
                         // parameter type was not found
-                        String format = "The parameter type in "
-                                + "the included method string "
-                                + "could not have been loaded.\n"
-                                + "(includedMethodString: [%s])\n"
+                        String format = "The parameter type in the included method string "
+                                + "could not have been loaded.\n(includedMethodString: [%s])\n"
                                 + "(index: [%d])";
-                        String message = String.format(format,
-                                includedMethodString, i);
+                        String message = String.format(format, includedMethodString, i);
                         v.addException(message);
                         shouldAdd = false;
                     }
@@ -315,31 +282,26 @@ public final class Snippet {
                 if (isConstructor) {
                     try {
                         // only search declared constructors
-                        Constructor<?> found = includedClass
-                                .getDeclaredConstructor(paramTypes);
+                        Constructor<?> found = includedClass.getDeclaredConstructor(paramTypes);
                         addIncludedConstructor(found, v);
                     } catch (NoSuchMethodException e) {
                         String format = "Included constructor cannot be found "
-                                + "(it must be declared in the class)\n"
-                                + "(includedClass: [%s])\n"
+                                + "(it must be declared in the class)\n(includedClass: [%s])\n"
                                 + "(includedMethodString: [%s])";
-                        String message = String.format(format,
-                                includedClass, includedMethodString);
+                        String message = String.format(format, includedClass, includedMethodString);
                         v.addException(message);
                     }
                 } else {
                     try {
                         // only search declared methods
-                        Method found = includedClass.getDeclaredMethod(
-                                includedMethodName, paramTypes);
+                        Method found = includedClass.getDeclaredMethod(includedMethodName,
+                                paramTypes);
                         addIncludedMethod(found, v);
                     } catch (NoSuchMethodException e) {
                         String format = "Included method cannot be found "
-                                + "(it must be declared in the class)\n"
-                                + "(includedClass: [%s])\n"
+                                + "(it must be declared in the class)\n(includedClass: [%s])\n"
                                 + "(includedMethodString: [%s])";
-                        String message = String.format(format,
-                                includedClass, includedMethodString);
+                        String message = String.format(format, includedClass, includedMethodString);
                         v.addException(message, e);
                     }
                 }
@@ -348,22 +310,19 @@ public final class Snippet {
     }
 
     /**
-     * Adds a constructor (which should be considered in coverage) to the
-     * object's internal collection.
+     * Adds a constructor (which should be considered in coverage) to the object's internal
+     * collection.
      *
      * @param c
      *            the constructor
      * @param v
      *            a {@link MethodValidator}
      */
-    private void addIncludedConstructor(final Constructor<?> c,
-            final MethodValidator v) {
+    private void addIncludedConstructor(Constructor<?> c, MethodValidator v) {
         if (includedConstructors.contains(c)) {
             // duplicate
-            String message = String
-                    .format("The constructor has been already added "
-                            + "for included coverage (includedMethod: [%s])",
-                            c);
+            String message = String.format("The constructor has been already added "
+                    + "for included coverage (includedMethod: [%s])", c);
             v.addException(message);
         } else {
             // add method to the list
@@ -372,22 +331,18 @@ public final class Snippet {
     }
 
     /**
-     * Adds a method (which should be considered in coverage) to the object's
-     * internal collection.
+     * Adds a method (which should be considered in coverage) to the object's internal collection.
      *
      * @param m
      *            the method
      * @param v
      *            a {@link MethodValidator}
      */
-    private void addIncludedMethod(final Method m,
-            final MethodValidator v) {
+    private void addIncludedMethod(Method m, MethodValidator v) {
         if (includedMethods.contains(m)) {
             // duplicate
-            String message = String
-                    .format("The method has been already added "
-                            + "for included coverage(includedMethod: [%s])",
-                            m);
+            String message = String.format("The method has been already added "
+                    + "for included coverage(includedMethod: [%s])", m);
             v.addException(message);
         } else {
             // add method to the list
@@ -425,8 +380,7 @@ public final class Snippet {
     /**
      * Gets the constructors which should be considered when measuring coverage.
      *
-     * @return the constructors which should be considered when measuring
-     *         coverage
+     * @return the constructors which should be considered when measuring coverage
      */
     public Set<Constructor<?>> getIncludedConstructors() {
         return includedConstructors;
@@ -451,19 +405,17 @@ public final class Snippet {
     }
 
     /**
-     * Sets the input factory for the snippet. This method should only be called
-     * from other snippet model classes.
+     * Sets the input factory for the snippet. This method should only be called from other snippet
+     * model classes.
      *
-     * @param pInputFactory
+     * @param inputFactory
      *            the new input factory for the snippet
      */
-    void setInputFactory(final SnippetInputFactory pInputFactory) {
-        Validate.notNull(pInputFactory,
-                "Input factory must not be null (method: [%s])", method);
-        Validate.isTrue(inputFactory == null,
-                "Input factory has been already set (method: [%s])",
-                method);
+    void setInputFactory(SnippetInputFactory inputFactory) {
+        Validate.notNull(inputFactory, "Input factory must not be null (method: [%s])", method);
+        Validate.isTrue(this.inputFactory == null,
+                "Input factory has been already set (method: [%s])", method);
 
-        inputFactory = pInputFactory;
+        this.inputFactory = inputFactory;
     }
 }

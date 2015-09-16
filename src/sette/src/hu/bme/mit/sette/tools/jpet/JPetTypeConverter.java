@@ -1,3 +1,26 @@
+/*
+ * SETTE - Symbolic Execution based Test Tool Evaluator
+ *
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
+ *
+ * Budapest University of Technology and Economics (BME)
+ *
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
+ *
+ * Copyright 2014-2015
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+// TODO z revise this file
 package hu.bme.mit.sette.tools.jpet;
 
 import org.apache.commons.collections4.BidiMap;
@@ -58,8 +81,7 @@ public final class JPetTypeConverter {
             javaType = fromJava(javaType);
 
             // pad and return
-            return StringUtils.leftPad(javaType, javaType.length()
-                    + brackets, '[');
+            return StringUtils.leftPad(javaType, javaType.length() + brackets, '[');
         } else if (javaPrimitivesToJPetMapping.containsKey(javaType)) {
             // primitive type
             // e.g.: int => I
@@ -116,19 +138,17 @@ public final class JPetTypeConverter {
             return javaPrimitivesToJPetMapping.getKey(jPetType);
         } else if (jPetType.startsWith("L") && jPetType.endsWith(";")) {
             // e.g.: Ljava/lang/Object; => java.lang.Object
-            return StringUtils.substring(jPetType, 1, -1).replace('/',
-                    '.');
+            return StringUtils.substring(jPetType, 1, -1).replace('/', '.');
         } else {
             // e.g.: java/lang/Object => java.lang.Object
             return jPetType.replace('/', '.');
         }
     }
 
-    public static Class<?> toJava(String jPetType,
-            ClassLoader classLoader) throws ClassNotFoundException {
+    public static Class<?> toJava(String jPetType, ClassLoader classLoader)
+            throws ClassNotFoundException {
         Validate.notBlank(jPetType, "The jPet type must not be blank");
-        Validate.notNull(classLoader,
-                "The classloader must not be null");
+        Validate.notNull(classLoader, "The classloader must not be null");
 
         String javaType = toJava(jPetType);
 

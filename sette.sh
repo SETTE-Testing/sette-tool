@@ -7,4 +7,4 @@ CWD="$(
 )"
 
 cd "$CWD"
-java -jar "$CWD/sette.jar"
+java -jar "$CWD/sette.jar" "$@"

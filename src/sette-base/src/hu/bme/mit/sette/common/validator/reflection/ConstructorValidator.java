@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.validator.reflection;
 
 import hu.bme.mit.sette.common.validator.AbstractValidator;
@@ -36,15 +34,14 @@ import org.apache.commons.lang3.Validate;
 /**
  * Validator for constructors.
  */
-public final class ConstructorValidator extends
-AbstractValidator<Constructor<?>> {
+public final class ConstructorValidator extends AbstractValidator<Constructor<?>> {
     /**
      * Instantiates a new constructor validator.
      *
      * @param constructor
      *            the constructor
      */
-    public ConstructorValidator(final Constructor<?> constructor) {
+    public ConstructorValidator(Constructor<?> constructor) {
         super(constructor);
 
         if (constructor == null) {
@@ -52,17 +49,9 @@ AbstractValidator<Constructor<?>> {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hu.bme.mit.sette.common.validator.AbstractValidator#addException(java
-     * .lang.String, java.lang.Throwable)
-     */
     @Override
-    public void addException(final String message, final Throwable cause) {
-        this.addException(new ConstructorValidationException(message,
-                getSubject(), cause));
+    public void addException(String message, Throwable cause) {
+        this.addException(new ConstructorValidationException(message, getSubject(), cause));
     }
 
     /**
@@ -72,15 +61,15 @@ AbstractValidator<Constructor<?>> {
      *            the required modifiers for the constructor
      * @return this object
      */
-    public ConstructorValidator withModifiers(final int modifiers) {
+    public ConstructorValidator withModifiers(int modifiers) {
         if (getSubject() != null) {
             Constructor<?> constructor = getSubject();
 
             if ((constructor.getModifiers() & modifiers) != modifiers) {
-                this.addException(String
-                        .format("The constructor must have all the "
+                this.addException(String.format(
+                        "The constructor must have all the "
                                 + "specified modifiers\n(modifiers: [%s])",
-                                Modifier.toString(modifiers)));
+                        Modifier.toString(modifiers)));
             }
         }
 
@@ -94,15 +83,15 @@ AbstractValidator<Constructor<?>> {
      *            the prohibited modifiers for the constructor.
      * @return this object
      */
-    public ConstructorValidator withoutModifiers(final int modifiers) {
+    public ConstructorValidator withoutModifiers(int modifiers) {
         if (getSubject() != null) {
             Constructor<?> constructor = getSubject();
 
             if ((constructor.getModifiers() & modifiers) != 0) {
-                this.addException(String
-                        .format("The constructor must not have any of "
+                this.addException(String.format(
+                        "The constructor must not have any of "
                                 + "the specified modifiers\n(modifiers: [%s])",
-                                Modifier.toString(modifiers)));
+                        Modifier.toString(modifiers)));
             }
         }
 
@@ -113,11 +102,10 @@ AbstractValidator<Constructor<?>> {
      * Sets whether the constructor should be synthetic or not.
      *
      * @param isSynthetic
-     *            true if the constructor should be synthetic, false if it
-     *            should not be
+     *            true if the constructor should be synthetic, false if it should not be
      * @return this object
      */
-    public ConstructorValidator synthetic(final boolean isSynthetic) {
+    public ConstructorValidator synthetic(boolean isSynthetic) {
         if (getSubject() != null) {
             Constructor<?> constructor = getSubject();
 
@@ -130,8 +118,7 @@ AbstractValidator<Constructor<?>> {
                     must = "must not";
                 }
 
-                this.addException(String.format(
-                        "The constructor %s be synthetic", must));
+                this.addException(String.format("The constructor %s be synthetic", must));
             }
         }
 
@@ -145,26 +132,21 @@ AbstractValidator<Constructor<?>> {
      *            the required parameter count for the constructor.
      * @return this object
      */
-    public ConstructorValidator parameterCount(final int parameterCount) {
+    public ConstructorValidator parameterCount(int parameterCount) {
         Validate.isTrue(parameterCount >= 0,
-                "The required parameter count must be "
-                        + "a non-negative number");
+                "The required parameter count must be a non-negative number");
 
         if (getSubject() != null) {
             Constructor<?> constructor = getSubject();
 
             if (constructor.getParameterTypes().length != parameterCount) {
                 if (parameterCount == 0) {
-                    this.addException("The constructor must not have "
-                            + "any parameters");
+                    this.addException("The constructor must not have any parameters");
                 } else if (parameterCount == 1) {
-                    this.addException("The constructor must have "
-                            + "exactly 1 parameter");
+                    this.addException("The constructor must have exactly 1 parameter");
                 } else {
                     this.addException(String.format(
-                            "The constructor must have "
-                                    + "exactly %d parameters",
-                                    parameterCount));
+                            "The constructor must have exactly %d parameters", parameterCount));
                 }
             }
         }

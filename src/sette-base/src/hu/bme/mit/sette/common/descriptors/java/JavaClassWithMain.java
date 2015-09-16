@@ -1,27 +1,24 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
 package hu.bme.mit.sette.common.descriptors.java;
 
@@ -34,23 +31,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * Represents a Java class with a main() method. Please note that this class
- * does not perform any Java compiler check. The generated code looks like as
- * this example:
+ * Represents a Java class with a main() method. Please note that this class generates a lines for a
+ * Java file based on the given data does not perform any Java compiler check. This class is used
+ * for to generated test drivers for test input generators. Example for the generated code:
  *
  * <pre>
  * <code>
  * package packageName;
  *
- * import [import1];
- * import [import2];
- * import [etc.];
+ * import java.util.ArrayList;
+ * import java.util.List;
  *
  * public final class ClassName {
  *     public static void main(String args[]) throws Exception {
- *         [code line 1]
- *         [code line 2]
- *         [etc.]
+ *         List<String> list = new ArrayList<>();
+ *         list.add("my string");
+ *         // ...
  *     }
  * }
  * </code>
@@ -59,10 +55,13 @@ import org.apache.commons.lang3.Validate;
 public final class JavaClassWithMain {
     /** The name of the package. */
     private String packageName = null;
+
     /** The name of the class. */
     private String className = "";
+
     /** The list of imports. */
     private final List<String> imports;
+
     /** The list containing the code lines for the main() method. */
     private final List<String> codeLines;
 
@@ -84,11 +83,11 @@ public final class JavaClassWithMain {
     /**
      * Sets the name of the package.
      *
-     * @param pPackageName
+     * @param packageName
      *            The name of the package.
      */
-    public void setPackageName(final String pPackageName) {
-        packageName = StringUtils.trimToNull(pPackageName);
+    public void setPackageName(String packageName) {
+        this.packageName = StringUtils.trimToNull(packageName);
     }
 
     /**
@@ -103,13 +102,12 @@ public final class JavaClassWithMain {
     /**
      * Sets the name of the class.
      *
-     * @param pClassName
+     * @param className
      *            The name of the class.
      */
-    public void setClassName(final String pClassName) {
-        Validate.notBlank(pClassName,
-                "The class name must not be blank");
-        className = pClassName.trim();
+    public void setClassName(String className) {
+        Validate.notBlank(className, "The class name must not be blank");
+        this.className = className.trim();
     }
 
     /**
@@ -121,8 +119,7 @@ public final class JavaClassWithMain {
         if (packageName == null) {
             return className;
         } else {
-            return packageName + JavaFileUtils.PACKAGE_SEPARATOR
-                    + className;
+            return packageName + JavaFileUtils.PACKAGE_SEPARATOR + className;
         }
     }
 
@@ -145,35 +142,33 @@ public final class JavaClassWithMain {
     }
 
     /**
-     * Generates the Java code.
+     * Generates the lines of the Java code.
      *
-     * @return A {@link StringBuilder} containing the build Java code.
+     * @return A {@link List} containing the lines of the Java code.
      */
-    public StringBuilder generateJavaCode() {
-        StringBuilder sb = new StringBuilder();
+    public List<String> generateJavaCodeLines() {
+        List<String> generated = new ArrayList<>();
 
         if (packageName != null) {
-            sb.append("package ").append(packageName).append(";\n");
-            sb.append("\n");
+            generated.add(String.format("package %s;", packageName));
+            generated.add("");
         }
 
         for (String imp : imports) {
-            sb.append("import ").append(imp).append(";\n");
+            generated.add(String.format("import %s;", imp));
         }
-        sb.append("\n");
+        generated.add("");
 
-        sb.append("public final class ").append(className)
-        .append(" {\n");
-        sb.append("    public static void main(String[] args) "
-                + "throws Exception {\n");
+        generated.add(String.format("public final class %s {", className));
+        generated.add("    public static void main(String[] args) throws Exception {");
 
         for (String line : codeLines) {
-            sb.append("        ").append(line).append("\n");
+            generated.add(String.format("        %s", line));
         }
 
-        sb.append("    }\n");
-        sb.append("}\n");
+        generated.add("    }");
+        generated.add("}");
 
-        return sb;
+        return generated;
     }
 }

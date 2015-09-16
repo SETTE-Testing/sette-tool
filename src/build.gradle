@@ -1,0 +1,110 @@
+buildscript {
+    repositories { jcenter() }
+    dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:+' }
+}
+
+// Apply same group, version and repos for all projects
+allprojects {
+    project.group = 'hu.bme.mit.sette'
+    project.version = '2.0.0-SNAPSHOT'
+
+    repositories {  jcenter() }
+}
+
+// Set up projects
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'groovy' // Groovy is only used for tests
+    apply plugin: 'eclipse'
+
+    project.archivesBaseName = project.name
+    project.sourceCompatibility = 1.8
+    project.targetCompatibility = 1.8
+
+    tasks.eclipse.dependsOn tasks.cleanEclipse
+
+    sourceSets {
+        main { java { srcDir 'src' } }
+        test { groovy { srcDir 'test' } }
+    }
+}
+
+//
+// Project sette
+//
+project(':sette') {
+    apply plugin: 'com.github.johnrengelman.shadow'
+    String mainClass = 'hu.bme.mit.sette.run.Run'
+    File deployTarget = new File(project.projectDir, '../..').canonicalFile
+
+    dependencies { compile project(':sette-base') }
+
+    jar { manifest { attributes 'Main-Class': mainClass } }
+
+    tasks.assemble.dependsOn tasks.shadowJar
+
+    task deployLocal(dependsOn: [tasks.shadowJar, tasks.test]) {
+        /*
+         * Gradle copy task creates MD5 hash of the target directory. In this case it is very
+         * large and the copy would take several minutes.
+         */
+        group = 'Deploy'
+        description = 'Deploys SETTE to ' + deployTarget.path
+
+        doLast {
+            new File(deployTarget, 'sette.jar') << tasks.shadowJar.archivePath.bytes
+            new File(deployTarget, 'sette.properties.default') << new File(project.projectDir, 'sette.properties.default')
+        }
+    }
+}
+
+//
+// Project sette-base
+//
+project(':sette-base') {
+    def jacocoVersion = '0.7.5.201505241946'
+    def log4jVersion = '2.3'
+
+    dependencies {
+        compile project(':sette-common')
+
+        // Essential for evaluation
+        compile 'junit:junit:3.8.2' // JUnit 3 is used for evaluation
+        compile 'org.ow2.asm:asm-debug-all:5.0.4' // to fix JaCoCo dependency
+        compile 'org.jacoco:org.jacoco.agent:' + jacocoVersion
+        compile 'org.jacoco:org.jacoco.core:' + jacocoVersion
+        compile 'org.jacoco:org.jacoco.report:' + jacocoVersion
+        compile 'com.google.code.javaparser:javaparser:1.0.11'
+
+        // Utilities
+        compile 'commons-io:commons-io:2.4'
+        compile 'org.apache.commons:commons-collections4:4.0'
+        compile 'org.apache.commons:commons-lang3:3.4'
+        compile 'org.simpleframework:simple-xml:2.7.1'
+
+        // Logging
+        compile 'org.slf4j:slf4j-api:1.7.12'
+        compile 'org.apache.logging.log4j:log4j-api:' + log4jVersion
+        compile 'org.apache.logging.log4j:log4j-core:' + log4jVersion
+        compile 'org.apache.logging.log4j:log4j-slf4j-impl:' + log4jVersion
+    }
+}
+
+//
+// Project sette-common
+//
+project(':sette-common') {
+    dependencies {
+        testCompile 'org.codehaus.groovy:groovy-all:2.4.4'
+        testCompile 'junit:junit:4.12' // JUnit 4 is used for testing SETTE
+    }
+}
+
+//
+// Root project task to generate Gradle wrapper files
+//
+task wrapper(type: Wrapper) {
+    group = 'Build Setup'
+    description = 'Generates Gradle 2.7 wrapper files.'
+    gradleVersion = '2.7'
+}

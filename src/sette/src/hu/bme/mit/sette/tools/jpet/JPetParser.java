@@ -1,33 +1,31 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.tools.jpet;
 
+import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunResultParser;
@@ -47,8 +45,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.commons.io.FileUtils;
 
 public class JPetParser extends RunResultParser<JPetTool> {
-    public JPetParser(SnippetProject snippetProject,
-            File outputDirectory, JPetTool tool) {
+    public JPetParser(SnippetProject snippetProject, File outputDirectory, JPetTool tool) {
         super(snippetProject, outputDirectory, tool);
     }
 
@@ -58,12 +55,11 @@ public class JPetParser extends RunResultParser<JPetTool> {
             .compile("^Top Code Coverage of '.*': (\\d+(.\\d+)?)% \\(.*\\)$");
 
     @Override
-    protected void parseSnippet(Snippet snippet,
-            SnippetInputsXml inputsXml) throws Exception {
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(
-                getRunnerProjectSettings(), snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(
-                getRunnerProjectSettings(), snippet);
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
+                snippet);
+        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
+                snippet);
 
         if (errorFile.exists()) {
             // TODO enhance this section and make it clear
@@ -77,11 +73,10 @@ public class JPetParser extends RunResultParser<JPetTool> {
             } else if (firstLine
                     .startsWith("ERROR: Domain error: `clpfd_expression' expected, found")) {
                 inputsXml.setResultType(ResultType.NA);
-            } else if (firstLine
-                    .startsWith("ERROR: Unknown message: error(resolve_classfile/")) {
+            } else if (firstLine.startsWith("ERROR: Unknown message: error(resolve_classfile/")) {
                 inputsXml.setResultType(ResultType.NA);
-            } else if (firstLine
-                    .startsWith("ERROR: local_control:unfold/3: Undefined procedure:")) {
+            } else
+                if (firstLine.startsWith("ERROR: local_control:unfold/3: Undefined procedure:")) {
                 inputsXml.setResultType(ResultType.NA);
             } else {
                 // TODO enhance error handling
@@ -97,8 +92,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 System.err.println("=============================");
 
                 // TODO enhance error handling
-                throw new RuntimeException(
-                        "PARSER PROBLEM, UNHANDLED ERROR");
+                throw new RuntimeException("PARSER PROBLEM, UNHANDLED ERROR");
             }
         } else {
             // TODO enhance
@@ -106,8 +100,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
             // LineIterator lines = FileUtils.lineIterator(outputFile);
             List<String> lines = FileUtils.readLines(outputFile);
 
-            if (lines.get(lines.size() - 1).startsWith(
-                    "Error loading bytecode program")) {
+            if (lines.get(lines.size() - 1).startsWith("Error loading bytecode program")) {
                 // System.err.println(snippet.getMethod().getName());
                 // System.err.println("BYTECODE PROBLEM");
                 inputsXml.setResultType(ResultType.EX);
@@ -117,8 +110,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
 
                 // extract coverage
                 if (lines.size() >= 8) {
-                    String fullCode = lines.get(lines.size() - 3)
-                            .trim();
+                    String fullCode = lines.get(lines.size() - 3).trim();
                     String topCode = lines.get(lines.size() - 2).trim();
 
                     Matcher mFull = PATTERN_FULL_CODE.matcher(fullCode);
@@ -127,20 +119,16 @@ public class JPetParser extends RunResultParser<JPetTool> {
                     // TODO should not use jPET coverage information in the
                     // future
                     if (mFull.matches() && mTop.matches()) {
-                        double full = Double
-                                .parseDouble(mFull.group(1));
+                        double full = Double.parseDouble(mFull.group(1));
                         double top = Double.parseDouble(mTop.group(1));
 
                         if (full == 100.0 && top == 100.0) {
                             // full -> C
                             inputsXml.setResultType(ResultType.C);
-                        } else if (snippet.getIncludedConstructors()
-                                .isEmpty()
-                                && snippet.getIncludedMethods()
-                                .isEmpty()) {
+                        } else if (snippet.getIncludedConstructors().isEmpty()
+                                && snippet.getIncludedMethods().isEmpty()) {
                             // only consider top, no included things
-                            if (top >= snippet
-                                    .getRequiredStatementCoverage()) {
+                            if (top >= snippet.getRequiredStatementCoverage()) {
                                 inputsXml.setResultType(ResultType.C);
                             } else {
                                 inputsXml.setResultType(ResultType.NC);
@@ -173,16 +161,14 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 // extract inputs
                 lines = null;
 
-                File testCasesFile = getTool().getTestCaseXmlFile(
-                        getRunnerProjectSettings(), snippet);
-                new FileValidator(testCasesFile).type(
-                        FileType.REGULAR_FILE).validate();
+                getTool();
+                File testCasesFile = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(),
+                        snippet);
+                new FileValidator(testCasesFile).type(FileType.REGULAR_FILE).validate();
 
                 if (testCasesFile.length() > 10 * 10e6) {
                     // TODO enhance this section
-                    System.err
-                    .println("Filesize is bigger than 10 MB: "
-                            + testCasesFile);
+                    System.err.println("Filesize is bigger than 10 MB: " + testCasesFile);
                 }
                 // TODO it was used to dump the cases where jpet cannot decide
                 // coverage
@@ -192,20 +178,17 @@ public class JPetParser extends RunResultParser<JPetTool> {
 
                 // now skip, only 12 cases are S
 
-                System.out.println(snippet.getContainer()
-                        .getJavaClass().getName()
-                        + "." + snippet.getMethod().getName());
+                System.out.println(snippet.getContainer().getJavaClass().getName() + "."
+                        + snippet.getMethod().getName());
 
-                SAXParserFactory factory = SAXParserFactory
-                        .newInstance();
+                SAXParserFactory factory = SAXParserFactory.newInstance();
                 SAXParser saxParser = factory.newSAXParser();
 
                 JPetTestCaseXmlParser testCasesParser = new JPetTestCaseXmlParser();
 
                 saxParser.parse(testCasesFile, testCasesParser);
 
-                JPetTestCasesConverter.convert(snippet,
-                        testCasesParser.getTestCases(), inputsXml);
+                JPetTestCasesConverter.convert(snippet, testCasesParser.getTestCases(), inputsXml);
             }
 
             // find input lines

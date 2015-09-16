@@ -1,41 +1,27 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.tasks;
-
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.exceptions.RunnerProjectRunnerException;
-import hu.bme.mit.sette.common.exceptions.SetteConfigurationException;
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.util.JavaFileUtils;
-import hu.bme.mit.sette.common.util.process.ProcessRunner;
-import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,15 +36,26 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.lang3.Validate;
 
+import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.exceptions.ConfigurationException;
+import hu.bme.mit.sette.common.exceptions.RunnerProjectRunnerException;
+import hu.bme.mit.sette.common.exceptions.SetteException;
+import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.common.model.snippet.Snippet;
+import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.common.model.snippet.SnippetProject;
+import hu.bme.mit.sette.common.util.JavaFileUtils;
+import hu.bme.mit.sette.common.util.process.ProcessRunner;
+import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
+
 /**
- * A SETTE task which provides base for runner project running. The phases are
- * the following: validation, preparation, running.
+ * A SETTE task which provides base for runner project running. The phases are the following:
+ * validation, preparation, running.
  *
  * @param <T>
  *            the type of the tool
  */
-public abstract class RunnerProjectRunner<T extends Tool> extends
-SetteTask<T> {
+public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
     /** The poll interval for {@link ProcessRunner} objects. */
     public static final int POLL_INTERVAL = 100;
 
@@ -78,8 +75,7 @@ SetteTask<T> {
      * @param tool
      *            the tool
      */
-    public RunnerProjectRunner(final SnippetProject snippetProject,
-            final File outputDirectory, final T tool) {
+    public RunnerProjectRunner(SnippetProject snippetProject, File outputDirectory, T tool) {
         super(snippetProject, outputDirectory, tool);
         this.timeoutInMs = RunnerProjectRunner.DEFAULT_TIMEOUT;
     }
@@ -96,28 +92,27 @@ SetteTask<T> {
     /**
      * Sets the timeout for the called processes.
      *
-     * @param pTimeoutInMs
+     * @param timeoutInMs
      *            the new timeout for the called processes
      */
-    public final void setTimeoutInMs(final int pTimeoutInMs) {
-        this.timeoutInMs = pTimeoutInMs;
+    public final void setTimeoutInMs(int timeoutInMs) {
+        this.timeoutInMs = timeoutInMs;
     }
 
     /**
      * Runs the runner project.
      *
-     * @param pLogger
+     * @param loggerStream
      *            the logger stream
      * @throws RunnerProjectRunnerException
      *             if running has failed
      */
-    public final void run(final PrintStream pLogger)
-            throws RunnerProjectRunnerException {
+    public final void run(PrintStream loggerStream) throws RunnerProjectRunnerException {
         String phase = null;
         PrintStream logger = null;
 
         try {
-            this.cleanUp();
+            cleanUp();
 
             // validate preconditions
             phase = "validate (do)";
@@ -132,17 +127,14 @@ SetteTask<T> {
             afterPrepare();
 
             // create logger
-            File logFile = RunnerProjectUtils
-                    .getRunnerLogFile(getRunnerProjectSettings());
+            File logFile = RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings());
 
-            if (pLogger != null) {
-                pLogger.println("Log file: "
-                        + logFile.getCanonicalPath());
-                logger = new PrintStream(new TeeOutputStream(
-                        new FileOutputStream(logFile), pLogger), true);
+            if (loggerStream != null) {
+                loggerStream.println("Log file: " + logFile.getCanonicalPath());
+                logger = new PrintStream(
+                        new TeeOutputStream(new FileOutputStream(logFile), loggerStream), true);
             } else {
-                logger = new PrintStream(new FileOutputStream(logFile),
-                        true);
+                logger = new PrintStream(new FileOutputStream(logFile), true);
             }
 
             // run all
@@ -155,9 +147,8 @@ SetteTask<T> {
             phase = "complete";
         } catch (Exception e) {
             String message = String.format(
-                    "The runner project run has failed\n"
-                            + "(phase: [%s])\n(tool: [%s])", phase,
-                            getTool().getFullName());
+                    "The runner project run has failed\n(phase: [%s])\n(tool: [%s])", phase,
+                    getTool().getFullName());
             throw new RunnerProjectRunnerException(message, this, e);
         } finally {
             IOUtils.closeQuietly(logger);
@@ -167,15 +158,13 @@ SetteTask<T> {
     /**
      * Validates both the snippet and runner project settings.
      *
-     * @throws SetteConfigurationException
+     * @throws ConfigurationException
      *             if a SETTE configuration problem occurred
      */
-    private void validate() throws SetteConfigurationException {
-        Validate.isTrue(
-                getSnippetProject().getState().equals(
-                        SnippetProject.State.PARSED),
-                        "The snippet project must be parsed (state: [%s]) ",
-                        getSnippetProject().getState().name());
+    private void validate() throws ConfigurationException {
+        Validate.isTrue(getSnippetProject().getState().equals(SnippetProject.State.PARSED),
+                "The snippet project must be parsed (state: [%s]) ",
+                getSnippetProject().getState().name());
 
         // TODO currently snippet project validation can fail even if it is
         // valid
@@ -184,23 +173,19 @@ SetteTask<T> {
     }
 
     /**
-     * Prepares the running of the runner project, i.e. make everything ready
-     * for the execution.
+     * Prepares the running of the runner project, i.e. make everything ready for the execution.
      *
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
     private void prepare() throws IOException {
         // delete previous outputs
-        if (getRunnerProjectSettings().getRunnerOutputDirectory()
-                .exists()) {
-            FileUtils.forceDelete(getRunnerProjectSettings()
-                    .getRunnerOutputDirectory());
+        if (getRunnerProjectSettings().getRunnerOutputDirectory().exists()) {
+            FileUtils.forceDelete(getRunnerProjectSettings().getRunnerOutputDirectory());
         }
 
         // create output directory
-        FileUtils.forceMkdir(getRunnerProjectSettings()
-                .getRunnerOutputDirectory());
+        FileUtils.forceMkdir(getRunnerProjectSettings().getRunnerOutputDirectory());
     }
 
     /**
@@ -211,25 +196,19 @@ SetteTask<T> {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    private void runAll(final PrintStream loggerOut) throws IOException {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss");
+    private void runAll(PrintStream loggerOut) throws IOException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         // foreach containers
-        for (SnippetContainer container : getSnippetProject()
-                .getModel().getContainers()) {
+        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
             // skip container with higher java version than supported
-            if (container.getRequiredJavaVersion().compareTo(
-                    getTool().getSupportedJavaVersion()) > 0) {
+            if (container.getRequiredJavaVersion()
+                    .compareTo(getTool().getSupportedJavaVersion()) > 0) {
                 // TODO error/warning handling
-                loggerOut.println("Skipping container: "
-                        + container.getJavaClass().getName()
-                        + " (required Java version: "
-                        + container.getRequiredJavaVersion() + ")");
-                System.err.println("Skipping container: "
-                        + container.getJavaClass().getName()
-                        + " (required Java version: "
-                        + container.getRequiredJavaVersion() + ")");
+                loggerOut.println("Skipping container: " + container.getJavaClass().getName()
+                        + " (required Java version: " + container.getRequiredJavaVersion() + ")");
+                System.err.println("Skipping container: " + container.getJavaClass().getName()
+                        + " (required Java version: " + container.getRequiredJavaVersion() + ")");
                 continue;
             }
 
@@ -237,21 +216,17 @@ SetteTask<T> {
             for (Snippet snippet : container.getSnippets().values()) {
                 String filenameBase = getFilenameBase(snippet);
 
-                File infoFile = RunnerProjectUtils.getSnippetInfoFile(
-                        getRunnerProjectSettings(), snippet);
+                File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
+                        snippet);
                 File outputFile = RunnerProjectUtils
-                        .getSnippetOutputFile(
-                                getRunnerProjectSettings(), snippet);
-                File errorFile = RunnerProjectUtils
-                        .getSnippetErrorFile(
-                                getRunnerProjectSettings(), snippet);
+                        .getSnippetOutputFile(getRunnerProjectSettings(), snippet);
+                File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
+                        snippet);
 
                 try {
                     String timestamp = dateFormat.format(new Date());
-                    loggerOut.println("[" + timestamp
-                            + "] Running for snippet: " + filenameBase);
-                    this.runOne(snippet, infoFile, outputFile,
-                            errorFile);
+                    loggerOut.println("[" + timestamp + "] Running for snippet: " + filenameBase);
+                    this.runOne(snippet, infoFile, outputFile, errorFile);
                     this.cleanUp();
                 } catch (Exception e) {
                     loggerOut.println("Exception: " + e.getMessage());
@@ -266,10 +241,11 @@ SetteTask<T> {
     /**
      * This method is called after validation but before preparation.
      *
-     * @throws SetteConfigurationException
+     * @throws ConfigurationException
      *             if a SETTE configuration problem occurred
      */
-    protected void afterValidate() throws SetteConfigurationException {
+    protected void afterValidate() throws ConfigurationException {
+        // to be implemented by the subclass
     }
 
     /**
@@ -279,6 +255,7 @@ SetteTask<T> {
      *             Signals that an I/O exception has occurred.
      */
     protected void afterPrepare() throws IOException {
+        // to be implemented by the subclass
     }
 
     /**
@@ -290,6 +267,7 @@ SetteTask<T> {
      *             if a SETTE problem occurred
      */
     protected void afterRunAll() throws IOException, SetteException {
+        // to be implemented by the subclass
     }
 
     /**
@@ -308,9 +286,8 @@ SetteTask<T> {
      * @throws SetteException
      *             if a SETTE problem occurred
      */
-    protected abstract void runOne(Snippet snippet, File infoFile,
-            File outputFile, File errorFile) throws IOException,
-            SetteException;
+    protected abstract void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+            throws IOException, SetteException;
 
     /**
      * Cleans up the processes, i.e. kills undesired and stuck processes.
@@ -322,14 +299,12 @@ SetteTask<T> {
      */
     public abstract void cleanUp() throws IOException, SetteException;
 
-    protected static final String getFilenameBase(final Snippet snippet) {
-        return JavaFileUtils.packageNameToFilename(snippet
-                .getContainer().getJavaClass().getName())
+    protected static final String getFilenameBase(Snippet snippet) {
+        return JavaFileUtils.packageNameToFilename(snippet.getContainer().getJavaClass().getName())
                 + "_" + snippet.getMethod().getName();
     }
 
-    protected static final class OutputWriter implements
-    ProcessRunnerListener {
+    protected static final class OutputWriter implements ProcessRunnerListener {
         private long startTime = -1;
         private long finishTime = -1;
         private final String command;
@@ -337,13 +312,11 @@ SetteTask<T> {
         private final File outputFile;
         private final File errorFile;
 
-        public OutputWriter(final String pCommand,
-                final File pInfoFile, final File pOutputFile,
-                final File pErrorFile) {
-            this.command = pCommand;
-            this.infoFile = pInfoFile;
-            this.outputFile = pOutputFile;
-            this.errorFile = pErrorFile;
+        public OutputWriter(String command, File infoFile, File putputFile, File errorFile) {
+            this.command = command;
+            this.infoFile = infoFile;
+            this.outputFile = putputFile;
+            this.errorFile = errorFile;
         }
 
         public long getElapsedTimeInMs() {
@@ -354,56 +327,28 @@ SetteTask<T> {
             }
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see hu.bme.mit.sette.common.util.process.ProcessRunnerListener
-         * #onStdoutRead(hu.bme.mit.sette.common.util.process.ProcessRunner,
-         * int)
-         */
         @Override
-        public void onStdoutRead(final ProcessRunner processRunner,
-                final int charactersRead) {
-        }
-
-        /*
-         * (non-Javadoc)
-         *
-         * @see hu.bme.mit.sette.common.util.process.ProcessRunnerListener
-         * #onStderrRead(hu.bme.mit.sette.common.util.process.ProcessRunner,
-         * int)
-         */
-        @Override
-        public void onStderrRead(final ProcessRunner processRunner,
-                final int charactersRead) {
-        }
-
-        @Override
-        public void onTick(final ProcessRunner processRunner,
-                final long elapsedTimeInMs) {
+        public void onTick(ProcessRunner processRunner, long elapsedTimeInMs) {
             if (this.startTime < 0) {
                 this.startTime = System.currentTimeMillis();
             }
         }
 
         @Override
-        public void onIOException(final ProcessRunner processRunner,
-                final IOException e) {
+        public void onIOException(ProcessRunner processRunner, IOException e) {
             System.err.println("  IOException occured");
             System.err.println(e);
         }
 
         @Override
-        public void onComplete(final ProcessRunner processRunner) {
-            this.finishTime = System.currentTimeMillis();
+        public void onComplete(ProcessRunner processRunner) {
+            finishTime = System.currentTimeMillis();
 
             // save info
             StringBuffer infoData = new StringBuffer();
 
-            infoData.append("Command: ").append(this.command)
-            .append('\n');
-            infoData.append("Exit value: ")
-            .append(processRunner.getExitValue()).append('\n');
+            infoData.append("Command: ").append(command).append('\n');
+            infoData.append("Exit value: ").append(processRunner.getExitValue()).append('\n');
 
             infoData.append("Destroyed: ");
             if (processRunner.wasDestroyed()) {
@@ -413,18 +358,17 @@ SetteTask<T> {
             }
             infoData.append('\n');
 
-            infoData.append("Elapsed time: ")
-            .append(this.getElapsedTimeInMs()).append(" ms\n");
-            this.saveToFile(this.infoFile, infoData);
+            infoData.append("Elapsed time: ").append(getElapsedTimeInMs()).append(" ms\n");
+            saveToFile(infoFile, infoData);
 
             // save stdout
-            this.saveToFile(this.outputFile, processRunner.getStdout());
+            saveToFile(outputFile, processRunner.getStdout());
 
             // save stderr
-            this.saveToFile(this.errorFile, processRunner.getStderr());
+            saveToFile(errorFile, processRunner.getStderr());
         }
 
-        private void saveToFile(final File file, final StringBuffer data) {
+        private static void saveToFile(File file, StringBuffer data) {
             if (data.length() <= 0) {
                 return;
             }
@@ -459,8 +403,7 @@ SetteTask<T> {
                 fw.flush();
             } catch (Exception ex) {
                 // TODO syserr is kinda antipattern
-                System.err.println("  Exception when saving to file ("
-                        + file + ")");
+                System.err.println("  Exception when saving to file (" + file + ")");
                 ex.printStackTrace();
             } finally {
                 IOUtils.closeQuietly(fw);

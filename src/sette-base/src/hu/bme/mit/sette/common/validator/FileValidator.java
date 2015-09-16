@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.validator;
 
 import hu.bme.mit.sette.common.validator.exceptions.FileValidationException;
@@ -43,7 +41,7 @@ public final class FileValidator extends AbstractValidator<File> {
      * @param file
      *            the file
      */
-    public FileValidator(final File file) {
+    public FileValidator(File file) {
         super(file);
 
         if (file == null) {
@@ -52,9 +50,8 @@ public final class FileValidator extends AbstractValidator<File> {
     }
 
     @Override
-    public void addException(final String message, final Throwable cause) {
-        this.addException(new FileValidationException(message,
-                getSubject(), cause));
+    public void addException(String message, Throwable cause) {
+        this.addException(new FileValidationException(message, getSubject(), cause));
     }
 
     /**
@@ -64,7 +61,7 @@ public final class FileValidator extends AbstractValidator<File> {
      *            the required type of the file.
      * @return this object
      */
-    public FileValidator type(final FileType type) {
+    public FileValidator type(FileType type) {
         Validate.notNull(type, "The type must not be null");
 
         if (getSubject() != null) {
@@ -72,31 +69,29 @@ public final class FileValidator extends AbstractValidator<File> {
             boolean isTypeValid = false;
 
             switch (type) {
-            case NONEXISTENT:
-                isTypeValid = !file.exists();
-                break;
+                case NONEXISTENT:
+                    isTypeValid = !file.exists();
+                    break;
 
-            case EXISTENT:
-                isTypeValid = file.exists();
-                break;
+                case EXISTENT:
+                    isTypeValid = file.exists();
+                    break;
 
-            case DIRECTORY:
-                isTypeValid = file.isDirectory();
-                break;
+                case DIRECTORY:
+                    isTypeValid = file.isDirectory();
+                    break;
 
-            case REGULAR_FILE:
-                isTypeValid = file.isFile();
-                break;
+                case REGULAR_FILE:
+                    isTypeValid = file.isFile();
+                    break;
 
-            default:
-                throw new UnsupportedOperationException(
-                        "Unknown file type: " + type);
+                default:
+                    throw new UnsupportedOperationException("Unknown file type: " + type);
             }
 
             if (!isTypeValid) {
-                this.addException(String.format(
-                        "The file must have the specified type\n"
-                                + "(type: [%s])", type));
+                this.addException(
+                        String.format("The file must have the specified type\n(type: [%s])", type));
             }
         }
 
@@ -110,7 +105,7 @@ public final class FileValidator extends AbstractValidator<File> {
      *            true if the file should be hidden, false if it should not be
      * @return this object
      */
-    public FileValidator hidden(final boolean isHidden) {
+    public FileValidator hidden(boolean isHidden) {
         if (getSubject() != null) {
             File file = getSubject();
 
@@ -123,8 +118,7 @@ public final class FileValidator extends AbstractValidator<File> {
                     must = "must not";
                 }
 
-                this.addException(String.format(
-                        "The file %s be hidden", must));
+                this.addException(String.format("The file %s be hidden", must));
             }
         }
 
@@ -138,7 +132,7 @@ public final class FileValidator extends AbstractValidator<File> {
      *            true if the file should be readable, false if it should not be
      * @return this object
      */
-    public FileValidator readable(final boolean isReadable) {
+    public FileValidator readable(boolean isReadable) {
         if (getSubject() != null) {
             File file = getSubject();
 
@@ -151,8 +145,7 @@ public final class FileValidator extends AbstractValidator<File> {
                     must = "must not";
                 }
 
-                this.addException(String.format(
-                        "The file %s be readable", must));
+                this.addException(String.format("The file %s be readable", must));
             }
         }
 
@@ -166,7 +159,7 @@ public final class FileValidator extends AbstractValidator<File> {
      *            true if the file should be writable, false if it should not be
      * @return this object
      */
-    public FileValidator writable(final boolean isWritable) {
+    public FileValidator writable(boolean isWritable) {
         if (getSubject() != null) {
             File file = getSubject();
 
@@ -179,8 +172,7 @@ public final class FileValidator extends AbstractValidator<File> {
                     must = "must not";
                 }
 
-                this.addException(String.format(
-                        "The file %s be writable", must));
+                this.addException(String.format("The file %s be writable", must));
             }
         }
 
@@ -191,11 +183,10 @@ public final class FileValidator extends AbstractValidator<File> {
      * Sets whether the file should be executable or not.
      *
      * @param isExecutable
-     *            true if the file should be executable, false if it should not
-     *            be
+     *            true if the file should be executable, false if it should not be
      * @return this object
      */
-    public FileValidator executable(final boolean isExecutable) {
+    public FileValidator executable(boolean isExecutable) {
         if (getSubject() != null) {
             File file = getSubject();
 
@@ -208,8 +199,7 @@ public final class FileValidator extends AbstractValidator<File> {
                     must = "must not";
                 }
 
-                this.addException(String.format(
-                        "The file %s be executable", must));
+                this.addException(String.format("The file %s be executable", must));
             }
         }
 
@@ -223,16 +213,14 @@ public final class FileValidator extends AbstractValidator<File> {
      *            the allowed extensions
      * @return this object
      */
-    public FileValidator extension(final String... allowedExtensions) {
+    public FileValidator extension(String... allowedExtensions) {
         if (getSubject() != null) {
             File file = getSubject();
 
-            if (!FilenameUtils.isExtension(file.getName(),
-                    allowedExtensions)) {
+            if (!FilenameUtils.isExtension(file.getName(), allowedExtensions)) {
                 this.addException(String.format(
-                        "The file has an inappropriate extension\n"
-                                + "(allowedExtensions: [%s])",
-                                ArrayUtils.toString(allowedExtensions)));
+                        "The file has an inappropriate extension\n(allowedExtensions: [%s])",
+                        ArrayUtils.toString(allowedExtensions)));
             }
         }
         return this;

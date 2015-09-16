@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.runner;
 
 import hu.bme.mit.sette.common.model.snippet.Snippet;
@@ -63,12 +61,10 @@ public final class RunnerProjectUtils {
      *            the settings of the runner project.
      * @return the runner log file
      */
-    public static File getRunnerLogFile(
-            final RunnerProjectSettings<?> settings) {
+    public static File getRunnerLogFile(RunnerProjectSettings<?> settings) {
         Validate.notNull(settings, "The settings must not be null");
 
-        return new File(settings.getRunnerOutputDirectory(),
-                RUNNER_LOG_FILE);
+        return new File(settings.getRunnerOutputDirectory(), RUNNER_LOG_FILE);
     }
 
     /**
@@ -76,14 +72,12 @@ public final class RunnerProjectUtils {
      *
      * @param snippet
      *            the snippet (e.g. hu.bme.mit.sette.MyContainer.MySnippet)
-     * @return the base filename for the output files (e.g.
-     *         hu/bme/mit/sette/MyContainer_MySnippet)
+     * @return the base filename for the output files (e.g. hu/bme/mit/sette/MyContainer_MySnippet)
      */
-    public static String getSnippetBaseFilename(final Snippet snippet) {
+    public static String getSnippetBaseFilename(Snippet snippet) {
         Validate.notNull(snippet, "The snippet must not be null");
 
-        return JavaFileUtils.packageNameToFilename(snippet
-                .getContainer().getJavaClass().getName())
+        return JavaFileUtils.packageNameToFilename(snippet.getContainer().getJavaClass().getName())
                 + "_" + snippet.getMethod().getName();
     }
 
@@ -95,13 +89,12 @@ public final class RunnerProjectUtils {
      * @param snippet
      *            the snippet (e.g. hu.bme.mit.sette.MyContainer.MySnippet)
      * @param extension
-     *            the extension for the file (e.g. myExt)
+     *            the extension of the file (e.g. myExt)
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.myExt).
      */
-    private static File getSnippetFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet, final String extension) {
+    private static File getSnippetFile(RunnerProjectSettings<?> settings, Snippet snippet,
+            String extension) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
         Validate.notBlank(extension, "The extension must not be blank");
@@ -109,8 +102,7 @@ public final class RunnerProjectUtils {
         String relativePath = getSnippetBaseFilename(snippet)
                 + JavaFileUtils.FILE_EXTENSION_SEPARATOR + extension;
 
-        return new File(settings.getRunnerOutputDirectory(),
-                relativePath);
+        return new File(settings.getRunnerOutputDirectory(), relativePath);
     }
 
     /**
@@ -123,9 +115,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.info).
      */
-    public static File getSnippetInfoFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet) {
+    public static File getSnippetInfoFile(RunnerProjectSettings<?> settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -142,9 +132,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.out).
      */
-    public static File getSnippetOutputFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet) {
+    public static File getSnippetOutputFile(RunnerProjectSettings<?> settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -161,9 +149,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.err).
      */
-    public static File getSnippetErrorFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet) {
+    public static File getSnippetErrorFile(RunnerProjectSettings<?> settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -177,13 +163,10 @@ public final class RunnerProjectUtils {
      *            the settings of the runner project.
      * @param snippet
      *            the snippet (e.g. hu.bme.mit.sette.MyContainer.MySnippet)
-     * @return the output file for the snippet (e.g.
-     *         RUNNER_OUTPUT_DIR/hu/bme/mit
+     * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.inputs.xml).
      */
-    public static File getSnippetInputsFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet) {
+    public static File getSnippetInputsFile(RunnerProjectSettings<?> settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -197,13 +180,10 @@ public final class RunnerProjectUtils {
      *            the settings of the runner project.
      * @param snippet
      *            the snippet (e.g. hu.bme.mit.sette.MyContainer.MySnippet)
-     * @return the output file for the snippet (e.g.
-     *         RUNNER_OUTPUT_DIR/hu/bme/mit
+     * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.result.xml).
      */
-    public static File getSnippetResultFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet) {
+    public static File getSnippetResultFile(RunnerProjectSettings<?> settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -217,13 +197,10 @@ public final class RunnerProjectUtils {
      *            the settings of the runner project.
      * @param snippet
      *            the snippet (e.g. hu.bme.mit.sette.MyContainer.MySnippet)
-     * @return the output file for the snippet (e.g.
-     *         RUNNER_OUTPUT_DIR/hu/bme/mit
+     * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.coverage.xml).
      */
-    public static File getSnippetCoverageFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet) {
+    public static File getSnippetCoverageFile(RunnerProjectSettings<?> settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -237,13 +214,10 @@ public final class RunnerProjectUtils {
      *            the settings of the runner project.
      * @param snippet
      *            the snippet (e.g. hu.bme.mit.sette.MyContainer.MySnippet)
-     * @return the output file for the snippet (e.g.
-     *         RUNNER_OUTPUT_DIR/hu/bme/mit
+     * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.coverage.xml).
      */
-    public static File getSnippetHtmlFile(
-            final RunnerProjectSettings<?> settings,
-            final Snippet snippet) {
+    public static File getSnippetHtmlFile(RunnerProjectSettings<?> settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 

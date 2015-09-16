@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.common.snippets.SnippetInputContainer;
@@ -51,56 +49,48 @@ public final class SnippetInputFactory {
     /**
      * Instantiates a new snippet input factory.
      *
-     * @param pContainer
+     * @param container
      *            the container
-     * @param pMethod
+     * @param method
      *            the method
      * @param classLoader
      *            the class loader for loading snippet project classes
      * @throws ValidatorException
      *             if validation has failed
      */
-    SnippetInputFactory(final SnippetInputFactoryContainer pContainer,
-            final Method pMethod, final ClassLoader classLoader)
-                    throws ValidatorException {
-        Validate.notNull(pContainer, "The container must not be null");
-        Validate.notNull(pMethod, "The method must not be null");
-        Validate.isTrue(
-                pContainer.getJavaClass().equals(
-                        pMethod.getDeclaringClass()),
-                        "The method must be declared in the Java class "
-                                + "stored by the container\n"
-                                + "(container.javaClass: [%s])\n"
-                                + "(method.declaringClass: [%s])",
-                                pContainer.getJavaClass(), pMethod.getDeclaringClass());
-        container = pContainer;
-        method = pMethod;
+    SnippetInputFactory(SnippetInputFactoryContainer container, Method method,
+            ClassLoader classLoader) throws ValidatorException {
+        Validate.notNull(container, "The container must not be null");
+        Validate.notNull(method, "The method must not be null");
+        Validate.isTrue(container.getJavaClass().equals(method.getDeclaringClass()),
+                "The method must be declared in the Java class stored by the container\n"
+                        + "(container.javaClass: [%s])\n(method.declaringClass: [%s])",
+                container.getJavaClass(), method.getDeclaringClass());
+        this.container = container;
+        this.method = method;
 
         // start validation
-        MethodValidator v = new MethodValidator(pMethod);
+        MethodValidator v = new MethodValidator(method);
         // modifiers are checked by the container when parsing the Java class
 
         // check SETTE annotations
-        if (!SetteAnnotationUtils.getSetteAnnotations(pMethod)
-                .isEmpty()) {
+        if (!SetteAnnotationUtils.getSetteAnnotations(method).isEmpty()) {
             v.addException("The method must not have any SETTE annotations");
         }
 
         // check parameter types
-        if (pMethod.getParameterTypes().length != 0) {
+        if (method.getParameterTypes().length != 0) {
             v.addException("The method must not have any parameter types");
         }
 
         // check return type
-        if (!pMethod.getReturnType()
-                .equals(SnippetInputContainer.class)) {
+        if (!method.getReturnType().equals(SnippetInputContainer.class)) {
             v.addException("The method must have the return type of "
                     + SnippetInputContainer.class.getSimpleName());
         }
 
         // get snippet method
-        snippetMethod = pContainer.getSnippetContainer().getSnippets()
-                .get(pMethod.getName());
+        snippetMethod = container.getSnippetContainer().getSnippets().get(method.getName());
 
         if (snippetMethod == null) {
             v.addException("The corresponding snippet method was not found");
@@ -143,8 +133,7 @@ public final class SnippetInputFactory {
      *
      * @return a snippet input container with the inputs
      * @throws IllegalAccessException
-     *             if the underlying method is inaccessible because of Java
-     *             language access control
+     *             if the underlying method is inaccessible because of Java language access control
      * @throws InvocationTargetException
      *             if the underlying method throws an exception
      */

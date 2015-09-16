@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.snippetbrowser;
 
 import hu.bme.mit.sette.common.exceptions.SetteException;
@@ -61,13 +59,9 @@ public final class SnippetBrowser extends JFrame {
      *
      * @throws SetteException
      */
-    public SnippetBrowser(SnippetProject snippetProject)
-            throws SetteException {
-        Validate.notNull(snippetProject,
-                "Snippet project must not be null");
-        Validate.isTrue(
-                snippetProject.getState().equals(
-                        SnippetProject.State.PARSED),
+    public SnippetBrowser(SnippetProject snippetProject) throws SetteException {
+        Validate.notNull(snippetProject, "Snippet project must not be null");
+        Validate.isTrue(snippetProject.getState().equals(SnippetProject.State.PARSED),
                 "Snippet project must not be parsed");
 
         this.snippetProject = snippetProject;
@@ -104,47 +98,37 @@ public final class SnippetBrowser extends JFrame {
     }
 
     private void initialized() {
-        DefaultTreeModel model = new DefaultTreeModel(
-                new SnippetProjectTreeNode(snippetProject));
+        DefaultTreeModel model = new DefaultTreeModel(new SnippetProjectTreeNode(snippetProject));
         treeSnippets.setModel(model);
-        treeSnippets
-        .addTreeSelectionListener(new TreeSelectionListener() {
+        treeSnippets.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
             public void valueChanged(TreeSelectionEvent e) {
                 if (treeSnippets.getSelectionCount() == 1) {
                     TreeNodeBase<?, ?> treeNode = (TreeNodeBase<?, ?>) treeSnippets
-                            .getSelectionPath()
-                            .getLastPathComponent();
+                            .getSelectionPath().getLastPathComponent();
                     txtrInfo.setText(treeNode.getDescription());
                 } else if (treeSnippets.getSelectionCount() > 1) {
                     int projectContainerCnt = 0;
                     int projectSnippetCnt = 0;
 
-                    projectContainerCnt = snippetProject
-                            .getModel().getContainers().size();
+                    projectContainerCnt = snippetProject.getModel().getContainers().size();
 
-                    for (SnippetContainer container : snippetProject
-                            .getModel().getContainers()) {
-                        projectSnippetCnt += container
-                                .getSnippets().size();
+                    for (SnippetContainer container : snippetProject.getModel().getContainers()) {
+                        projectSnippetCnt += container.getSnippets().size();
                     }
 
                     int containerCnt = 0;
                     int containerSnippetCnt = 0;
                     int snippetCnt = 0;
 
-                    for (TreePath path : treeSnippets
-                            .getSelectionPaths()) {
-                        Object node = path
-                                .getLastPathComponent();
+                    for (TreePath path : treeSnippets.getSelectionPaths()) {
+                        Object node = path.getLastPathComponent();
 
                         if (node instanceof SnippetContainerTreeNode) {
                             containerCnt++;
 
                             SnippetContainerTreeNode obj = (SnippetContainerTreeNode) node;
-                            containerSnippetCnt += obj
-                                    .getContainer()
-                                    .getSnippets().size();
+                            containerSnippetCnt += obj.getContainer().getSnippets().size();
                         } else if (node instanceof SnippetTreeNode) {
                             snippetCnt++;
                         }
@@ -152,20 +136,13 @@ public final class SnippetBrowser extends JFrame {
 
                     String[] lines = new String[3];
 
-                    lines[0] = String
-                            .format("Project contains %d container(s) with %d snippet(s)",
-                                    projectContainerCnt,
-                                    projectSnippetCnt);
-                    lines[1] = String
-                            .format("Selected %d container(s) (%d snippet(s))",
-                                    containerCnt,
-                                    containerSnippetCnt);
-                    lines[2] = String.format(
-                            "Selected %d snippet(s)",
-                            snippetCnt);
+                    lines[0] = String.format("Project contains %d container(s) with %d snippet(s)",
+                            projectContainerCnt, projectSnippetCnt);
+                    lines[1] = String.format("Selected %d container(s) (%d snippet(s))",
+                            containerCnt, containerSnippetCnt);
+                    lines[2] = String.format("Selected %d snippet(s)", snippetCnt);
 
-                    txtrInfo.setText(StringUtils.join(lines,
-                            '\n'));
+                    txtrInfo.setText(StringUtils.join(lines, '\n'));
                 } else {
                     txtrInfo.setText("[No selection]");
                 }

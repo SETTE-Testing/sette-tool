@@ -1,27 +1,24 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
 package hu.bme.mit.sette.common;
 
@@ -52,31 +49,25 @@ public abstract class Tool implements Comparable<Tool> {
     /**
      * Instantiates a new tool.
      *
-     * @param pName
+     * @param name
      *            the name of the tool
-     * @param pFullName
+     * @param fullName
      *            the full name of the tool
-     * @param pVersion
+     * @param version
      *            the version of the tool
      */
-    public Tool(final String pName, final String pFullName,
-            final String pVersion) {
-        Validate.notBlank(pName, "The name must not be blank");
+    public Tool(String name, String fullName, String version) {
+        Validate.notBlank(name, "The name must not be blank");
 
-        name = pName;
+        this.name = name;
+        this.fullName = StringUtils.isBlank(fullName) ? name : fullName;
+        this.version = StringUtils.isBlank(version) ? "unknown version" : version;
+    }
 
-        if (StringUtils.isBlank(pFullName)) {
-            fullName = pName;
-        } else {
-            fullName = pFullName;
-        }
-
-        if (StringUtils.isBlank(pVersion)) {
-            version = "unknown version";
-        } else {
-            version = pVersion;
-        }
-
+    /**
+     * Adds the tool to the {@link ToolRegister}.
+     */
+    public void register() {
         ToolRegister.register(this);
     }
 
@@ -128,10 +119,8 @@ public abstract class Tool implements Comparable<Tool> {
      *            the Java version
      * @return true if supports, otherwise false
      */
-    public final boolean supportsJavaVersion(
-            final JavaVersion javaVersion) {
-        Validate.notNull(javaVersion,
-                "The Java version must not be null");
+    public final boolean supportsJavaVersion(JavaVersion javaVersion) {
+        Validate.notNull(javaVersion, "The Java version must not be null");
 
         return getSupportedJavaVersion().compareTo(javaVersion) >= 0;
     }
@@ -157,8 +146,8 @@ public abstract class Tool implements Comparable<Tool> {
      *            the output directory
      * @return the runner project runner
      */
-    public abstract RunnerProjectRunner<?> createRunnerProjectRunner(
-            SnippetProject snippetProject, File outputDirectory);
+    public abstract RunnerProjectRunner<?> createRunnerProjectRunner(SnippetProject snippetProject,
+            File outputDirectory);
 
     /**
      * Creates a run result parser.
@@ -169,16 +158,11 @@ public abstract class Tool implements Comparable<Tool> {
      *            the output directory
      * @return the run result parser
      */
-    public abstract RunResultParser<?> createRunResultParser(
-            SnippetProject snippetProject, File outputDirectory);
+    public abstract RunResultParser<?> createRunResultParser(SnippetProject snippetProject,
+            File outputDirectory);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
     @Override
-    public final int compareTo(final Tool o) {
+    public final int compareTo(Tool o) {
         if (o == null) {
             return 1;
         } else if (equals(o)) {
@@ -188,23 +172,13 @@ public abstract class Tool implements Comparable<Tool> {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public final int hashCode() {
         return name.toLowerCase().hashCode();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
-    public final boolean equals(final Object o) {
+    public final boolean equals(Object o) {
         if (o instanceof Tool) {
             return o.getClass().equals(this.getClass());
         } else {

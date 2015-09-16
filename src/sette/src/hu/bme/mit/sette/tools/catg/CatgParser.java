@@ -1,36 +1,34 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.tools.catg;
 
+import hu.bme.mit.sette.common.model.parserxml.InputElement;
+import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
+import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.runner.ParameterType;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.runner.xml.InputElement;
-import hu.bme.mit.sette.common.model.runner.xml.ParameterElement;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunResultParser;
@@ -43,18 +41,16 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 
 public class CatgParser extends RunResultParser<CatgTool> {
-    public CatgParser(SnippetProject snippetProject,
-            File outputDirectory, CatgTool tool) {
+    public CatgParser(SnippetProject snippetProject, File outputDirectory, CatgTool tool) {
         super(snippetProject, outputDirectory, tool);
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet,
-            SnippetInputsXml inputsXml) throws Exception {
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(
-                getRunnerProjectSettings(), snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(
-                getRunnerProjectSettings(), snippet);
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
+                snippet);
+        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
+                snippet);
 
         if (errorFile.exists()) {
             // TODO enhance this section and make it more clear
@@ -64,35 +60,29 @@ public class CatgParser extends RunResultParser<CatgTool> {
             String firstLine = lines.get(0);
 
             if (firstLine.startsWith("Exception in thread \"main\"")) {
-                Pattern p = Pattern
-                        .compile(
-                                "Exception in thread \"main\" ([a-z0-9\\._]+).*",
-                                Pattern.CASE_INSENSITIVE);
+                Pattern p = Pattern.compile("Exception in thread \"main\" ([a-z0-9\\._]+).*",
+                        Pattern.CASE_INSENSITIVE);
 
                 Matcher m = p.matcher(firstLine);
                 if (m.matches()) {
                     String exceptionType = m.group(1);
 
-                    if (exceptionType
-                            .equals("java.lang.NoClassDefFoundError")) {
+                    if (exceptionType.equals("java.lang.NoClassDefFoundError")) {
                         inputsXml.setResultType(ResultType.NA);
-                    } else if (exceptionType
-                            .equals("java.lang.VerifyError")) {
+                    } else if (exceptionType.equals("java.lang.VerifyError")) {
                         inputsXml.setResultType(ResultType.EX);
                     } else if (exceptionType.endsWith("Exception")) {
                         // enhance
                         inputsXml.setResultType(ResultType.EX);
                     } else {
                         System.err.println(snippet.getMethod());
-                        System.err.println("NOT HANDLED TYPE: "
-                                + exceptionType);
+                        System.err.println("NOT HANDLED TYPE: " + exceptionType);
                     }
                 } else {
                     System.err.println(snippet.getMethod());
                     System.err.println("NO MATCH");
                 }
-            } else if (firstLine
-                    .startsWith("java.lang.ArrayIndexOutOfBoundsException")) {
+            } else if (firstLine.startsWith("java.lang.ArrayIndexOutOfBoundsException")) {
                 inputsXml.setResultType(ResultType.EX);
             } else if (firstLine
                     .startsWith("WARNING: !!!!!!!!!!!!!!!!! Prediction failed !!!!!!!!!!!!!!!!!")) {
@@ -106,7 +96,8 @@ public class CatgParser extends RunResultParser<CatgTool> {
             // inputsXml.setResultType(ResultType.NA);
             // return;
             // } else if (firstLine
-            // .startsWith("Exception in thread \"main\" java.lang.StringIndexOutOfBoundsException"))
+            // .startsWith("Exception in thread \"main\"
+            // java.lang.StringIndexOutOfBoundsException"))
             // {
             // inputsXml.setResultType(ResultType.EX);
             // return;
@@ -132,8 +123,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
             // collect inputs
             List<String> lines = FileUtils.readLines(outputFile);
             if (!lines.get(0).startsWith("Now testing ")) {
-                throw new RuntimeException("File beginning problem: "
-                        + outputFile);
+                throw new RuntimeException("File beginning problem: " + outputFile);
             }
 
             Pattern p = Pattern.compile("\\[Input (\\d+)\\]");
@@ -147,13 +137,10 @@ public class CatgParser extends RunResultParser<CatgTool> {
                 Matcher m = p.matcher(line);
                 if (m.matches()) {
                     if (!m.group(1).equals(String.valueOf(inputNumber))) {
-                        System.err.println("Current input should be: "
-                                + inputNumber);
-                        System.err.println("Current input line: "
-                                + line);
+                        System.err.println("Current input should be: " + inputNumber);
+                        System.err.println("Current input line: " + line);
                         throw new RuntimeException(
-                                "File input problem (" + line + "): "
-                                        + outputFile);
+                                "File input problem (" + line + "): " + outputFile);
                     }
 
                     // find end of generated input
@@ -170,8 +157,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
                         nextInputLine = lines.size();
                     }
 
-                    int paramCount = snippet.getMethod()
-                            .getParameterTypes().length;
+                    int paramCount = snippet.getMethod().getParameterTypes().length;
 
                     InputElement ie = new InputElement();
 
@@ -189,16 +175,14 @@ public class CatgParser extends RunResultParser<CatgTool> {
                                 pe.setType(ParameterType.EXPRESSION);
                                 pe.setValue("\"" + value + "\"");
                             } else {
-                                pe.setType(ParameterType
-                                        .fromString(type));
+                                pe.setType(ParameterType.fromString(type));
                                 pe.setValue(value);
                             }
 
                             ie.getParameters().add(pe);
                         } else {
                             throw new RuntimeException(
-                                    "File input problem (" + l + "): "
-                                            + outputFile);
+                                    "File input problem (" + l + "): " + outputFile);
                         }
                     }
 
@@ -208,8 +192,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
 
                     // TODO now NOT dealing with result and exception
                 } else {
-                    throw new RuntimeException("File input problem ("
-                            + line + "): " + outputFile);
+                    throw new RuntimeException("File input problem (" + line + "): " + outputFile);
                 }
             }
         }

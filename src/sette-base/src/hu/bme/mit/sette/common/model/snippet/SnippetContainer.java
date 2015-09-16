@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.annotations.SetteNotSnippet;
@@ -56,8 +54,7 @@ import org.apache.commons.lang3.Validate;
 /**
  * Represents a snippet container (which is a Java class).
  */
-public final class SnippetContainer implements
-Comparable<SnippetContainer> {
+public final class SnippetContainer implements Comparable<SnippetContainer> {
     /** The Java class of the snippet container. */
     private final Class<?> javaClass;
 
@@ -79,21 +76,19 @@ Comparable<SnippetContainer> {
     /**
      * Instantiates a new snippet container.
      *
-     * @param pJavaClass
+     * @param javaClass
      *            the Java class
      * @param classLoader
      *            the class loader for loading snippet project classes
      * @throws ValidatorException
      *             if validation has failed
      */
-    SnippetContainer(final Class<?> pJavaClass,
-            final ClassLoader classLoader) throws ValidatorException {
-        Validate.notNull(pJavaClass, "The Java class must not be null");
-        javaClass = pJavaClass;
+    SnippetContainer(Class<?> javaClass, ClassLoader classLoader) throws ValidatorException {
+        Validate.notNull(javaClass, "The Java class must not be null");
+        this.javaClass = javaClass;
 
         // start validation
-        GeneralValidator validator = new GeneralValidator(
-                SnippetContainer.class);
+        GeneralValidator validator = new GeneralValidator(SnippetContainer.class);
 
         // validate class and get container annotation
         SetteSnippetContainer containerAnnotation = validateClass(validator);
@@ -117,8 +112,7 @@ Comparable<SnippetContainer> {
                 // the method is a snippet method
                 try {
                     // create and add snippet object
-                    Snippet snippet = new Snippet(this, method,
-                            classLoader);
+                    Snippet snippet = new Snippet(this, method, classLoader);
                     snippets.put(method.getName(), snippet);
                 } catch (ValidatorException e) {
                     validator.addChild(e.getValidator());
@@ -128,14 +122,12 @@ Comparable<SnippetContainer> {
 
         // input factory container
         SnippetInputFactoryContainer inputFactCont = null;
-        if (!containerAnnotation.inputFactoryContainer().equals(
-                NullType.class)) {
+        if (!containerAnnotation.inputFactoryContainer().equals(NullType.class)) {
             // input factory container is present
             try {
                 // create input factory container
                 inputFactCont = new SnippetInputFactoryContainer(this,
-                        containerAnnotation.inputFactoryContainer(),
-                        classLoader);
+                        containerAnnotation.inputFactoryContainer(), classLoader);
             } catch (ValidatorException e) {
                 validator.addChild(e.getValidator());
             }
@@ -154,8 +146,7 @@ Comparable<SnippetContainer> {
      *            a validator
      * @return the {@link SetteSnippetContainer} annotation
      */
-    private SetteSnippetContainer validateClass(
-            final AbstractValidator<?> validator) {
+    private SetteSnippetContainer validateClass(AbstractValidator<?> validator) {
         // check: "public final class", no superclass, interface, declared
         // class, exactly one constructor
         ClassValidator v = new ClassValidator(javaClass);
@@ -163,45 +154,38 @@ Comparable<SnippetContainer> {
         v.withModifiers(Modifier.PUBLIC | Modifier.FINAL);
         v.withoutModifiers(Modifier.ABSTRACT);
         v.synthetic(false);
-        v.superclass(Object.class).interfaceCount(0)
-        .memberClassCount(0);
+        v.superclass(Object.class).interfaceCount(0).memberClassCount(0);
         v.declaredConstructorCount(1);
 
         // check: only @SetteSnippetContainer
         SetteSnippetContainer containerAnn = null;
 
-        AnnotationMap classAnns = SetteAnnotationUtils
-                .getSetteAnnotations(javaClass);
+        AnnotationMap classAnns = SetteAnnotationUtils.getSetteAnnotations(javaClass);
 
-        containerAnn = (SetteSnippetContainer) classAnns
-                .get(SetteSnippetContainer.class);
+        containerAnn = (SetteSnippetContainer) classAnns.get(SetteSnippetContainer.class);
 
         if (containerAnn == null) {
             v.addException("The Java class must have the annotation @"
                     + SetteSnippetContainer.class.getSimpleName());
         } else {
             if (classAnns.size() != 1) {
-                v.addException("The Java class must not have any "
-                        + "SETTE annotations other than @"
+                v.addException("The Java class must not have any SETTE annotations other than @"
                         + SetteSnippetContainer.class.getSimpleName());
             }
 
             if (StringUtils.isBlank(containerAnn.category())) {
-                v.addException("The category in @"
-                        + SetteSnippetContainer.class.getSimpleName()
+                v.addException("The category in @" + SetteSnippetContainer.class.getSimpleName()
                         + " must not be blank");
             }
 
             if (StringUtils.isBlank(containerAnn.goal())) {
-                v.addException("The goal in @"
-                        + SetteSnippetContainer.class.getSimpleName()
+                v.addException("The goal in @" + SetteSnippetContainer.class.getSimpleName()
                         + " must not be blank");
             }
 
             if (containerAnn.requiredJavaVersion() == null) {
                 v.addException("The reqired Java version in @"
-                        + SetteSnippetContainer.class.getSimpleName()
-                        + " must not be null");
+                        + SetteSnippetContainer.class.getSimpleName() + " must not be null");
             }
         }
 
@@ -216,7 +200,7 @@ Comparable<SnippetContainer> {
      * @param validator
      *            a validator
      */
-    private void validateFields(final AbstractValidator<?> validator) {
+    private void validateFields(AbstractValidator<?> validator) {
         // check: only constant ("public static final") or synthetic fields
         for (Field field : javaClass.getDeclaredFields()) {
             if (field.isSynthetic()) {
@@ -226,10 +210,8 @@ Comparable<SnippetContainer> {
             }
 
             FieldValidator v = new FieldValidator(field);
-            v.withModifiers(Modifier.PUBLIC | Modifier.STATIC
-                    | Modifier.FINAL);
-            v.withoutModifiers(Modifier.SYNCHRONIZED
-                    | Modifier.TRANSIENT | Modifier.VOLATILE);
+            v.withModifiers(Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL);
+            v.withoutModifiers(Modifier.SYNCHRONIZED | Modifier.TRANSIENT | Modifier.VOLATILE);
 
             validator.addChildIfInvalid(v);
         }
@@ -241,15 +223,13 @@ Comparable<SnippetContainer> {
      * @param validator
      *            a validator
      */
-    private void validateConstructor(
-            final AbstractValidator<?> validator) {
+    private void validateConstructor(AbstractValidator<?> validator) {
         if (javaClass.getDeclaredConstructors().length != 1) {
             // constructor count is validated with the class
             return;
         }
 
-        Constructor<?> constructor = javaClass
-                .getDeclaredConstructors()[0];
+        Constructor<?> constructor = javaClass.getDeclaredConstructors()[0];
         ConstructorValidator v = new ConstructorValidator(constructor);
         v.withModifiers(Modifier.PRIVATE).parameterCount(0);
         v.synthetic(false);
@@ -269,12 +249,9 @@ Comparable<SnippetContainer> {
             constructor.setAccessible(false);
         }
 
-        if (exception == null
-                || !exception.getClass().equals(
-                        UnsupportedOperationException.class)
-                        || !exception.getMessage().equals("Static class")) {
-            v.addException("The constructor must throw an "
-                    + "UnsupportedOperationException with "
+        if (exception == null || !exception.getClass().equals(UnsupportedOperationException.class)
+                || !exception.getMessage().equals("Static class")) {
+            v.addException("The constructor must throw an UnsupportedOperationException with "
                     + "the message \"Static class\"");
         }
 
@@ -288,8 +265,7 @@ Comparable<SnippetContainer> {
      *            a validator
      * @return a map containing the snippet methods by their name
      */
-    private Map<String, Method> validateMethods(
-            final AbstractValidator<?> validator) {
+    private Map<String, Method> validateMethods(AbstractValidator<?> validator) {
         // check: only "[public|private] static" or synthetic methods
         Map<String, Method> snippetMethods = new HashMap<String, Method>();
 
@@ -307,17 +283,15 @@ Comparable<SnippetContainer> {
 
             int methodModifiers = method.getModifiers();
 
-            if (!Modifier.isPublic(methodModifiers)
-                    && !Modifier.isPrivate(methodModifiers)) {
+            if (!Modifier.isPublic(methodModifiers) && !Modifier.isPrivate(methodModifiers)) {
                 v.addException("The method must be public or private");
             }
 
             v.withModifiers(Modifier.STATIC);
-            v.withoutModifiers(Modifier.ABSTRACT | Modifier.FINAL
-                    | Modifier.NATIVE | Modifier.SYNCHRONIZED);
+            v.withoutModifiers(
+                    Modifier.ABSTRACT | Modifier.FINAL | Modifier.NATIVE | Modifier.SYNCHRONIZED);
 
-            AnnotationMap methodAnns = SetteAnnotationUtils
-                    .getSetteAnnotations(method);
+            AnnotationMap methodAnns = SetteAnnotationUtils.getSetteAnnotations(method);
 
             if (Modifier.isPublic(methodModifiers)) {
                 if (methodAnns.get(SetteNotSnippet.class) == null) {
@@ -329,16 +303,14 @@ Comparable<SnippetContainer> {
                     snippetMethods.put(method.getName(), null);
 
                     if (methodAnns.size() != 1) {
-                        v.addException("The method must not have "
-                                + "any other SETTE annotations "
+                        v.addException("The method must not have any other SETTE annotations "
                                 + "if it is not a snippet.");
                     }
                 }
             } else {
                 // method is private
                 if (methodAnns.size() != 0) {
-                    v.addException("The method must not have "
-                            + "any SETTE annotations");
+                    v.addException("The method must not have any SETTE annotations");
                 }
             }
 
@@ -408,27 +380,20 @@ Comparable<SnippetContainer> {
     static {
         COMPARATOR = new Comparator<SnippetContainer>() {
             @Override
-            public int compare(final SnippetContainer o1,
-                    final SnippetContainer o2) {
+            public int compare(SnippetContainer o1, SnippetContainer o2) {
                 if (o1 == null) {
                     return -1;
                 } else if (o2 == null) {
                     return 1;
                 } else {
-                    return o1.javaClass.getName().compareTo(
-                            o2.javaClass.getName());
+                    return o1.javaClass.getName().compareTo(o2.javaClass.getName());
                 }
             }
         };
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
     @Override
-    public int compareTo(final SnippetContainer o) {
+    public int compareTo(SnippetContainer o) {
         return SnippetContainer.COMPARATOR.compare(this, o);
     }
 }

@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.util.process;
 
 import java.io.IOException;
@@ -33,14 +31,13 @@ import java.util.List;
 import org.apache.commons.lang3.Validate;
 
 /**
- * This class can read all the data from the given {@link Reader} to the given
- * {@link StringBuffer} and also implements {@link Runnable}. It can also notify
- * listeners of the {@link RunnableReaderListener} interface.
+ * This class can read all the data from the given {@link Reader} to the given {@link StringBuffer}
+ * and also implements {@link Runnable}. It can also notify listeners of the
+ * {@link RunnableReaderListener} interface.
  */
 public final class RunnableReader extends Reader implements Runnable {
     /**
-     * The default buffer size for {@link RunnableReader extends Reader}
-     * objects.
+     * The default buffer size for {@link RunnableReader extends Reader} objects.
      */
     public static final int DEFAULT_BUFFER_SIZE = 1024;
 
@@ -58,7 +55,7 @@ public final class RunnableReader extends Reader implements Runnable {
         STOPPED,
         /** An error occurred during execution. */
         ERROR
-    };
+    }
 
     /** The state of the {@link RunnableReader} object. */
     private State state;
@@ -81,47 +78,39 @@ public final class RunnableReader extends Reader implements Runnable {
     /**
      * Instantiates a new runnable reader listener.
      *
-     * @param pReader
+     * @param reader
      *            the reader
-     * @param pBuffer
+     * @param buffer
      *            the buffer
      */
-    public RunnableReader(final Reader pReader,
-            final StringBuffer pBuffer) {
-        this(pReader, pBuffer, DEFAULT_BUFFER_SIZE);
+    public RunnableReader(Reader reader, StringBuffer buffer) {
+        this(reader, buffer, DEFAULT_BUFFER_SIZE);
     }
 
     /**
      * Instantiates a new runnable reader listener.
      *
-     * @param pReader
+     * @param reader
      *            the reader
-     * @param pBuffer
+     * @param buffer
      *            the buffer
-     * @param pBufferSize
+     * @param bufferSize
      *            the buffer size
      */
-    public RunnableReader(final Reader pReader,
-            final StringBuffer pBuffer, final int pBufferSize) {
+    public RunnableReader(Reader reader, StringBuffer buffer, int bufferSize) {
         super();
 
-        Validate.notNull(pReader, "The reader must not be null");
-        Validate.notNull(pBuffer, "The buffer must not be null");
-        Validate.isTrue(pBufferSize > 0,
-                " The buffer size must be a positive number");
+        Validate.notNull(reader, "The reader must not be null");
+        Validate.notNull(buffer, "The buffer must not be null");
+        Validate.isTrue(bufferSize > 0, " The buffer size must be a positive number");
 
         state = State.CREATED;
 
-        reader = pReader;
-        buffer = pBuffer;
-        bufferSize = pBufferSize;
+        this.reader = reader;
+        this.buffer = buffer;
+        this.bufferSize = bufferSize;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Thread#run()
-     */
     @Override
     public void run() {
         readAllToBuffer();
@@ -215,10 +204,9 @@ public final class RunnableReader extends Reader implements Runnable {
      * @param required
      *            the required state
      */
-    private void validateState(final State required) {
-        Validate.validState(state.equals(required),
-                "Invalid state (state: [%s], required: [%s])", state,
-                required);
+    private void validateState(State required) {
+        Validate.validState(state.equals(required), "Invalid state (state: [%s], required: [%s])",
+                state, required);
     }
 
     /**
@@ -227,7 +215,7 @@ public final class RunnableReader extends Reader implements Runnable {
      * @param listener
      *            the listener
      */
-    public void addListener(final RunnableReaderListener listener) {
+    public void addListener(RunnableReaderListener listener) {
         if (listener == null) {
             return;
         }
@@ -241,26 +229,15 @@ public final class RunnableReader extends Reader implements Runnable {
      * @param listener
      *            the listener
      */
-    public void removeListener(final RunnableReaderListener listener) {
+    public void removeListener(RunnableReaderListener listener) {
         listeners.remove(listener);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.io.Reader#read(char[], int, int)
-     */
     @Override
-    public int read(final char[] cbuf, final int off, final int len)
-            throws IOException {
+    public int read(char[] cbuf, int off, int len) throws IOException {
         return reader.read(cbuf, off, len);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.io.Reader#close()
-     */
     @Override
     public void close() throws IOException {
         reader.close();

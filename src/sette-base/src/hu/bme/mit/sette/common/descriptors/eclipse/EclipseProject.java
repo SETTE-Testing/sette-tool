@@ -1,31 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
 package hu.bme.mit.sette.common.descriptors.eclipse;
-
-import hu.bme.mit.sette.common.util.XmlUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,13 +31,16 @@ import javax.xml.transform.TransformerException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 
+import hu.bme.mit.sette.common.util.XmlUtils;
+
 /**
- * Represents an Eclipse project and its .project and .classpath fileswith the
- * Eclipse's built-in Java builder and Java nature.
+ * Represents an Eclipse project and its .project and .classpath files with the Eclipse's built-in
+ * Java builder and Java nature.
  */
 public final class EclipseProject {
     /** The descriptor of the .project file. */
     private EclipseProjectDescriptor projectDescriptor;
+
     /** The descriptor of the .classpath file. */
     private EclipseClasspathDescriptor classpathDescriptor;
 
@@ -52,7 +50,7 @@ public final class EclipseProject {
      * @param name
      *            The name of the project.
      */
-    public EclipseProject(final String name) {
+    public EclipseProject(String name) {
         setProjectDescriptor(new EclipseProjectDescriptor(name));
     }
 
@@ -64,34 +62,32 @@ public final class EclipseProject {
      * @param comment
      *            The comment for the project.
      */
-    public EclipseProject(final String name, final String comment) {
+    public EclipseProject(String name, String comment) {
         setProjectDescriptor(new EclipseProjectDescriptor(name, comment));
     }
 
     /**
      * Creates an instance of the object.
      *
-     * @param pProjectDescriptor
+     * @param projectDescriptor
      *            The descriptor of the .project file.
      */
-    public EclipseProject(
-            final EclipseProjectDescriptor pProjectDescriptor) {
-        setProjectDescriptor(pProjectDescriptor);
+    public EclipseProject(EclipseProjectDescriptor projectDescriptor) {
+        setProjectDescriptor(projectDescriptor);
     }
 
     /**
      * Creates an instance of the object.
      *
-     * @param pProjectDescriptor
+     * @param projectDescriptor
      *            The descriptor of the .project file.
-     * @param pClasspathDescriptor
+     * @param classpathDescriptor
      *            The descriptor of the .classpath file.
      */
-    public EclipseProject(
-            final EclipseProjectDescriptor pProjectDescriptor,
-            final EclipseClasspathDescriptor pClasspathDescriptor) {
-        setProjectDescriptor(pProjectDescriptor);
-        setClasspathDescriptor(pClasspathDescriptor);
+    public EclipseProject(EclipseProjectDescriptor projectDescriptor,
+            EclipseClasspathDescriptor classpathDescriptor) {
+        setProjectDescriptor(projectDescriptor);
+        setClasspathDescriptor(classpathDescriptor);
     }
 
     /**
@@ -106,14 +102,12 @@ public final class EclipseProject {
     /**
      * Sets the descriptor of the .project file.
      *
-     * @param pProjectDescriptor
+     * @param projectDescriptor
      *            The descriptor of the .project file.
      */
-    public void setProjectDescriptor(
-            final EclipseProjectDescriptor pProjectDescriptor) {
-        Validate.notNull(pProjectDescriptor,
-                "The project descriptor should not be null");
-        projectDescriptor = pProjectDescriptor;
+    public void setProjectDescriptor(EclipseProjectDescriptor projectDescriptor) {
+        Validate.notNull(projectDescriptor, "The project descriptor should not be null");
+        this.projectDescriptor = projectDescriptor;
     }
 
     /**
@@ -128,32 +122,30 @@ public final class EclipseProject {
     /**
      * Sets the descriptor of the .classpath file.
      *
-     * @param pClasspathDescriptor
+     * @param classpathDescriptor
      *            The descriptor of the .classpath file.
      */
-    public void setClasspathDescriptor(
-            final EclipseClasspathDescriptor pClasspathDescriptor) {
-        classpathDescriptor = pClasspathDescriptor;
+    public void setClasspathDescriptor(EclipseClasspathDescriptor classpathDescriptor) {
+        this.classpathDescriptor = classpathDescriptor;
     }
 
     /**
-     * Saves the project files to the specified directory.
+     * Saves the project files to the specified directory. Please note that the existing files will
+     * be overwritten.
      *
      * @param directory
      *            The directory. If it does not exist, it will be created.
      * @throws IOException
-     *             If the directory cannot be created or the file already exists
-     *             but is not a directory.
+     *             If the directory cannot be created or the file already exists but is not a
+     *             directory.
      * @throws ParserConfigurationException
-     *             If a DocumentBuilder cannot be created which satisfies the
-     *             configuration requested or when it is not possible to create
-     *             a Transformer instance.
+     *             If a DocumentBuilder cannot be created which satisfies the configuration
+     *             requested or when it is not possible to create a Transformer instance.
      * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the
-     *             transformation.
+     *             If an unrecoverable error occurs during the course of the transformation.
      */
-    public void save(final File directory) throws IOException,
-    ParserConfigurationException, TransformerException {
+    public void save(File directory)
+            throws IOException, ParserConfigurationException, TransformerException {
         Validate.notNull(directory, "The directory must not be null");
 
         // create directory if not exists
@@ -163,14 +155,12 @@ public final class EclipseProject {
 
         // save .project file
         File projectFile = new File(directory, ".project");
-        XmlUtils.writeXml(projectDescriptor.createXmlDocument(),
-                projectFile);
+        XmlUtils.writeXml(projectDescriptor.createXmlDocument(), projectFile);
 
         // save .classpath file if classpath is specified
         if (classpathDescriptor != null) {
             File classpathFile = new File(directory, ".classpath");
-            XmlUtils.writeXml(classpathDescriptor.createXmlDocument(),
-                    classpathFile);
+            XmlUtils.writeXml(classpathDescriptor.createXmlDocument(), classpathFile);
         }
     }
 }

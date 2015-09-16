@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import hu.bme.mit.sette.common.Tool;
@@ -31,7 +29,7 @@ import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry.Kind;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.common.exceptions.RunnerProjectGeneratorException;
-import hu.bme.mit.sette.common.exceptions.SetteConfigurationException;
+import hu.bme.mit.sette.common.exceptions.ConfigurationException;
 import hu.bme.mit.sette.common.exceptions.SetteException;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectSettings;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
@@ -58,14 +56,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * A SETTE task which provides base for runner project generation. The phases
- * are the following: validation, preparation, writing.
+ * A SETTE task which provides base for runner project generation. The phases are the following:
+ * validation, preparation, writing.
  *
  * @param <T>
  *            the type of the tool
  */
-public abstract class RunnerProjectGenerator<T extends Tool> extends
-        SetteTask<T> {
+public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T> {
     /** The Eclipse project. */
     private EclipseProject eclipseProject;
 
@@ -79,8 +76,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
      * @param tool
      *            the tool
      */
-    public RunnerProjectGenerator(final SnippetProject snippetProject,
-            final File outputDirectory, final T tool) {
+    public RunnerProjectGenerator(SnippetProject snippetProject, File outputDirectory, T tool) {
         super(snippetProject, outputDirectory, tool);
     }
 
@@ -103,18 +99,17 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
             phase = "prepare runner project (do)";
             prepareRunnerProject();
             phase = "prepare runner project (after)";
-            afterPrepareRunnerProject(this.eclipseProject);
+            afterPrepareRunnerProject(eclipseProject);
 
             phase = "write runner project (do)";
             writeRunnerProject();
             phase = "write runner project (after)";
-            afterWriteRunnerProject(this.eclipseProject);
+            afterWriteRunnerProject(eclipseProject);
 
             phase = "complete";
         } catch (Exception e) {
             String message = String.format(
-                    "The runner project generation has failed\n"
-                            + "(phase: [%s])\n(tool: [%s])", phase,
+                    "The runner project generation has failed\n(phase: [%s])\n(tool: [%s])", phase,
                     getTool().getFullName());
             throw new RunnerProjectGeneratorException(message, this, e);
         }
@@ -123,13 +118,11 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
     /**
      * Validates both the snippet and runner project settings.
      *
-     * @throws SetteConfigurationException
+     * @throws ConfigurationException
      *             if a SETTE configuration problem occurred
      */
-    private void validate() throws SetteConfigurationException {
-        Validate.isTrue(
-                getSnippetProject().getState().equals(
-                        SnippetProject.State.PARSED),
+    private void validate() throws ConfigurationException {
+        Validate.isTrue(getSnippetProject().getState().equals(SnippetProject.State.PARSED),
                 "The snippet project must be parsed (state: [%s]) ",
                 getSnippetProject().getState().name());
 
@@ -139,34 +132,27 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
     }
 
     /**
-     * Prepares the writing of the runner project, i.e. make everything ready
-     * for writing out.
+     * Prepares the writing of the runner project, i.e. make everything ready for writing out.
      */
     private void prepareRunnerProject() {
         // create the Eclipse project
-        this.eclipseProject = new EclipseProject(
-                getRunnerProjectSettings().getProjectName());
+        eclipseProject = new EclipseProject(getRunnerProjectSettings().getProjectName());
 
         // create the classpath for the project
         EclipseClasspathDescriptor cp = new EclipseClasspathDescriptor();
-        this.eclipseProject.setClasspathDescriptor(cp);
+        eclipseProject.setClasspathDescriptor(cp);
 
         // add default JRE and bin directory
         cp.addEntry(EclipseClasspathEntry.JRE_CONTAINER);
         cp.addEntry(Kind.OUTPUT, "bin");
 
         // add snippet source directory
-        cp.addEntry(Kind.SOURCE, getSnippetProjectSettings()
-                .getSnippetSourceDirectoryPath());
+        cp.addEntry(Kind.SOURCE, getSnippetProjectSettings().getSnippetSourceDirectoryPath());
 
         // add libraries used by the snippet project
-        for (File libraryFile : getSnippetProject().getFiles()
-                .getLibraryFiles()) {
-            cp.addEntry(Kind.LIBRARY,
-                    getSnippetProjectSettings()
-                            .getLibraryDirectoryPath()
-                            + '/'
-                            + libraryFile.getName());
+        for (File libraryFile : getSnippetProject().getFiles().getLibraryFiles()) {
+            cp.addEntry(Kind.LIBRARY, String.format("%s/%s",
+                    getSnippetProjectSettings().getLibraryDirectoryPath(), libraryFile.getName()));
         }
     }
 
@@ -178,16 +164,13 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
      * @throws ParseException
      *             If the source code has parser errors.
      * @throws ParserConfigurationException
-     *             If a DocumentBuilder cannot be created which satisfies the
-     *             configuration requested or when it is not possible to create
-     *             a Transformer instance.
+     *             If a DocumentBuilder cannot be created which satisfies the configuration
+     *             requested or when it is not possible to create a Transformer instance.
      * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the
-     *             transformation.
+     *             If an unrecoverable error occurs during the course of the transformation.
      */
-    private void writeRunnerProject() throws IOException,
-            ParseException, ParserConfigurationException,
-            TransformerException {
+    private void writeRunnerProject()
+            throws IOException, ParseException, ParserConfigurationException, TransformerException {
         // TODO revise whole method
         // TODO now using JAPA, which does not support Java 7/8 -> maybe ANTLR
         // supports
@@ -196,41 +179,30 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
         // create INFO file
         // TODO later maybe use an XML file!!!
 
-        File infoFile = new File(getRunnerProjectSettings()
-                .getBaseDirectory(), "SETTE-INFO");
+        File infoFile = new File(getRunnerProjectSettings().getBaseDirectory(), "SETTE-INFO");
 
         StringBuilder infoFileData = new StringBuilder();
-        infoFileData.append("Tool name: " + getTool().getName())
+        infoFileData.append("Tool name: " + getTool().getName()).append('\n');
+        infoFileData.append("Tool version: " + getTool().getVersion()).append('\n');
+        infoFileData.append("Tool supported Java version: " + getTool().getSupportedJavaVersion())
                 .append('\n');
-        infoFileData.append("Tool version: " + getTool().getVersion())
-                .append('\n');
-        infoFileData.append(
-                "Tool supported Java version: "
-                        + getTool().getSupportedJavaVersion()).append(
-                '\n');
 
         // TODO externalise somewhere the date format string
-        String generatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                .format(new Date());
-        infoFileData.append("Generated at: ").append(generatedAt)
-                .append('\n');
+        String generatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        infoFileData.append("Generated at: ").append(generatedAt).append('\n');
 
-        String id = generatedAt + ' ' + getTool().getName() + " ("
-                + getTool().getVersion() + ')';
+        String id = generatedAt + ' ' + getTool().getName() + " (" + getTool().getVersion() + ')';
         infoFileData.append("ID: ").append(id).append('\n');
 
         FileUtils.write(infoFile, infoFileData);
 
         // copy snippets
-        FileUtils.copyDirectory(getSnippetProjectSettings()
-                .getSnippetSourceDirectory(),
-                getRunnerProjectSettings().getSnippetSourceDirectory(),
-                false);
+        FileUtils.copyDirectory(getSnippetProjectSettings().getSnippetSourceDirectory(),
+                getRunnerProjectSettings().getSnippetSourceDirectory(), false);
 
         // remove SETTE annotations and imports from file
-        Collection<File> filesWritten = FileUtils.listFiles(
-                getRunnerProjectSettings().getSnippetSourceDirectory(),
-                null, true);
+        Collection<File> filesWritten = FileUtils
+                .listFiles(getRunnerProjectSettings().getSnippetSourceDirectory(), null, true);
 
         mainLoop: for (File file : filesWritten) {
             CompilationUnit compilationUnit = JavaParser.parse(file);
@@ -239,9 +211,8 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
             if (compilationUnit.getTypes() != null) {
                 for (TypeDeclaration type : compilationUnit.getTypes()) {
                     if (type.getAnnotations() != null) {
-                        for (Iterator<AnnotationExpr> iterator = type
-                                .getAnnotations().iterator(); iterator
-                                .hasNext();) {
+                        for (Iterator<AnnotationExpr> iterator = type.getAnnotations()
+                                .iterator(); iterator.hasNext();) {
                             AnnotationExpr annot = iterator.next();
 
                             String annotStr = annot.toString().trim();
@@ -249,29 +220,22 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
                             // TODO enhance
                             // if container and has req version and it is java 7
                             // and tool does not support -> remove
-                            if (annotStr
-                                    .startsWith("@SetteSnippetContainer")
-                                    && annotStr
-                                            .contains("requiredJavaVersion")
-                                    && annotStr
-                                            .contains("JavaVersion.JAVA_7")
-                                    && !getTool().supportsJavaVersion(
-                                            JavaVersion.JAVA_7)) {
+                            if (annotStr.startsWith("@SetteSnippetContainer")
+                                    && annotStr.contains("requiredJavaVersion")
+                                    && annotStr.contains("JavaVersion.JAVA_7")
+                                    && !getTool().supportsJavaVersion(JavaVersion.JAVA_7)) {
                                 // TODO support java version JAVA_8
                                 // TODO error handling
                                 // remove file
-                                System.err.println("Skipping file: "
-                                        + file
-                                        + " (required Java version: "
-                                        + JavaVersion.JAVA_7 + ")");
+                                System.err.println("Skipping file: " + file
+                                        + " (required Java version: " + JavaVersion.JAVA_7 + ")");
                                 FileUtils.forceDelete(file);
                                 continue mainLoop;
 
                             }
 
                             // TODO enhance
-                            if (annot.getName().toString()
-                                    .startsWith("Sette")) {
+                            if (annot.getName().toString().startsWith("Sette")) {
                                 iterator.remove();
                             }
                         }
@@ -280,15 +244,12 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
                     if (type.getMembers() != null) {
                         for (BodyDeclaration member : type.getMembers()) {
                             if (member.getAnnotations() != null) {
-                                for (Iterator<AnnotationExpr> iterator = member
-                                        .getAnnotations().iterator(); iterator
-                                        .hasNext();) {
-                                    AnnotationExpr annotation = iterator
-                                            .next();
+                                for (Iterator<AnnotationExpr> iterator = member.getAnnotations()
+                                        .iterator(); iterator.hasNext();) {
+                                    AnnotationExpr annotation = iterator.next();
 
                                     // TODO enhance
-                                    if (annotation.getName().toString()
-                                            .startsWith("Sette")) {
+                                    if (annotation.getName().toString().startsWith("Sette")) {
                                         iterator.remove();
                                     }
                                 }
@@ -300,10 +261,9 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
 
             // remove SETTE imports
             if (compilationUnit.getImports() != null) {
-                for (Iterator<ImportDeclaration> iterator = compilationUnit
-                        .getImports().iterator(); iterator.hasNext();) {
-                    ImportDeclaration importDeclaration = iterator
-                            .next();
+                for (Iterator<ImportDeclaration> iterator = compilationUnit.getImports()
+                        .iterator(); iterator.hasNext();) {
+                    ImportDeclaration importDeclaration = iterator.next();
 
                     // TODO enhance
                     String p1 = "hu.bme.mit.sette.annotations";
@@ -312,17 +272,13 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
                     String p3 = "catg.CATG";
                     String p4 = "hu.bme.mit.sette.common.snippets.JavaVersion";
 
-                    if (importDeclaration.getName().toString()
-                            .equals(p3)) {
+                    if (importDeclaration.getName().toString().equals(p3)) {
                         // keep CATG
-                    } else if (importDeclaration.getName().toString()
-                            .equals(p4)) {
+                    } else if (importDeclaration.getName().toString().equals(p4)) {
                         iterator.remove();
-                    } else if (importDeclaration.getName().toString()
-                            .startsWith(p1)) {
+                    } else if (importDeclaration.getName().toString().startsWith(p1)) {
                         iterator.remove();
-                    } else if (importDeclaration.getName().toString()
-                            .startsWith(p2)) {
+                    } else if (importDeclaration.getName().toString().startsWith(p2)) {
                         iterator.remove();
                     }
                 }
@@ -334,39 +290,39 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
 
         // copy libraries
         if (getSnippetProjectSettings().getLibraryDirectory().exists()) {
-            FileUtils.copyDirectory(getSnippetProjectSettings()
-                    .getLibraryDirectory(), getRunnerProjectSettings()
-                    .getSnippetLibraryDirectory(), false);
+            FileUtils.copyDirectory(getSnippetProjectSettings().getLibraryDirectory(),
+                    getRunnerProjectSettings().getSnippetLibraryDirectory(), false);
         }
 
         // create project
-        this.eclipseProject.save(getRunnerProjectSettings()
-                .getBaseDirectory());
+        this.eclipseProject.save(getRunnerProjectSettings().getBaseDirectory());
     }
 
     /**
      * This method is called after validation but before preparation.
      *
-     * @throws SetteConfigurationException
+     * @throws ConfigurationException
      *             if a SETTE configuration problem occurred
      */
-    protected void afterValidate() throws SetteConfigurationException {
+    protected void afterValidate() throws ConfigurationException {
+        // to be implemented by the subclass
     }
 
     /**
      * This method is called after preparation but before writing.
      *
-     * @param pEclipseProject
+     * @param eclipseProject
      *            the Eclipse project
      */
     protected void afterPrepareRunnerProject(
-            final EclipseProject pEclipseProject) {
+            @SuppressWarnings("hiding") EclipseProject eclipseProject) {
+        // to be implemented by the subclass if needed
     }
 
     /**
      * This method is called after writing.
      *
-     * @param pEclipseProject
+     * @param eclipseProject
      *            the Eclipse project
      * @throws IOException
      *             Signals that an I/O exception has occurred.
@@ -374,16 +330,16 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends
      *             if a SETTE problem occurred
      */
     protected void afterWriteRunnerProject(
-            final EclipseProject pEclipseProject) throws IOException,
-            SetteException {
+            @SuppressWarnings("hiding") EclipseProject eclipseProject)
+                    throws IOException, SetteException {
+        // to be implemented by the subclass if needed
     }
 
     /**
-     * This method adds the generated directory to the classpath of the Eclipse
-     * project.
+     * This method adds the generated directory to the classpath of the Eclipse project.
      */
     protected final void addGeneratedDirectoryToProject() {
-        this.eclipseProject.getClasspathDescriptor().addEntry(
-                Kind.SOURCE, RunnerProjectSettings.GENERATED_DIRNAME);
+        this.eclipseProject.getClasspathDescriptor().addEntry(Kind.SOURCE,
+                RunnerProjectSettings.GENERATED_DIRNAME);
     }
 }

@@ -1,3 +1,26 @@
+/*
+ * SETTE - Symbolic Execution based Test Tool Evaluator
+ *
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
+ *
+ * Budapest University of Technology and Economics (BME)
+ *
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
+ *
+ * Copyright 2014-2015
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+// TODO z revise this file
 package hu.bme.mit.sette.tools.jpet.xmlparser;
 
 import java.util.Arrays;
@@ -25,9 +48,13 @@ enum TagType {
     EXCEPTION_FLAG("exception_flag", TagType.TEST_CASE),
     /** The &lt;trace&gt; tag (child of &lt;test_case&gt;). */
     TRACE("trace", TagType.TEST_CASE),
-    /** The &lt;input_constraints&gt; tag (child of &lt;test_case&gt;). */
+    /**
+     * The &lt;input_constraints&gt; tag (child of &lt;test_case&gt;).
+     */
     INPUT_CONSTRAINTS("input_constraints", TagType.TEST_CASE),
-    /** The &lt;output_constraints&gt; tag (child of &lt;test_case&gt;). */
+    /**
+     * The &lt;output_constraints&gt; tag (child of &lt;test_case&gt;).
+     */
     OUTPUT_CONSTRAINTS("output_constraints", TagType.TEST_CASE),
     /** The &lt;params&gt; tag (child of &lt;test_case&gt;). */
     PARAMS("params", TagType.TEST_CASE),
@@ -37,8 +64,8 @@ enum TagType {
      */
     ELEM("elem", TagType.HEAP_IN, TagType.HEAP_OUT),
     /**
-     * The &lt;num&gt; tag (child of &lt;elem&gt;, denotes the name of the
-     * element which is used in &lt;ref&gt;).
+     * The &lt;num&gt; tag (child of &lt;elem&gt;, denotes the name of the element which is used in
+     * &lt;ref&gt;).
      */
     NUM("num", TagType.ELEM),
 
@@ -76,16 +103,15 @@ enum TagType {
     /**
      * Initialises the instance.
      *
-     * @param pTagName
+     * @param tagName
      *            The name of the XML tag.
      */
-    private TagType(final String pTagName,
-            final TagType... pValidParentTagTypes) {
-        Validate.notEmpty(pValidParentTagTypes,
+    private TagType(String tagName, TagType... validParentTagTypes) {
+        Validate.notEmpty(validParentTagTypes,
                 "The array of valid parent tag types must not be empty or null");
 
-        tagName = pTagName;
-        validParentTagTypes = pValidParentTagTypes;
+        this.tagName = tagName;
+        this.validParentTagTypes = validParentTagTypes;
     }
 
     /**
@@ -108,27 +134,20 @@ enum TagType {
      *            the tag name
      * @return the tag type
      */
-    public static TagType fromString(final String tagName) {
+    public static TagType fromString(String tagName) {
         Validate.notBlank(tagName, "The tag name must not be blank");
 
         for (TagType pt : TagType.values()) {
-            if (pt.tagName.equalsIgnoreCase(tagName)
-                    || pt.name().equalsIgnoreCase(tagName)) {
+            if (pt.tagName.equalsIgnoreCase(tagName) || pt.name().equalsIgnoreCase(tagName)) {
                 return pt;
             }
         }
 
-        String message = String
-                .format("Invalid tag name (tag name: [%s], valid tag names: [%s]",
-                        tagName, Arrays.toString(TagType.values()));
+        String message = String.format("Invalid tag name (tag name: [%s], valid tag names: [%s]",
+                tagName, Arrays.toString(TagType.values()));
         throw new IllegalArgumentException(message);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Enum#toString()
-     */
     @Override
     public String toString() {
         return '<' + tagName + '>';

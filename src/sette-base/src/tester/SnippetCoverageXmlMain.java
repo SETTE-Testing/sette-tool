@@ -1,35 +1,33 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package tester;
 
+import hu.bme.mit.sette.common.model.parserxml.FileCoverageElement;
+import hu.bme.mit.sette.common.model.parserxml.SnippetCoverageXml;
+import hu.bme.mit.sette.common.model.parserxml.SnippetElement;
+import hu.bme.mit.sette.common.model.parserxml.SnippetProjectElement;
 import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.model.runner.xml.FileCoverageElement;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetCoverageXml;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetElement;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetProjectElement;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 
 import java.io.StringWriter;
@@ -40,17 +38,15 @@ import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.stream.Format;
 
 public final class SnippetCoverageXmlMain {
-    public static void main(final String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         SnippetCoverageXml snippetCoverageXml = new SnippetCoverageXml();
         snippetCoverageXml.setToolName("MyTool");
-        snippetCoverageXml
-        .setSnippetProjectElement(new SnippetProjectElement());
+        snippetCoverageXml.setSnippetProjectElement(new SnippetProjectElement());
         snippetCoverageXml.getSnippetProjectElement()
-        .setBaseDirectoryPath(
-                "/data/workspace/dev/SETTE-Snippets");
+                .setBaseDirectoryPath("/data/workspace/dev/SETTE-Snippets");
         snippetCoverageXml.setSnippetElement(new SnippetElement());
-        snippetCoverageXml.getSnippetElement().setContainerName(
-                "hu.bme.mit.sette.snippets.MyContainer");
+        snippetCoverageXml.getSnippetElement()
+                .setContainerName("hu.bme.mit.sette.snippets.MyContainer");
         snippetCoverageXml.getSnippetElement().setName("mySnippet");
         snippetCoverageXml.setResultType(ResultType.S);
 
@@ -77,8 +73,7 @@ public final class SnippetCoverageXmlMain {
         }
 
         Serializer serializer = new Persister(new AnnotationStrategy(),
-                new Format(
-                        "<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
+                new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
         StringWriter s = new StringWriter();
 
         try {
@@ -90,8 +85,7 @@ public final class SnippetCoverageXmlMain {
 
         System.out.println(s);
 
-        snippetCoverageXml = serializer.read(SnippetCoverageXml.class,
-                s.getBuffer().toString());
+        snippetCoverageXml = serializer.read(SnippetCoverageXml.class, s.getBuffer().toString());
         s = new StringWriter();
 
         serializer.write(snippetCoverageXml, s);

@@ -1,27 +1,24 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
 package hu.bme.mit.sette.common.descriptors.eclipse;
 
@@ -54,7 +51,7 @@ public final class EclipseClasspathDescriptor {
      * @param classpathEntry
      *            The classpath entry.
      */
-    public void addEntry(final EclipseClasspathEntry classpathEntry) {
+    public void addEntry(EclipseClasspathEntry classpathEntry) {
         classpathEntries.add(classpathEntry);
     }
 
@@ -66,7 +63,7 @@ public final class EclipseClasspathDescriptor {
      * @param path
      *            The path for the entry.
      */
-    public void addEntry(final Kind kind, final String path) {
+    public void addEntry(Kind kind, String path) {
         this.addEntry(new EclipseClasspathEntry(kind, path));
     }
 
@@ -84,14 +81,12 @@ public final class EclipseClasspathDescriptor {
      *
      * @return The XML document.
      * @throws ParserConfigurationException
-     *             If a DocumentBuilder cannot be created which satisfies the
-     *             configuration requested.
+     *             If a DocumentBuilder cannot be created which satisfies the configuration
+     *             requested.
      */
-    public Document createXmlDocument()
-            throws ParserConfigurationException {
+    public Document createXmlDocument() throws ParserConfigurationException {
         // create document object
-        Document document = DocumentBuilderFactory.newInstance()
-                .newDocumentBuilder().newDocument();
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         document.setXmlVersion("1.0");
         document.setXmlStandalone(true);
 
@@ -102,8 +97,7 @@ public final class EclipseClasspathDescriptor {
         // add classpath entry tags
         for (EclipseClasspathEntry classpathEntry : classpathEntries) {
             Element tag = document.createElement("classpathentry");
-            tag.setAttribute("kind", classpathEntry.getKind()
-                    .getAttrValue());
+            tag.setAttribute("kind", classpathEntry.getKind().getAttrValue());
             tag.setAttribute("path", classpathEntry.getPath());
             rootTag.appendChild(tag);
         }

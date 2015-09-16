@@ -2,7 +2,7 @@
 <!-- This is the default SETTE build file for Randoop runner projects. -->
 <project name="sette-randoop" default="main">
 	<property name="snippet-src.dir" location="snippet-src" />
-    <property name="tests.dir" location="tests" />
+    <property name="test.dir" location="test" />
 	<property name="build.dir" location="build" />
 	<property name="snippet.libs.dir" location="snippet-libs" />
 
@@ -35,7 +35,7 @@
             <classpath>
                 <pathelement path="../../sette-tool/src/sette-base/libs/junit-3.8.2.jar" />
             </classpath>
-            <src path="${tests.dir}" />
+            <src path="${test.dir}" />
         </javac>
     </target>
 </project>

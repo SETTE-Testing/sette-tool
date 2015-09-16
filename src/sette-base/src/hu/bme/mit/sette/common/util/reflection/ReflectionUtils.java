@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.util.reflection;
 
 import java.util.Comparator;
@@ -39,7 +37,7 @@ public final class ReflectionUtils {
     static {
         CLASS_COMPARATOR = new Comparator<Class<?>>() {
             @Override
-            public int compare(final Class<?> o1, final Class<?> o2) {
+            public int compare(Class<?> o1, Class<?> o2) {
                 if (o1 == null) {
                     return -1;
                 } else if (o2 == null) {
@@ -66,7 +64,7 @@ public final class ReflectionUtils {
     // * @throws ClassNotFoundException
     // * if the class cannot be located
     // */
-    // public static Class<?> loadClass(final String packageName,
+    // public static Class<?> loadClass(String packageName,
     // final String className) throws ClassNotFoundException {
     // Validate.notBlank(packageName, "Package name must not be blank");
     // Validate.notBlank(className, "Class name must not be blank");
@@ -84,7 +82,7 @@ public final class ReflectionUtils {
     // * @throws ClassNotFoundException
     // * if the class cannot be located
     // */
-    // public static Class<?> loadClass(final String className)
+    // public static Class<?> loadClass(String className)
     // throws ClassNotFoundException {
     // Validate.notBlank(className, "Class name must not be blank");
     // return Class.forName(className);

@@ -1,27 +1,24 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
 package hu.bme.mit.sette.common.descriptors.eclipse;
 
@@ -34,47 +31,42 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Represents an Eclipse .project file with the Eclipse's built-in Java builder
- * and Java nature.
+ * Represents an Eclipse .project file with the Eclipse's built-in Java builder and Java nature.
  */
 public final class EclipseProjectDescriptor {
     /** Name of the Java builder. */
-    private static final String JAVA_BUILDER;
-    /** Name of the Java nature. */
-    private static final String JAVA_NATURE;
+    private static final String JAVA_BUILDER = "org.eclipse.jdt.core.javabuilder";
 
-    static {
-        JAVA_BUILDER = "org.eclipse.jdt.core.javabuilder";
-        JAVA_NATURE = "org.eclipse.jdt.core.javanature";
-    }
+    /** Name of the Java nature. */
+    private static final String JAVA_NATURE = "org.eclipse.jdt.core.javanature";
 
     /** The name of the project. */
     private String name;
+
     /** The comment for the project. */
     private String comment;
 
     /**
      * Creates an instance of the object.
      *
-     * @param pName
+     * @param name
      *            The name of the project.
      */
-    public EclipseProjectDescriptor(final String pName) {
-        this(pName, "");
+    public EclipseProjectDescriptor(String name) {
+        this(name, "");
     }
 
     /**
      * Creates an instance of the object.
      *
-     * @param pName
+     * @param came
      *            The name of the project.
-     * @param pComment
+     * @param comment
      *            The comment for the project.
      */
-    public EclipseProjectDescriptor(final String pName,
-            final String pComment) {
-        setName(pName);
-        setComment(pComment);
+    public EclipseProjectDescriptor(String came, String comment) {
+        setName(came);
+        setComment(comment);
     }
 
     /**
@@ -89,12 +81,12 @@ public final class EclipseProjectDescriptor {
     /**
      * Sets the name of the project.
      *
-     * @param pName
+     * @param name
      *            The name of the project.
      */
-    public void setName(final String pName) {
-        Validate.notBlank(pName, "The name must not be be blank");
-        name = pName.trim();
+    public void setName(String name) {
+        Validate.notBlank(name, "The name must not be be blank");
+        this.name = name.trim();
     }
 
     /**
@@ -109,11 +101,11 @@ public final class EclipseProjectDescriptor {
     /**
      * Sets the comment for the project.
      *
-     * @param pComment
+     * @param comment
      *            The comment for the project.
      */
-    public void setComment(final String pComment) {
-        comment = StringUtils.trimToEmpty(pComment);
+    public void setComment(String comment) {
+        this.comment = StringUtils.trimToEmpty(comment);
     }
 
     /**
@@ -121,14 +113,12 @@ public final class EclipseProjectDescriptor {
      *
      * @return The XML document.
      * @throws ParserConfigurationException
-     *             If a DocumentBuilder cannot be created which satisfies the
-     *             configuration requested.
+     *             If a DocumentBuilder cannot be created which satisfies the configuration
+     *             requested.
      */
-    public Document createXmlDocument()
-            throws ParserConfigurationException {
+    public Document createXmlDocument() throws ParserConfigurationException {
         // create document object
-        Document document = DocumentBuilderFactory.newInstance()
-                .newDocumentBuilder().newDocument();
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         document.setXmlVersion("1.0");
         document.setXmlStandalone(true);
 
@@ -136,11 +126,9 @@ public final class EclipseProjectDescriptor {
         Element rootTag = document.createElement("projectDescription");
         document.appendChild(rootTag);
 
-        // add name and comment
-        rootTag.appendChild(document.createElement("name"))
-        .setTextContent(name);
-        rootTag.appendChild(document.createElement("comment"))
-        .setTextContent(comment);
+        // add name and comment tags
+        rootTag.appendChild(document.createElement("name")).setTextContent(name);
+        rootTag.appendChild(document.createElement("comment")).setTextContent(comment);
 
         // add the projects tag
         rootTag.appendChild(document.createElement("projects"));
@@ -149,21 +137,19 @@ public final class EclipseProjectDescriptor {
         Element buildSpecTag = document.createElement("buildSpec");
         rootTag.appendChild(buildSpecTag);
 
-        Element buildCommandTag = document
-                .createElement("buildCommand");
+        Element buildCommandTag = document.createElement("buildCommand");
         buildSpecTag.appendChild(buildCommandTag);
 
         buildCommandTag.appendChild(document.createElement("name"))
-        .setTextContent(EclipseProjectDescriptor.JAVA_BUILDER);
-        buildCommandTag
-        .appendChild(document.createElement("arguments"));
+                .setTextContent(EclipseProjectDescriptor.JAVA_BUILDER);
+        buildCommandTag.appendChild(document.createElement("arguments"));
 
         // add the Java nature
         Element naturesTag = document.createElement("natures");
         rootTag.appendChild(naturesTag);
 
         naturesTag.appendChild(document.createElement("nature"))
-        .setTextContent(EclipseProjectDescriptor.JAVA_NATURE);
+                .setTextContent(EclipseProjectDescriptor.JAVA_NATURE);
 
         return document;
     }

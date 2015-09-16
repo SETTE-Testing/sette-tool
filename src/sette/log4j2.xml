@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration strict="true">
+	<Appenders>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{ISO8601} %-5p (%-4t) %25c{1}: %-100m (%F:%L)%n" />
+		</Console>
+		<Console name="STDERR" target="SYSTEM_ERR">
+			<PatternLayout pattern="%d{ISO8601} %-5p (%-4t) %25c{1}: %-100m (%F:%L)%n" />
+		</Console>
+		<File name="TRACE_FILE" fileName="trace.log" append="false">
+			<PatternLayout pattern="%d{ISO8601} %-5p (%-4t) %25c{1}: %-100m (%F:%L)%n" />
+		</File>
+	</Appenders>
+	<Loggers>
+		<Logger name="hu" level="warn">
+			<AppenderRef ref="STDERR" />
+		</Logger>
+		<Logger name="jacoco" level="debug">
+			<AppenderRef ref="STDOUT" />
+		</Logger>
+		<Root level="trace">
+            <AppenderRef ref="TRACE_FILE" />
+            <AppenderRef ref="STDOUT" level="info" />
+            <AppenderRef ref="STDERR" level="warn" />
+		</Root>
+	</Loggers>
+</Configuration>

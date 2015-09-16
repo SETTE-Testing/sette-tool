@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.util.process;
 
 import java.io.BufferedReader;
@@ -34,16 +32,15 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * This class is able to run an external {@link Process} while the caller can
- * specify a timeout for the process run. After the timeout is elapsed, the
+ * This class is able to run an external {@link Process} while the caller can specify a timeout for
+ * the process run. After the timeout is elapsed, the
  */
 public final class ProcessRunner {
     /** The default poll interval for {@link ProcessRunner} objects. */
     public static final int DEFAULT_POLL_INTERVAL = 200;
 
     /**
-     * The amount of time to wait after stopping the readers before destroying
-     * the process.
+     * The amount of time to wait after stopping the readers before destroying the process.
      */
     private static final int WAIT_BEFORE_DESTROY = 100;
 
@@ -81,8 +78,8 @@ public final class ProcessRunner {
     private final List<ProcessRunnerListener> listeners = new ArrayList<>();
 
     /**
-     * Executes the process. This method blocks the caller thread until the
-     * process has finished or destroyed.
+     * Executes the process. This method blocks the caller thread until the process has finished or
+     * destroyed.
      */
     public void execute() {
         // init
@@ -98,8 +95,7 @@ public final class ProcessRunner {
         long start = System.currentTimeMillis();
         Process process;
         try {
-            process = Runtime.getRuntime().exec(command,
-                    environmentVariables, workingDirectory);
+            process = Runtime.getRuntime().exec(command, environmentVariables, workingDirectory);
         } catch (IOException e) {
             for (ProcessRunnerListener listener : listeners) {
                 listener.onIOException(this, e);
@@ -110,14 +106,12 @@ public final class ProcessRunner {
         // create readers and start threads
         // use buffered reader to buffer the streams
         RunnableReader stdoutReader = new RunnableReader(
-                new BufferedReader(new InputStreamReader(
-                        process.getInputStream())), stdoutData,
+                new BufferedReader(new InputStreamReader(process.getInputStream())), stdoutData,
                 readerBufferSize);
         stdoutReader.addListener(new StdoutReaderListener());
 
         RunnableReader stderrReader = new RunnableReader(
-                new BufferedReader(new InputStreamReader(
-                        process.getErrorStream())), stderrData,
+                new BufferedReader(new InputStreamReader(process.getErrorStream())), stderrData,
                 readerBufferSize);
         stderrReader.addListener(new StderrReaderListener());
 
@@ -214,11 +208,11 @@ public final class ProcessRunner {
     /**
      * Sets the timeout in ms.
      *
-     * @param pTimeoutInMs
+     * @param timeoutInMs
      *            the new timeout in ms (zero means no timeout)
      */
-    public void setTimeoutInMs(final int pTimeoutInMs) {
-        timeoutInMs = pTimeoutInMs;
+    public void setTimeoutInMs(int timeoutInMs) {
+        this.timeoutInMs = timeoutInMs;
     }
 
     /**
@@ -233,11 +227,11 @@ public final class ProcessRunner {
     /**
      * Sets the poll interval in ms.
      *
-     * @param pPollIntervalInMs
+     * @param pollIntervalInMs
      *            the new poll interval in ms
      */
-    public void setPollIntervalInMs(final int pPollIntervalInMs) {
-        pollIntervalInMs = pPollIntervalInMs;
+    public void setPollIntervalInMs(int pollIntervalInMs) {
+        this.pollIntervalInMs = pollIntervalInMs;
     }
 
     /**
@@ -252,11 +246,11 @@ public final class ProcessRunner {
     /**
      * Sets the reader buffer size in bytes.
      *
-     * @param pReaderBufferSize
+     * @param readerBufferSize
      *            the new reader buffer size in bytes
      */
-    public void setReaderBufferSize(final int pReaderBufferSize) {
-        readerBufferSize = pReaderBufferSize;
+    public void setReaderBufferSize(int readerBufferSize) {
+        this.readerBufferSize = readerBufferSize;
     }
 
     /**
@@ -271,21 +265,21 @@ public final class ProcessRunner {
     /**
      * Sets the command.
      *
-     * @param pCommand
+     * @param pommand
      *            the new command
      */
-    public void setCommand(final String[] pCommand) {
-        command = pCommand;
+    public void setCommand(String[] pommand) {
+        this.command = pommand;
     }
 
     /**
      * Sets the command.
      *
-     * @param pCommand
+     * @param command
      *            the new command
      */
-    public void setCommand(final Collection<String> pCommand) {
-        command = pCommand.toArray(new String[pCommand.size()]);
+    public void setCommand(Collection<String> command) {
+        this.command = command.toArray(new String[command.size()]);
     }
 
     /**
@@ -300,12 +294,11 @@ public final class ProcessRunner {
     /**
      * Sets the environment variables.
      *
-     * @param pEnvironmentVariables
+     * @param environmentVariables
      *            the new environment variables
      */
-    public void setEnvironmentVariables(
-            final String[] pEnvironmentVariables) {
-        environmentVariables = pEnvironmentVariables;
+    public void setEnvironmentVariables(String[] environmentVariables) {
+        this.environmentVariables = environmentVariables;
     }
 
     /**
@@ -320,11 +313,11 @@ public final class ProcessRunner {
     /**
      * Sets the working directory.
      *
-     * @param pWorkingDirectory
+     * @param workingDirectory
      *            the new working directory
      */
-    public void setWorkingDirectory(final File pWorkingDirectory) {
-        workingDirectory = pWorkingDirectory;
+    public void setWorkingDirectory(File workingDirectory) {
+        this.workingDirectory = workingDirectory;
     }
 
     /**
@@ -369,7 +362,7 @@ public final class ProcessRunner {
      * @param listener
      *            the listener
      */
-    public void addListener(final ProcessRunnerListener listener) {
+    public void addListener(ProcessRunnerListener listener) {
         if (listener == null) {
             return;
         } else {
@@ -383,84 +376,44 @@ public final class ProcessRunner {
      * @param listener
      *            the listener
      */
-    public void removeListener(final ProcessRunnerListener listener) {
+    public void removeListener(ProcessRunnerListener listener) {
         listeners.remove(listener);
     }
 
     /**
-     * Base class for {@link StdoutReaderListener} and
-     * {@link StderrReaderListener} classes.
+     * Base class for {@link StdoutReaderListener} and {@link StderrReaderListener} classes.
      */
-    private abstract class BaseRunnableReaderListener implements
-            RunnableReaderListener {
-        /*
-         * (non-Javadoc)
-         * 
-         * @see hu.bme.mit.sette.common.util.process.RunnableReaderListener
-         * #onIOException(hu.bme.mit.sette.common.util.process.RunnableReader,
-         * java.io.IOException)
-         */
+    private abstract class BaseRunnableReaderListener implements RunnableReaderListener {
         @Override
-        public void onIOException(final RunnableReader readerThread,
-                final IOException exception) {
+        public void onIOException(RunnableReader readerThread, IOException exception) {
             for (ProcessRunnerListener listener : listeners) {
                 listener.onIOException(ProcessRunner.this, exception);
             }
         }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see hu.bme.mit.sette.common.util.process.RunnableReaderListener
-         * #onComplete(hu.bme.mit.sette.common.util.process.RunnableReader)
-         */
-        @Override
-        public void onComplete(final RunnableReader readerThread) {
-        }
     }
 
     /**
-     * This class propagates stdout {@link RunnableReader} events to the
-     * listeners of the {@link ProcessRunner}.
+     * This class propagates stdout {@link RunnableReader} events to the listeners of the
+     * {@link ProcessRunner}.
      */
-    private final class StdoutReaderListener extends
-            BaseRunnableReaderListener {
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * hu.bme.mit.sette.common.util.process.RunnableReaderListener#onRead
-         * (hu.bme.mit.sette.common.util.process.RunnableReader, int)
-         */
+    private final class StdoutReaderListener extends BaseRunnableReaderListener {
         @Override
-        public void onRead(final RunnableReader readerThread,
-                final int charactersRead) {
+        public void onRead(RunnableReader readerThread, int charactersRead) {
             for (ProcessRunnerListener listener : listeners) {
-                listener.onStdoutRead(ProcessRunner.this,
-                        charactersRead);
+                listener.onStdoutRead(ProcessRunner.this, charactersRead);
             }
         }
     }
 
     /**
-     * This class propagates stderr {@link RunnableReader} events to the
-     * listeners of the {@link ProcessRunner}.
+     * This class propagates stderr {@link RunnableReader} events to the listeners of the
+     * {@link ProcessRunner}.
      */
-    private final class StderrReaderListener extends
-            BaseRunnableReaderListener {
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * hu.bme.mit.sette.common.util.process.RunnableReaderListener#onRead
-         * (hu.bme.mit.sette.common.util.process.RunnableReader, int)
-         */
+    private final class StderrReaderListener extends BaseRunnableReaderListener {
         @Override
-        public void onRead(final RunnableReader readerThread,
-                final int charactersRead) {
+        public void onRead(RunnableReader readerThread, int charactersRead) {
             for (ProcessRunnerListener listener : listeners) {
-                listener.onStderrRead(ProcessRunner.this,
-                        charactersRead);
+                listener.onStderrRead(ProcessRunner.this, charactersRead);
             }
         }
     }

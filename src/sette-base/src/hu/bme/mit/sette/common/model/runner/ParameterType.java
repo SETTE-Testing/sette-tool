@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.runner;
 
 import java.util.Arrays;
@@ -66,11 +64,11 @@ public enum ParameterType {
     /**
      * Instantiates a new parameter type.
      *
-     * @param pToString
+     * @param toString
      *            the string representation
      */
-    private ParameterType(final String pToString) {
-        toString = pToString;
+    private ParameterType(String toString) {
+        this.toString = toString;
     }
 
     /**
@@ -80,29 +78,24 @@ public enum ParameterType {
      *            the string
      * @return the parameter type
      */
-    public static ParameterType fromString(final String string) {
+    public static ParameterType fromString(String string) {
         Validate.notBlank(string, "The string must not be blank");
 
         for (ParameterType pt : ParameterType.values()) {
-            if (pt.toString.equalsIgnoreCase(string)
-                    || pt.name().equalsIgnoreCase(string)) {
+            if (pt.toString.equalsIgnoreCase(string) || pt.name().equalsIgnoreCase(string)) {
                 return pt;
             }
         }
 
-        String message = String.format(
-                "Invalid string (string: [%s], valid strings: [%s]",
-                string, Arrays.toString(ParameterType.values()));
+        String message = String.format("Invalid string (string: [%s], valid strings: [%s]", string,
+                Arrays.toString(ParameterType.values()));
         throw new IllegalArgumentException(message);
     }
 
-    public static ParameterType primitiveFromJavaClass(
-            Class<?> javaClass) {
+    public static ParameterType primitiveFromJavaClass(Class<?> javaClass) {
         Validate.notNull(javaClass, "The Java class must not be null");
-        Validate.isTrue(
-                ClassUtils.isPrimitiveOrWrapper(javaClass),
-                "The represented type is not primitive [javaClass: %s]",
-                javaClass.getName());
+        Validate.isTrue(ClassUtils.isPrimitiveOrWrapper(javaClass),
+                "The represented type is not primitive [javaClass: %s]", javaClass.getName());
 
         Class<?> primitiveClass;
         if (javaClass.isPrimitive()) {
@@ -112,17 +105,11 @@ public enum ParameterType {
         }
 
         Validate.isTrue(primitiveClass != void.class,
-                "the parameter type must not be void [javaClass: %s]",
-                javaClass.getName());
+                "the parameter type must not be void [javaClass: %s]", javaClass.getName());
 
         return fromString(primitiveClass.getCanonicalName());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Enum#toString()
-     */
     @Override
     public String toString() {
         return toString;

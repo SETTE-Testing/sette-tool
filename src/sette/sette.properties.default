@@ -35,6 +35,13 @@ spf-default-build.xml = sette-tool/test-generator-tools/spf/sette-build.xml.defa
 # relative path to the SPF VERSION file
 spf-version-file = sette-tool/test-generator-tools/spf/VERSION
 
+# relative path to evosuite.jar
+evosuite = sette-tool/test-generator-tools/evosuite/evosuite.jar
+# relative path to default build.xml for generated EvoSuite projects
+evosuite-default-build.xml = sette-tool/test-generator-tools/evosuite/sette-build.xml.default
+# relative path to the EvoSuite VERSION file
+evosuite-version-file = sette-tool/test-generator-tools/evosuite/VERSION
+
 # relative path to randoop.jar
 randoop = sette-tool/test-generator-tools/randoop/randoop.jar
 # relative path to default build.xml for generated Randoop projects
@@ -44,3 +51,6 @@ randoop-version-file = sette-tool/test-generator-tools/randoop/VERSION
 
 # relative path to output directory
 output-dir = sette-results
+
+# settings for the runner
+runner.timeout = 30000

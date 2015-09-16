@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import hu.bme.mit.sette.common.util.JavaFileUtils;
@@ -41,33 +39,29 @@ import org.slf4j.LoggerFactory;
  * A class loader which loads and instruments classes for JaCoCo.
  */
 public final class JaCoCoClassLoader extends ClassLoader {
-    private static final Logger logger = LoggerFactory
-            .getLogger(JaCoCoClassLoader.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final File[] binaryDirectories;
     private final Instrumenter instrumenter;
 
-    public JaCoCoClassLoader(File[] binaryDirectories,
-            Instrumenter instrumenter, ClassLoader parent) {
+    public JaCoCoClassLoader(File[] binaryDirectories, Instrumenter instrumenter,
+            ClassLoader parent) {
         super(parent);
 
         Validate.notEmpty(binaryDirectories,
                 "The array of binary directories must not be empty or null");
         Validate.noNullElements(binaryDirectories,
                 "The array of binary directories must not contain null elements");
-        Validate.notNull(instrumenter,
-                "The instrumenter must not be null");
+        Validate.notNull(instrumenter, "The instrumenter must not be null");
 
-        this.binaryDirectories = Arrays.copyOf(binaryDirectories,
-                binaryDirectories.length);
+        this.binaryDirectories = Arrays.copyOf(binaryDirectories, binaryDirectories.length);
         this.instrumenter = instrumenter;
 
         logger.debug("JaCoCoClassLoader has been created");
     }
 
     @Override
-    protected Class<?> loadClass(final String className,
-            final boolean resolve) throws ClassNotFoundException {
+    protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
         Validate.notBlank(className, "The class name must not be blank");
 
         Class<?> javaClass = findLoadedClass(className);
@@ -85,21 +79,17 @@ public final class JaCoCoClassLoader extends ClassLoader {
             byte[] bytes = readBytes(className);
 
             if (bytes != null) {
-                logger.debug("{}: instrumenting and defining class",
-                        className);
+                logger.debug("{}: instrumenting and defining class", className);
 
                 // instrument
-                byte[] instrumentedBytes = instrumenter.instrument(
-                        bytes, className);
+                byte[] instrumentedBytes = instrumenter.instrument(bytes, className);
 
                 // define class
-                return defineClass(className, instrumentedBytes, 0,
-                        instrumentedBytes.length);
+                return defineClass(className, instrumentedBytes, 0, instrumentedBytes.length);
             } else {
                 // was not found, try to load with the parent, but it will
                 // not be instrumented
-                logger.debug("{}: calling super.loadClass() "
-                        + "(corresponding file was not found)",
+                logger.debug("{}: calling super.loadClass() (corresponding file was not found)",
                         className);
                 return super.loadClass(className, resolve);
             }
@@ -130,8 +120,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
 
         // iterate binary directories in order
         for (File dir : binaryDirectories) {
-            File file = new File(dir,
-                    JavaFileUtils.classNameToClassFilename(className));
+            File file = new File(dir, JavaFileUtils.classNameToClassFilename(className));
 
             if (file.exists()) {
                 // found
@@ -148,8 +137,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
      *
      * @param className
      *            the name of the class
-     * @return the bytes in the corresponding binary file or null if the file
-     *         was not found
+     * @return the bytes in the corresponding binary file or null if the file was not found
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */

@@ -1,36 +1,34 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.tools.spf;
 
+import hu.bme.mit.sette.common.model.parserxml.InputElement;
+import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
+import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.runner.ParameterType;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.runner.xml.InputElement;
-import hu.bme.mit.sette.common.model.runner.xml.ParameterElement;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunResultParser;
@@ -48,18 +46,16 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class SpfParser extends RunResultParser<SpfTool> {
-    public SpfParser(SnippetProject snippetProject,
-            File outputDirectory, SpfTool tool) {
+    public SpfParser(SnippetProject snippetProject, File outputDirectory, SpfTool tool) {
         super(snippetProject, outputDirectory, tool);
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet,
-            SnippetInputsXml inputsXml) throws Exception {
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(
-                getRunnerProjectSettings(), snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(
-                getRunnerProjectSettings(), snippet);
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
+                snippet);
+        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
+                snippet);
 
         if (errorFile.exists()) {
 
@@ -72,20 +68,16 @@ public class SpfParser extends RunResultParser<SpfTool> {
             if (firstLine
                     .startsWith("java.lang.RuntimeException: ## Error: Operation not supported!")) {
                 inputsXml.setResultType(ResultType.NA);
-            } else if (firstLine
-                    .startsWith("java.lang.NullPointerException")) {
+            } else if (firstLine.startsWith("java.lang.NullPointerException")) {
                 inputsXml.setResultType(ResultType.EX);
-            } else if (firstLine
-                    .startsWith("java.lang.RuntimeException: ## Error: symbolic log10 not implemented")) {
+            } else if (firstLine.startsWith(
+                    "java.lang.RuntimeException: ## Error: symbolic log10 not implemented")) {
                 inputsXml.setResultType(ResultType.NA);
-            } else if (firstLine
-                    .startsWith("***********Warning: everything false")) {
+            } else if (firstLine.startsWith("***********Warning: everything false")) {
                 // TODO enhance
                 // now skip
-            } else if (snippet.getMethod().toString()
-                    .contains("_Constants")
-                    || snippet.getMethod().toString()
-                            .contains(".always()")) {
+            } else if (snippet.getMethod().toString().contains("_Constants")
+                    || snippet.getMethod().toString().contains(".always()")) {
                 // TODO JPF/SPF compilation differences between javac and ecj:
                 // https://groups.google.com/forum/#!topic/java-pathfinder/jhOkvLx-SKE
                 // now just accept
@@ -103,8 +95,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                 System.err.println("=============================");
 
                 // TODO error handling
-                throw new RuntimeException(
-                        "PARSER PROBLEM, UNHANDLED ERROR");
+                throw new RuntimeException("PARSER PROBLEM, UNHANDLED ERROR");
             }
         }
 
@@ -113,8 +104,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
             inputsXml.setResultType(ResultType.S);
 
             if (snippet.getMethod().toString().contains("_Constants")
-                    || snippet.getMethod().toString()
-                            .contains(".always()")) {
+                    || snippet.getMethod().toString().contains(".always()")) {
                 // TODO JPF/SPF compilation differences between javac and ecj:
                 // https://groups.google.com/forum/#!topic/java-pathfinder/jhOkvLx-SKE
                 // now just accept
@@ -130,11 +120,12 @@ public class SpfParser extends RunResultParser<SpfTool> {
                 boolean shouldCollect = false;
                 while (lines.hasNext()) {
                     String line = lines.next();
-                    if (line.trim()
-                            .equals("====================================================== Method Summaries")) {
+                    if (line.trim().equals(
+                            "====================================================== Method Summaries")) {
                         shouldCollect = true;
                     } else if (shouldCollect) {
-                        if (line.startsWith("======================================================")) {
+                        if (line.startsWith(
+                                "======================================================")) {
                             // start of next section
                             shouldCollect = false;
                             break;
@@ -150,44 +141,36 @@ public class SpfParser extends RunResultParser<SpfTool> {
                 lines.close();
 
                 // remove duplicates
-                inputLines = new ArrayList<>(new LinkedHashSet<>(
-                        inputLines));
+                inputLines = new ArrayList<>(new LinkedHashSet<>(inputLines));
 
                 System.out.println(snippet.getMethod());
 
                 String firstLine = inputLines.get(0);
-                assert (firstLine.startsWith("Inputs: "));
+                assert(firstLine.startsWith("Inputs: "));
                 firstLine = firstLine.substring(7).trim();
-                String[] parameterStrings = StringUtils.split(
-                        firstLine, ',');
+                String[] parameterStrings = StringUtils.split(firstLine, ',');
                 ParameterType[] parameterTypes = new ParameterType[parameterStrings.length];
 
                 if (inputLines.size() == 2
-                        && inputLines.get(1).startsWith(
-                                "No path conditions for")) {
+                        && inputLines.get(1).startsWith("No path conditions for")) {
                     InputElement input = new InputElement();
                     for (int i = 0; i < parameterStrings.length; i++) {
                         // no path conditions, only considering the "default"
                         // inputs
-                        Class<?> type = snippet.getMethod()
-                                .getParameterTypes()[i];
+                        Class<?> type = snippet.getMethod().getParameterTypes()[i];
                         parameterTypes[i] = getParameterType(type);
-                        input.getParameters()
-                                .add(new ParameterElement(
-                                        parameterTypes[i],
-                                        getDefaultParameterString(type)));
+                        input.getParameters().add(new ParameterElement(parameterTypes[i],
+                                getDefaultParameterString(type)));
                     }
                     inputsXml.getGeneratedInputs().add(input);
                 } else {
                     // parse parameter types
 
-                    Class<?>[] paramsJavaClass = snippet.getMethod()
-                            .getParameterTypes();
+                    Class<?>[] paramsJavaClass = snippet.getMethod().getParameterTypes();
 
                     for (int i = 0; i < parameterStrings.length; i++) {
                         String parameterString = parameterStrings[i];
-                        Class<?> pjc = ClassUtils
-                                .primitiveToWrapper(paramsJavaClass[i]);
+                        Class<?> pjc = ClassUtils.primitiveToWrapper(paramsJavaClass[i]);
 
                         if (parameterString.endsWith("SYMINT")) {
                             if (pjc == Boolean.class) {
@@ -213,8 +196,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                                 // int for something else
                                 parameterTypes[i] = ParameterType.DOUBLE;
                             }
-                        } else if (parameterString
-                                .endsWith("SYMSTRING")) {
+                        } else if (parameterString.endsWith("SYMSTRING")) {
                             parameterTypes[i] = ParameterType.EXPRESSION;
                         } else {
                             // TODO error handling
@@ -240,18 +222,15 @@ public class SpfParser extends RunResultParser<SpfTool> {
                     // care))
                     // --> "java.lang.IllegalArgumentException..."
 
-                    String ps = String.format(
-                            "^%s\\((.*)\\)\\s+-->\\s+(.*)$", snippet
-                                    .getMethod().getName());
+                    String ps = String.format("^%s\\((.*)\\)\\s+-->\\s+(.*)$",
+                            snippet.getMethod().getName());
 
                     // ps = String.format("^%s(.*)\\s+-->\\s+(.*)$",
                     // snippet.getMethod()
                     // .getName());
-                    ps = String.format(
-                            "^(%s\\.)?%s(.*)\\s+-->\\s+(.*)$", snippet
-                                    .getContainer().getJavaClass()
-                                    .getName(), snippet.getMethod()
-                                    .getName());
+                    ps = String.format("^(%s\\.)?%s(.*)\\s+-->\\s+(.*)$",
+                            snippet.getContainer().getJavaClass().getName(),
+                            snippet.getMethod().getName());
                     Pattern p = Pattern.compile(ps);
 
                     // parse inputs
@@ -269,29 +248,24 @@ public class SpfParser extends RunResultParser<SpfTool> {
                         Matcher m = p.matcher(line);
 
                         if (m.matches()) {
-                            String paramsString = StringUtils
-                                    .substring(m.group(2).trim(), 1, -1);
+                            String paramsString = StringUtils.substring(m.group(2).trim(), 1, -1);
                             String resultString = m.group(3).trim();
 
-                            paramsString = StringUtils.replace(
-                                    paramsString, "(don't care)", "");
+                            paramsString = StringUtils.replace(paramsString, "(don't care)", "");
 
-                            String[] paramsStrings = StringUtils.split(
-                                    paramsString, ',');
+                            String[] paramsStrings = StringUtils.split(paramsString, ',');
 
                             InputElement input = new InputElement();
 
                             // if index error -> lesser inputs than parameters
                             for (int j = 0; j < parameterTypes.length; j++) {
                                 if (parameterTypes[j] == ParameterType.BOOLEAN
-                                        && paramsStrings[j]
-                                                .contains("-2147483648")) {
+                                        && paramsStrings[j].contains("-2147483648")) {
                                     // don't care -> 0
                                     paramsStrings[j] = "false";
                                 }
 
-                                ParameterElement pe = new ParameterElement(
-                                        parameterTypes[j],
+                                ParameterElement pe = new ParameterElement(parameterTypes[j],
                                         paramsStrings[j].trim());
 
                                 try {
@@ -299,25 +273,19 @@ public class SpfParser extends RunResultParser<SpfTool> {
                                     pe.validate();
                                 } catch (Exception e) {
                                     // TODO error handling
-                                    System.out
-                                            .println(parameterTypes[j]);
-                                    System.out
-                                            .println(paramsStrings[j]);
+                                    System.out.println(parameterTypes[j]);
+                                    System.out.println(paramsStrings[j]);
                                     System.out.println(pe.getType());
                                     System.out.println(pe.getValue());
                                     e.printStackTrace();
 
-                                    System.err
-                                            .println("=============================");
-                                    System.err.println(snippet
-                                            .getMethod());
-                                    System.err
-                                            .println("=============================");
+                                    System.err.println("=============================");
+                                    System.err.println(snippet.getMethod());
+                                    System.err.println("=============================");
                                     for (String lll : inputLines) {
                                         System.err.println(lll);
                                     }
-                                    System.err
-                                            .println("=============================");
+                                    System.err.println("=============================");
 
                                     System.exit(-1);
                                 }
@@ -325,8 +293,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                                 input.getParameters().add(pe);
                             }
 
-                            if (resultString
-                                    .startsWith("Return Value:")) {
+                            if (resultString.startsWith("Return Value:")) {
                                 // has retval, nothing to do
                             } else {
                                 // exception; example (" is present inside the
@@ -340,8 +307,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                                     pos = resultString.indexOf("...");
                                 }
 
-                                String ex = resultString.substring(1,
-                                        pos);
+                                String ex = resultString.substring(1, pos);
                                 input.setExpected(ex);
 
                                 // System.err.println(resultString);
@@ -364,8 +330,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
     }
 
     // TODO visibility or refactor to other place
-    /* private */static ParameterType getParameterType(
-            Class<?> javaClass) {
+    /* private */static ParameterType getParameterType(Class<?> javaClass) {
         if (javaClass.isPrimitive()) {
             javaClass = ClassUtils.primitiveToWrapper(javaClass);
         }
@@ -393,8 +358,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
     }
 
     // TODO visibility or refactor to other place
-    /* private */static String getDefaultParameterString(
-            Class<?> javaClass) {
+    /* private */static String getDefaultParameterString(Class<?> javaClass) {
         if (javaClass.isPrimitive()) {
             javaClass = ClassUtils.primitiveToWrapper(javaClass);
         }

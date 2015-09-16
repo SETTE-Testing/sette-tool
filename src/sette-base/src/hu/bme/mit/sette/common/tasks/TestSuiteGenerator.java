@@ -1,43 +1,27 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.tasks;
-
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.exceptions.SetteGeneralException;
-import hu.bme.mit.sette.common.model.runner.ParameterType;
-import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.runner.xml.AbstractParameterElement;
-import hu.bme.mit.sette.common.model.runner.xml.InputElement;
-import hu.bme.mit.sette.common.model.runner.xml.ParameterElement;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetInputsXml;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.util.JavaFileUtils;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -48,48 +32,56 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 
+import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.exceptions.TestSuiteGeneratorException;
+import hu.bme.mit.sette.common.model.parserxml.AbstractParameterElement;
+import hu.bme.mit.sette.common.model.parserxml.InputElement;
+import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
+import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
+import hu.bme.mit.sette.common.model.runner.ParameterType;
+import hu.bme.mit.sette.common.model.runner.ResultType;
+import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.common.model.snippet.Snippet;
+import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.common.model.snippet.SnippetProject;
+import hu.bme.mit.sette.common.util.JavaFileUtils;
+
 public final class TestSuiteGenerator extends SetteTask<Tool> {
-    public TestSuiteGenerator(final SnippetProject snippetProject,
-            final File outputDirectory, final Tool tool) {
+    public TestSuiteGenerator(SnippetProject snippetProject, File outputDirectory, Tool tool) {
         super(snippetProject, outputDirectory, tool);
     }
 
     public void generate() throws Exception {
-        if (!RunnerProjectUtils.getRunnerLogFile(
-                getRunnerProjectSettings()).exists()) {
-            throw new SetteGeneralException(
-                    "Run the tool on the runner project first (and then parse)");
+        if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
+            throw new TestSuiteGeneratorException(
+                    "Run the tool on the runner project first (and then parse)", this);
         }
 
-        File testsDir = getRunnerProjectSettings().getTestsDirectory();
-        if (testsDir.exists()) {
-            System.out.println("Removing tests dir");
-            FileUtils.forceDelete(testsDir);
+        File testDir = getRunnerProjectSettings().getTestDirectory();
+        if (testDir.exists()) {
+            System.out.println("Removing test dir");
+            FileUtils.forceDelete(testDir);
         }
 
-        FileUtils.forceMkdir(testsDir);
+        FileUtils.forceMkdir(testDir);
 
         Serializer serializer = new Persister(new AnnotationStrategy());
 
         // foreach containers
-        for (SnippetContainer container : getSnippetProject()
-                .getModel().getContainers()) {
+        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
             // skip container with higher java version than supported
-            if (container.getRequiredJavaVersion().compareTo(
-                    getTool().getSupportedJavaVersion()) > 0) {
+            if (container.getRequiredJavaVersion()
+                    .compareTo(getTool().getSupportedJavaVersion()) > 0) {
                 // TODO error handling
-                System.err.println("Skipping container: "
-                        + container.getJavaClass().getName()
-                        + " (required Java version: "
-                        + container.getRequiredJavaVersion() + ")");
+                System.err.println("Skipping container: " + container.getJavaClass().getName()
+                        + " (required Java version: " + container.getRequiredJavaVersion() + ")");
                 continue;
             }
 
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
                 File inputsXmlFile = RunnerProjectUtils
-                        .getSnippetInputsFile(
-                                getRunnerProjectSettings(), snippet);
+                        .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
                 if (!inputsXmlFile.exists()) {
                     System.err.println("Missing: " + inputsXmlFile);
@@ -97,20 +89,16 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                 }
 
                 // save current class loader
-                ClassLoader originalClassLoader = Thread
-                        .currentThread().getContextClassLoader();
+                ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
 
                 // set snippet project class loader
-                Thread.currentThread().setContextClassLoader(
-                        getSnippetProject().getClassLoader());
+                Thread.currentThread().setContextClassLoader(getSnippetProject().getClassLoader());
 
                 // read data
-                SnippetInputsXml inputsXml = serializer.read(
-                        SnippetInputsXml.class, inputsXmlFile);
+                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
 
                 // set back the original class loader
-                Thread.currentThread().setContextClassLoader(
-                        originalClassLoader);
+                Thread.currentThread().setContextClassLoader(originalClassLoader);
 
                 if (inputsXml.getResultType() != ResultType.S
                         && inputsXml.getResultType() != ResultType.C
@@ -129,26 +117,20 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
 
                 StringBuilder java = new StringBuilder();
 
-                String classSimpleName = javaClass.getSimpleName()
-                        + '_' + method.getName() + "_Tests";
-                String className = pkg.getName() + "."
-                        + classSimpleName;
+                String classSimpleName = javaClass.getSimpleName() + '_' + method.getName()
+                        + "_Test";
+                String className = pkg.getName() + "." + classSimpleName;
 
-                java.append("package ").append(pkg.getName())
-                        .append(";\n");
+                java.append("package ").append(pkg.getName()).append(";\n");
                 java.append("\n");
                 java.append("import junit.framework.TestCase;\n");
-                java.append("import ")
-                        .append(container.getJavaClass().getName())
-                        .append(";\n");
+                java.append("import ").append(container.getJavaClass().getName()).append(";\n");
                 java.append("\n");
-                java.append("public final class ")
-                        .append(classSimpleName)
+                java.append("public final class ").append(classSimpleName)
                         .append(" extends TestCase {\n");
 
                 int i = 0;
-                for (InputElement inputElement : inputsXml
-                        .getGeneratedInputs()) {
+                for (InputElement inputElement : inputsXml.getGeneratedInputs()) {
                     i++;
 
                     java.append("    public void test_").append(i)
@@ -156,10 +138,8 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
 
                     // heap
                     if (StringUtils.isNotBlank(inputElement.getHeap())) {
-                        for (String heapLine : inputElement.getHeap()
-                                .split("\\r?\\n")) {
-                            java.append("        ").append(heapLine)
-                                    .append('\n');
+                        for (String heapLine : inputElement.getHeap().split("\\r?\\n")) {
+                            java.append("        ").append(heapLine).append('\n');
                         }
 
                         java.append("        \n");
@@ -170,17 +150,14 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                         java.append("        try {\n");
                         java.append("            ");
 
-                        appendMethodCall(java, javaClass, method,
-                                inputElement);
+                        appendMethodCall(java, javaClass, method, inputElement);
                         java.append("            fail();\n");
-                        java.append("        } catch (")
-                                .append(inputElement.getExpected())
+                        java.append("        } catch (").append(inputElement.getExpected())
                                 .append(" e) {\n");
                         java.append("        }\n");
                     } else {
                         java.append("        ");
-                        appendMethodCall(java, javaClass, method,
-                                inputElement);
+                        appendMethodCall(java, javaClass, method, inputElement);
                     }
 
                     java.append("    }\n\n");
@@ -188,16 +165,15 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
 
                 java.append("}\n");
 
-                File testsFile = new File(testsDir,
-                        JavaFileUtils
-                                .classNameToSourceFilename(className));
-                FileUtils.write(testsFile, java.toString());
+                File testFile = new File(testDir,
+                        JavaFileUtils.classNameToSourceFilename(className));
+                FileUtils.write(testFile, java.toString());
 
                 // import junit.framework.TestCase;
                 // import
                 // hu.bme.mit.sette.snippets._1_basic.B2_conditionals.B2a_IfElse;
                 //
-                // public final class B2a_IfElse_oneParamInt_Tests extends
+                // public final class B2a_IfElse_oneParamInt_Test extends
                 // TestCase {
                 // public void test_1() {
                 // B2a_IfElse.oneParamInt(1);
@@ -299,15 +275,12 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
     // return inputsXml;
     // }
 
-    private void appendMethodCall(final StringBuilder sb,
-            final Class<?> javaClass, final Method method,
-            final InputElement inputElement) {
-        sb.append(javaClass.getSimpleName()).append('.')
-                .append(method.getName());
+    private static void appendMethodCall(StringBuilder sb, Class<?> javaClass, Method method,
+            InputElement inputElement) {
+        sb.append(javaClass.getSimpleName()).append('.').append(method.getName());
         sb.append("(");
 
-        for (AbstractParameterElement parameter : inputElement
-                .getParameters()) {
+        for (AbstractParameterElement parameter : inputElement.getParameters()) {
             if (parameter instanceof ParameterElement) {
                 ParameterElement p = (ParameterElement) parameter;
                 String value = p.getValue();
@@ -340,8 +313,7 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                 }
                 sb.append(", ");
             } else {
-                System.err.println("Unhandled type: "
-                        + parameter.getClass());
+                System.err.println("Unhandled type: " + parameter.getClass());
             }
         }
 

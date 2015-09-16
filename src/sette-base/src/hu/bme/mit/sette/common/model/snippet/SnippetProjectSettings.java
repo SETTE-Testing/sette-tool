@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.common.validator.FileType;
@@ -39,9 +37,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * Stores settings for a snippet code project. This object can be only created
- * if the snippet project configuration is valid (i.e. all directories specified
- * in the sette-snippets.properties file exists and they are readable).
+ * Stores settings for a snippet code project. This object can be only created if the snippet
+ * project configuration is valid (i.e. all directories specified in the sette-snippets.properties
+ * file exists and they are readable).
  */
 public final class SnippetProjectSettings {
     /** The name of the snippet project configuration file. */
@@ -72,8 +70,7 @@ public final class SnippetProjectSettings {
     private final String inputBinaryDirectoryPath;
 
     /**
-     * The relative path to the directory containing libraries used by the
-     * snippets.
+     * The relative path to the directory containing libraries used by the snippets.
      */
     private final String libraryDirectoryPath;
 
@@ -95,24 +92,21 @@ public final class SnippetProjectSettings {
     /**
      * Creates an instance of the object.
      *
-     * @param pBaseDirectory
+     * @param baseDirectory
      *            The base directory.
      * @throws ValidatorException
      *             if validation has failed
      */
-    public SnippetProjectSettings(final File pBaseDirectory)
-            throws ValidatorException {
-        Validate.notNull(pBaseDirectory,
-                "The base directory must not be null");
-        baseDirectory = pBaseDirectory;
+    public SnippetProjectSettings(File baseDirectory) throws ValidatorException {
+        Validate.notNull(baseDirectory, "The base directory must not be null");
+        this.baseDirectory = baseDirectory;
 
         // validate base directory and stop if already error
-        new FileValidator(baseDirectory).type(FileType.DIRECTORY)
-        .readable(true).executable(true).validate();
+        new FileValidator(baseDirectory).type(FileType.DIRECTORY).readable(true).executable(true)
+                .validate();
 
         // parse and validate configuration file
-        File configurationFile = new File(baseDirectory,
-                CONFIGURATION_FILE_NAME);
+        File configurationFile = new File(baseDirectory, CONFIGURATION_FILE_NAME);
         FileValidator vc = new FileValidator(configurationFile);
         vc.type(FileType.REGULAR_FILE).readable(true);
         vc.validate(); // stop if already error
@@ -123,11 +117,9 @@ public final class SnippetProjectSettings {
         try {
             is = new FileInputStream(configurationFile);
             configuration.load(is);
-        } catch (IOException | SecurityException
-                | IllegalArgumentException e) {
+        } catch (IOException | SecurityException | IllegalArgumentException e) {
             IOUtils.closeQuietly(is);
-            vc.addException(
-                    "Cannot read file contents as Java properties", e);
+            vc.addException("Cannot read file contents as Java properties", e);
             vc.validate();// stop if already error
         }
 
@@ -136,12 +128,9 @@ public final class SnippetProjectSettings {
                 .trimToNull(configuration.getProperty("snippet-src"));
         snippetBinaryDirectoryPath = StringUtils
                 .trimToNull(configuration.getProperty("snippet-bin"));
-        inputSourceDirectoryPath = StringUtils.trimToNull(configuration
-                .getProperty("input-src"));
-        inputBinaryDirectoryPath = StringUtils.trimToNull(configuration
-                .getProperty("input-bin"));
-        libraryDirectoryPath = StringUtils.trimToNull(configuration
-                .getProperty("snippet-libs"));
+        inputSourceDirectoryPath = StringUtils.trimToNull(configuration.getProperty("input-src"));
+        inputBinaryDirectoryPath = StringUtils.trimToNull(configuration.getProperty("input-bin"));
+        libraryDirectoryPath = StringUtils.trimToNull(configuration.getProperty("snippet-libs"));
 
         // validate properties and save File objects
         if (snippetSourceDirectoryPath == null) {
@@ -149,8 +138,7 @@ public final class SnippetProjectSettings {
             // set only to enable further validation regardless this error
             snippetSourceDirectory = null;
         } else {
-            snippetSourceDirectory = new File(baseDirectory,
-                    snippetSourceDirectoryPath);
+            snippetSourceDirectory = new File(baseDirectory, snippetSourceDirectoryPath);
         }
 
         if (snippetBinaryDirectoryPath == null) {
@@ -158,25 +146,21 @@ public final class SnippetProjectSettings {
             // set only to enable further validation regardless this error
             snippetBinaryDirectory = null;
         } else {
-            snippetBinaryDirectory = new File(baseDirectory,
-                    snippetBinaryDirectoryPath);
+            snippetBinaryDirectory = new File(baseDirectory, snippetBinaryDirectoryPath);
         }
 
-        if (inputSourceDirectoryPath == null
-                && inputBinaryDirectoryPath == null) {
+        if (inputSourceDirectoryPath == null && inputBinaryDirectoryPath == null) {
             // no inputs
             inputSourceDirectory = null;
             inputBinaryDirectory = null;
-        } else if (inputSourceDirectoryPath != null
-                && inputBinaryDirectoryPath != null) {
+        } else if (inputSourceDirectoryPath != null && inputBinaryDirectoryPath != null) {
             // has inputs
-            inputSourceDirectory = new File(baseDirectory,
-                    inputSourceDirectoryPath);
-            inputBinaryDirectory = new File(baseDirectory,
-                    inputBinaryDirectoryPath);
+            inputSourceDirectory = new File(baseDirectory, inputSourceDirectoryPath);
+            inputBinaryDirectory = new File(baseDirectory, inputBinaryDirectoryPath);
         } else {
             // inconsistent
-            vc.addException("Both the \"input-bin\" and \"input-src\" properties must exist and must not be blank or both must be skipped");
+            vc.addException(
+                    "Both the \"input-bin\" and \"input-src\" properties must exist and must not be blank or both must be skipped");
             // set only to enable further validation regardless this error
             inputSourceDirectory = null;
             inputBinaryDirectory = null;
@@ -185,20 +169,17 @@ public final class SnippetProjectSettings {
         if (libraryDirectoryPath == null) {
             libraryDirectory = null;
         } else {
-            libraryDirectory = new File(baseDirectory,
-                    libraryDirectoryPath);
+            libraryDirectory = new File(baseDirectory, libraryDirectoryPath);
         }
 
         // validate that dirs exists and that they are readable
-        File[] directories = new File[] { snippetSourceDirectory,
-                snippetBinaryDirectory, inputSourceDirectory,
-                inputBinaryDirectory, libraryDirectory };
+        File[] directories = new File[] { snippetSourceDirectory, snippetBinaryDirectory,
+                inputSourceDirectory, inputBinaryDirectory, libraryDirectory };
 
         for (File dir : directories) {
             if (dir != null) {
-                vc.addChildIfInvalid(new FileValidator(dir)
-                .type(FileType.DIRECTORY).readable(true)
-                .executable(true));
+                vc.addChildIfInvalid(new FileValidator(dir).type(FileType.DIRECTORY).readable(true)
+                        .executable(true));
             }
         }
 
@@ -234,44 +215,36 @@ public final class SnippetProjectSettings {
     }
 
     /**
-     * Gets the relative path to the directory containing the snippet binary
-     * files.
+     * Gets the relative path to the directory containing the snippet binary files.
      *
-     * @return the relative path to the directory containing the snippet binary
-     *         files
+     * @return the relative path to the directory containing the snippet binary files
      */
     public String getSnippetBinaryDirectoryPath() {
         return snippetBinaryDirectoryPath;
     }
 
     /**
-     * Gets the relative path to the directory containing the input source
-     * files.
+     * Gets the relative path to the directory containing the input source files.
      *
-     * @return the relative path to the directory containing the input source
-     *         files
+     * @return the relative path to the directory containing the input source files
      */
     public String getInputSourceDirectoryPath() {
         return inputSourceDirectoryPath;
     }
 
     /**
-     * Gets the relative path to the directory containing the input binary
-     * files.
+     * Gets the relative path to the directory containing the input binary files.
      *
-     * @return the relative path to the directory containing the input binary
-     *         files
+     * @return the relative path to the directory containing the input binary files
      */
     public String getInputBinaryDirectoryPath() {
         return inputBinaryDirectoryPath;
     }
 
     /**
-     * Gets the relative path to the directory containing libraries used by the
-     * snippets.
+     * Gets the relative path to the directory containing libraries used by the snippets.
      *
-     * @return the relative path to the directory containing libraries used by
-     *         the snippets
+     * @return the relative path to the directory containing libraries used by the snippets
      */
     public String getLibraryDirectoryPath() {
         return libraryDirectoryPath;

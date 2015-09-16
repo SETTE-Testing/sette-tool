@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.common.util.SetteAnnotationUtils;
@@ -49,8 +47,8 @@ import org.apache.commons.lang3.Validate;
 /**
  * Represents a snippet input factory container (which is a Java class).
  */
-public final class SnippetInputFactoryContainer implements
-Comparable<SnippetInputFactoryContainer> {
+public final class SnippetInputFactoryContainer
+        implements Comparable<SnippetInputFactoryContainer> {
     /** The Java class of snippet input container. */
     private final Class<?> javaClass;
 
@@ -63,28 +61,24 @@ Comparable<SnippetInputFactoryContainer> {
     /**
      * Instantiates a new snippet input factory container.
      *
-     * @param pSnippetContainer
+     * @param snippetContainer
      *            the snippet container
-     * @param pJavaClass
+     * @param javaClass
      *            the java class
      * @param classLoader
      *            the class loader for loading snippet project classes
      * @throws ValidatorException
      *             if validation has failed
      */
-    SnippetInputFactoryContainer(
-            final SnippetContainer pSnippetContainer,
-            final Class<?> pJavaClass, final ClassLoader classLoader)
-                    throws ValidatorException {
-        Validate.notNull(pSnippetContainer,
-                "The snippet container must not be null");
-        Validate.notNull(pJavaClass, "The Java class must not be null");
-        snippetContainer = pSnippetContainer;
-        javaClass = pJavaClass;
+    SnippetInputFactoryContainer(SnippetContainer snippetContainer, Class<?> javaClass,
+            ClassLoader classLoader) throws ValidatorException {
+        Validate.notNull(snippetContainer, "The snippet container must not be null");
+        Validate.notNull(javaClass, "The Java class must not be null");
+        this.snippetContainer = snippetContainer;
+        this.javaClass = javaClass;
 
         // start validation
-        GeneralValidator validator = new GeneralValidator(
-                SnippetInputFactoryContainer.class);
+        GeneralValidator validator = new GeneralValidator(SnippetInputFactoryContainer.class);
 
         // validate class
         validateClass(validator);
@@ -102,8 +96,8 @@ Comparable<SnippetInputFactoryContainer> {
         for (Method method : factoryMethods.values()) {
             try {
 
-                SnippetInputFactory inputFactory = new SnippetInputFactory(
-                        this, method, classLoader);
+                SnippetInputFactory inputFactory = new SnippetInputFactory(this, method,
+                        classLoader);
                 inputFactories.put(method.getName(), inputFactory);
             } catch (ValidatorException e) {
                 validator.addChild(e.getValidator());
@@ -111,10 +105,9 @@ Comparable<SnippetInputFactoryContainer> {
         }
 
         // check that there is no snippet method without factory method
-        for (Snippet snippet : pSnippetContainer.getSnippets().values()) {
+        for (Snippet snippet : snippetContainer.getSnippets().values()) {
             if (snippet.getInputFactory() == null) {
-                MethodValidator v = new MethodValidator(
-                        snippet.getMethod());
+                MethodValidator v = new MethodValidator(snippet.getMethod());
                 v.addException("The corresponting input factory was not found");
                 validator.addChildIfInvalid(v);
             }
@@ -129,7 +122,7 @@ Comparable<SnippetInputFactoryContainer> {
      * @param validator
      *            a validator
      */
-    private void validateClass(final AbstractValidator<?> validator) {
+    private void validateClass(AbstractValidator<?> validator) {
         // check: "public final class", no superclass, interface, declared
         // class, exactly one constructor
         ClassValidator v = new ClassValidator(javaClass);
@@ -137,13 +130,11 @@ Comparable<SnippetInputFactoryContainer> {
         v.withModifiers(Modifier.PUBLIC | Modifier.FINAL);
         v.withoutModifiers(Modifier.ABSTRACT);
         v.synthetic(false);
-        v.superclass(Object.class).interfaceCount(0)
-        .memberClassCount(0);
+        v.superclass(Object.class).interfaceCount(0).memberClassCount(0);
         v.declaredConstructorCount(1);
 
         // check: no SETTE annotations
-        if (!SetteAnnotationUtils.getSetteAnnotations(javaClass)
-                .isEmpty()) {
+        if (!SetteAnnotationUtils.getSetteAnnotations(javaClass).isEmpty()) {
             v.addException("The class must not have any SETTE annotations");
         }
 
@@ -156,7 +147,7 @@ Comparable<SnippetInputFactoryContainer> {
      * @param validator
      *            a validator
      */
-    private void validateFields(final AbstractValidator<?> validator) {
+    private void validateFields(AbstractValidator<?> validator) {
         // check: no declared fields
         for (Field field : javaClass.getDeclaredFields()) {
             if (field.isSynthetic()) {
@@ -177,15 +168,13 @@ Comparable<SnippetInputFactoryContainer> {
      * @param validator
      *            a validator
      */
-    private void validateConstructor(
-            final AbstractValidator<?> validator) {
+    private void validateConstructor(AbstractValidator<?> validator) {
         if (javaClass.getDeclaredConstructors().length != 1) {
             // constructor count is validated with the class
             return;
         }
 
-        Constructor<?> constructor = javaClass
-                .getDeclaredConstructors()[0];
+        Constructor<?> constructor = javaClass.getDeclaredConstructors()[0];
         ConstructorValidator v = new ConstructorValidator(constructor);
         v.withModifiers(Modifier.PRIVATE).parameterCount(0);
         v.synthetic(false);
@@ -205,13 +194,10 @@ Comparable<SnippetInputFactoryContainer> {
             constructor.setAccessible(false);
         }
 
-        if (exception == null
-                || !exception.getClass().equals(
-                        UnsupportedOperationException.class)
-                        || !exception.getMessage().equals("Static class")) {
+        if (exception == null || !exception.getClass().equals(UnsupportedOperationException.class)
+                || !exception.getMessage().equals("Static class")) {
             v.addException("The constructor must throw an "
-                    + "UnsupportedOperationException with the message "
-                    + "\"Static class\"");
+                    + "UnsupportedOperationException with the message \"Static class\"");
         }
 
         validator.addChildIfInvalid(v);
@@ -224,8 +210,7 @@ Comparable<SnippetInputFactoryContainer> {
      *            a validator
      * @return a map containing the input factory methods by their name
      */
-    private Map<String, Method> validateMethods(
-            final AbstractValidator<?> validator) {
+    private Map<String, Method> validateMethods(AbstractValidator<?> validator) {
         // check: only "public static" or synthetic methods
         Map<String, Method> factoryMethods = new HashMap<String, Method>();
 
@@ -242,8 +227,8 @@ Comparable<SnippetInputFactoryContainer> {
             }
 
             v.withModifiers(Modifier.PUBLIC | Modifier.STATIC);
-            v.withoutModifiers(Modifier.ABSTRACT | Modifier.FINAL
-                    | Modifier.NATIVE | Modifier.SYNCHRONIZED);
+            v.withoutModifiers(
+                    Modifier.ABSTRACT | Modifier.FINAL | Modifier.NATIVE | Modifier.SYNCHRONIZED);
 
             factoryMethods.put(method.getName(), method);
 
@@ -286,27 +271,21 @@ Comparable<SnippetInputFactoryContainer> {
     static {
         COMPARATOR = new Comparator<SnippetInputFactoryContainer>() {
             @Override
-            public int compare(final SnippetInputFactoryContainer o1,
+            public int compare(SnippetInputFactoryContainer o1,
                     final SnippetInputFactoryContainer o2) {
                 if (o1 == null) {
                     return -1;
                 } else if (o2 == null) {
                     return 1;
                 } else {
-                    return o1.javaClass.getName().compareTo(
-                            o2.javaClass.getName());
+                    return o1.javaClass.getName().compareTo(o2.javaClass.getName());
                 }
             }
         };
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
     @Override
-    public int compareTo(final SnippetInputFactoryContainer o) {
+    public int compareTo(SnippetInputFactoryContainer o) {
         return SnippetInputFactoryContainer.COMPARATOR.compare(this, o);
     }
 }

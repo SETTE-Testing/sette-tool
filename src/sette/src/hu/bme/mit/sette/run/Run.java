@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.run;
 
 import hu.bme.mit.sette.GeneratorUI;
@@ -32,14 +30,15 @@ import hu.bme.mit.sette.common.Tool;
 import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.ToolRegister;
 import hu.bme.mit.sette.common.exceptions.SetteException;
+import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectSettings;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.runner.xml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.model.snippet.SnippetProjectSettings;
+import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
 import hu.bme.mit.sette.common.tasks.TestSuiteGenerator;
 import hu.bme.mit.sette.common.tasks.TestSuiteRunner;
 import hu.bme.mit.sette.common.validator.FileType;
@@ -48,6 +47,7 @@ import hu.bme.mit.sette.common.validator.exceptions.ValidationException;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 import hu.bme.mit.sette.snippetbrowser.SnippetBrowser;
 import hu.bme.mit.sette.tools.catg.CatgTool;
+import hu.bme.mit.sette.tools.evosuite.EvoSuiteTool;
 import hu.bme.mit.sette.tools.jpet.JPetTool;
 import hu.bme.mit.sette.tools.randoop.RandoopTool;
 import hu.bme.mit.sette.tools.spf.SpfTool;
@@ -81,18 +81,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class Run {
-    private static final Logger LOG = LoggerFactory
-            .getLogger(Run.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Run.class);
     private static final String SETTE_PROPERTIES = "sette.properties";
 
     public static File BASEDIR;
     public static File SNIPPET_DIR;
     public static String SNIPPET_PROJECT;
     public static File OUTPUT_DIR;
+    public static int RUNNER_TIMEOUT_IN_MS;
 
-    private static final String[] scenarios = new String[] { "exit",
-            "generator", "runner", "parser", "tests-generator",
-            "tests-run", "snippet-browser", "export-csv" };
+    private static final String[] scenarios = new String[] { "exit", "generator", "runner",
+            "parser", "test-generator", "test-runner", "snippet-browser", "export-csv" };
 
     public static void main(String[] args) {
         LOG.debug("main() called");
@@ -105,56 +104,47 @@ public final class Run {
             is = new FileInputStream(SETTE_PROPERTIES);
             prop.load(is);
         } catch (IOException e) {
-            System.err.println("Parsing  " + SETTE_PROPERTIES
-                    + " has failed");
+            System.err.println("Parsing  " + SETTE_PROPERTIES + " has failed");
             e.printStackTrace();
             System.exit(1);
         } finally {
             IOUtils.closeQuietly(is);
         }
 
-        String[] basedirs = StringUtils.split(
-                prop.getProperty("basedir"), '|');
+        String[] basedirs = StringUtils.split(prop.getProperty("basedir"), '|');
         String snippetDir = prop.getProperty("snippet-dir");
         String snippetProject = prop.getProperty("snippet-project");
         String catgPath = prop.getProperty("catg");
         String catgVersionFile = prop.getProperty("catg-version-file");
         String jPETPath = prop.getProperty("jpet");
-        String jPETDefaultBuildXml = prop
-                .getProperty("jpet-default-build.xml");
+        String jPETDefaultBuildXml = prop.getProperty("jpet-default-build.xml");
         String jPETVersionFile = prop.getProperty("jpet-version-file");
         String spfPath = prop.getProperty("spf");
-        String spfDefaultBuildXml = prop
-                .getProperty("spf-default-build.xml");
+        String spfDefaultBuildXml = prop.getProperty("spf-default-build.xml");
         String spfVersionFile = prop.getProperty("spf-version-file");
+        String evoSuitePath = prop.getProperty("evosuite");
+        String evoSuiteVersionFile = prop.getProperty("evosuite-version-file");
+        String evoSuiteDefaultBuildXml = prop.getProperty("evosuite-default-build.xml");
         String randoopPath = prop.getProperty("randoop");
-        String randoopVersionFile = prop
-                .getProperty("randoop-version-file");
-        String randoopDefaultBuildXml = prop
-                .getProperty("randoop-default-build.xml");
+        String randoopVersionFile = prop.getProperty("randoop-version-file");
+        String randoopDefaultBuildXml = prop.getProperty("randoop-default-build.xml");
         String outputDir = prop.getProperty("output-dir");
 
+        String runnerTimeout = prop.getProperty("runner.timeout",
+                String.valueOf(RunnerProjectRunner.DEFAULT_TIMEOUT));
+
         Validate.notEmpty(basedirs,
-                "At least one basedir must be specified in "
-                        + SETTE_PROPERTIES);
+                "At least one basedir must be specified in " + SETTE_PROPERTIES);
         Validate.notBlank(snippetDir,
-                "The property snippet-dir must be set in "
-                        + SETTE_PROPERTIES);
+                "The property snippet-dir must be set in " + SETTE_PROPERTIES);
         Validate.notBlank(snippetProject,
-                "The property snippet-project must be set in "
-                        + SETTE_PROPERTIES);
-        Validate.notBlank(catgPath, "The property catg must be set in "
-                + SETTE_PROPERTIES);
-        Validate.notBlank(jPETPath, "The property jpet must be set in "
-                + SETTE_PROPERTIES);
-        Validate.notBlank(spfPath, "The property spf must be set in "
-                + SETTE_PROPERTIES);
-        Validate.notBlank(randoopPath,
-                "The property randoop must be set in "
-                        + SETTE_PROPERTIES);
-        Validate.notBlank(outputDir,
-                "The property output-dir must be set in "
-                        + SETTE_PROPERTIES);
+                "The property snippet-project must be set in " + SETTE_PROPERTIES);
+        Validate.notBlank(catgPath, "The property catg must be set in " + SETTE_PROPERTIES);
+        Validate.notBlank(jPETPath, "The property jpet must be set in " + SETTE_PROPERTIES);
+        Validate.notBlank(spfPath, "The property spf must be set in " + SETTE_PROPERTIES);
+        Validate.notBlank(evoSuitePath, "The property evosuite must be set in " + SETTE_PROPERTIES);
+        Validate.notBlank(randoopPath, "The property randoop must be set in " + SETTE_PROPERTIES);
+        Validate.notBlank(outputDir, "The property output-dir must be set in " + SETTE_PROPERTIES);
 
         String basedir = null;
         for (String bd : basedirs) {
@@ -175,11 +165,9 @@ public final class Run {
         }
 
         if (basedir == null) {
+            System.err.println("basedir = " + Arrays.toString(basedirs));
             System.err
-                    .println("basedir = " + Arrays.toString(basedirs));
-            System.err
-                    .println("ERROR: No valid basedir was found, please check "
-                            + SETTE_PROPERTIES);
+                    .println("ERROR: No valid basedir was found, please check " + SETTE_PROPERTIES);
             System.exit(2);
         }
 
@@ -189,32 +177,43 @@ public final class Run {
         OUTPUT_DIR = new File(basedir, outputDir);
 
         try {
-            String catgVersion = readToolVersion(new File(BASEDIR,
-                    catgVersionFile));
+            RUNNER_TIMEOUT_IN_MS = Integer.parseInt(runnerTimeout);
+            if (RUNNER_TIMEOUT_IN_MS <= 0) {
+                throw new Exception();
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException(
+                    "The runner.timeout parameter must be a valid, positive number");
+        }
+
+        try {
+            String catgVersion = readToolVersion(new File(BASEDIR, catgVersionFile));
             if (catgVersion != null) {
-                new CatgTool(new File(BASEDIR, catgPath), catgVersion);
+                new CatgTool(new File(BASEDIR, catgPath), catgVersion).register();
             }
 
-            String jPetVersion = readToolVersion(new File(BASEDIR,
-                    jPETVersionFile));
+            String jPetVersion = readToolVersion(new File(BASEDIR, jPETVersionFile));
             if (jPetVersion != null) {
-                new JPetTool(new File(BASEDIR, jPETPath), new File(
-                        BASEDIR, jPETDefaultBuildXml), jPetVersion);
+                new JPetTool(new File(BASEDIR, jPETPath), new File(BASEDIR, jPETDefaultBuildXml),
+                        jPetVersion).register();
             }
 
-            String spfVersion = readToolVersion(new File(BASEDIR,
-                    spfVersionFile));
+            String spfVersion = readToolVersion(new File(BASEDIR, spfVersionFile));
             if (spfVersion != null) {
-                new SpfTool(new File(BASEDIR, spfPath), new File(
-                        BASEDIR, spfDefaultBuildXml), spfVersion);
+                new SpfTool(new File(BASEDIR, spfPath), new File(BASEDIR, spfDefaultBuildXml),
+                        spfVersion).register();
             }
 
-            String randoopVersion = readToolVersion(new File(BASEDIR,
-                    randoopVersionFile));
+            String evoSuiteVersion = readToolVersion(new File(BASEDIR, evoSuiteVersionFile));
+            if (evoSuiteVersion != null) {
+                new EvoSuiteTool(new File(BASEDIR, evoSuitePath),
+                        new File(BASEDIR, evoSuiteDefaultBuildXml), evoSuiteVersion).register();
+            }
+
+            String randoopVersion = readToolVersion(new File(BASEDIR, randoopVersionFile));
             if (randoopVersion != null) {
                 new RandoopTool(new File(BASEDIR, randoopPath),
-                        new File(BASEDIR, randoopDefaultBuildXml),
-                        randoopVersion);
+                        new File(BASEDIR, randoopDefaultBuildXml), randoopVersion).register();
             }
 
             // TODO stuff
@@ -224,8 +223,7 @@ public final class Run {
 
             ValidatorException vex = (ValidatorException) e;
 
-            for (ValidationException v : vex.getValidator()
-                    .getAllExceptions()) {
+            for (ValidationException v : vex.getValidator().getAllExceptions()) {
                 v.printStackTrace();
             }
 
@@ -237,32 +235,27 @@ public final class Run {
 
             if (e instanceof ValidatorException) {
                 System.err.println("Details:");
-                System.err.println(((ValidatorException) e)
-                        .getFullMessage());
+                System.err.println(((ValidatorException) e).getFullMessage());
             } else if (e.getCause() instanceof ValidatorException) {
                 System.err.println("Details:");
-                System.err.println(((ValidatorException) e.getCause())
-                        .getFullMessage());
+                System.err.println(((ValidatorException) e.getCause()).getFullMessage());
             }
         }
     }
 
     private static String readToolVersion(File versionFile) {
         try {
-            return StringUtils.trimToNull(FileUtils
-                    .readFileToString(versionFile).replace("\n", "")
-                    .replace("\r", ""));
+            return StringUtils.trimToNull(
+                    FileUtils.readFileToString(versionFile).replace("\n", "").replace("\r", ""));
         } catch (IOException e) {
             // TODO handle error
-            System.err.println("Cannot read tool version from: "
-                    + versionFile);
+            System.err.println("Cannot read tool version from: " + versionFile);
             return null;
         }
     }
 
     public static void stuff(String[] args) throws Exception {
-        BufferedReader in = new BufferedReader(new InputStreamReader(
-                System.in));
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         PrintStream out = System.out;
 
         // print settings
@@ -272,30 +265,28 @@ public final class Run {
         System.out.println("Output directory: " + OUTPUT_DIR);
 
         if (ToolRegister.get(CatgTool.class) != null) {
-            System.out.println("CATG directory: "
-                    + ToolRegister.get(CatgTool.class)
-                            .getToolDirectory());
+            System.out.println(
+                    "CATG directory: " + ToolRegister.get(CatgTool.class).getToolDirectory());
         }
         if (ToolRegister.get(JPetTool.class) != null) {
-            System.out.println("jPET executable: "
-                    + ToolRegister.get(JPetTool.class)
-                            .getPetExecutable());
+            System.out.println(
+                    "jPET executable: " + ToolRegister.get(JPetTool.class).getPetExecutable());
         }
         if (ToolRegister.get(SpfTool.class) != null) {
-            System.out.println("SPF JAR: "
-                    + ToolRegister.get(SpfTool.class).getToolJAR());
+            System.out.println("SPF JAR: " + ToolRegister.get(SpfTool.class).getToolJAR());
+        }
+        if (ToolRegister.get(EvoSuiteTool.class) != null) {
+            System.out
+                    .println("EvoSuite JAR: " + ToolRegister.get(EvoSuiteTool.class).getToolJAR());
         }
         if (ToolRegister.get(RandoopTool.class) != null) {
-            System.out.println("Randoop JAR: "
-                    + ToolRegister.get(RandoopTool.class).getToolJAR());
+            System.out.println("Randoop JAR: " + ToolRegister.get(RandoopTool.class).getToolJAR());
         }
 
         System.out.println("Tools:");
         for (Tool tool : ToolRegister.toArray()) {
-            System.out.println(String.format(
-                    "  %s (Version: %s, Supported Java version: %s)",
-                    tool.getName(), tool.getVersion(),
-                    tool.getSupportedJavaVersion()));
+            System.out.println(String.format("  %s (Version: %s, Supported Java version: %s)",
+                    tool.getName(), tool.getVersion(), tool.getSupportedJavaVersion()));
         }
 
         // get scenario
@@ -308,87 +299,77 @@ public final class Run {
         Tool tool = Run.readTool(in, out);
 
         switch (scenario) {
-        case "generator":
-            new GeneratorUI(snippetProject, tool).run(in, out);
-            break;
+            case "generator":
+                new GeneratorUI(snippetProject, tool).run(in, out);
+                break;
 
-        case "runner":
-            new RunnerUI(snippetProject, tool).run(in, out);
-            break;
+            case "runner":
+                new RunnerUI(snippetProject, tool, RUNNER_TIMEOUT_IN_MS).run(in, out);
+                break;
 
-        case "parser":
-            new ParserUI(snippetProject, tool).run(in, out);
-            break;
+            case "parser":
+                new ParserUI(snippetProject, tool).run(in, out);
+                break;
 
-        case "tests-generator":
-            if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
-                new TestSuiteGenerator(snippetProject, OUTPUT_DIR, tool)
-                        .generate();
-            } else {
-                System.out
-                        .println("This tool has already generated a test suite");
-            }
-            break;
-
-        case "tests-run":
-            new TestSuiteRunner(snippetProject, OUTPUT_DIR, tool)
-                    .analyze();
-            break;
-
-        case "snippet-browser":
-            EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        SnippetBrowser frame = new SnippetBrowser(
-                                snippetProject);
-                        frame.setVisible(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            case "test-generator":
+                if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
+                    new TestSuiteGenerator(snippetProject, OUTPUT_DIR, tool).generate();
+                } else {
+                    System.out.println("This tool has already generated a test suite");
                 }
-            });
-            break;
+                break;
 
-        case "export-csv":
-            out.print("Target file: ");
-            String file = in.readLine();
-            exportCSV(snippetProject, new File(file));
-            break;
+            case "test-runner":
+                new TestSuiteRunner(snippetProject, OUTPUT_DIR, tool).analyze();
+                break;
 
-        default:
-            throw new UnsupportedOperationException(
-                    "Scenario has not been implemented yet: "
-                            + scenario);
+            case "snippet-browser":
+                EventQueue.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            SnippetBrowser frame = new SnippetBrowser(snippetProject);
+                            frame.setVisible(true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                break;
+
+            case "export-csv":
+                out.print("Target file: ");
+                String file = in.readLine();
+                exportCSV(snippetProject, new File(file));
+                break;
+
+            default:
+                throw new UnsupportedOperationException(
+                        "Scenario has not been implemented yet: " + scenario);
         }
     }
 
-    private static SnippetProjectSettings createSnippetProjectSettings()
-            throws ValidatorException {
-        return new SnippetProjectSettings(new File(SNIPPET_DIR,
-                SNIPPET_PROJECT));
+    private static SnippetProjectSettings createSnippetProjectSettings() throws ValidatorException {
+        return new SnippetProjectSettings(new File(SNIPPET_DIR, SNIPPET_PROJECT));
     }
 
-    private static SnippetProject createSnippetProject(boolean parse)
-            throws SetteException {
-        SnippetProject ret = new SnippetProject(
-                Run.createSnippetProjectSettings());
+    private static SnippetProject createSnippetProject(boolean parse) throws SetteException {
+        SnippetProject ret = new SnippetProject(Run.createSnippetProjectSettings());
         if (parse) {
             ret.parse();
         }
         return ret;
     }
 
-    private static String readScenario(String[] args,
-            BufferedReader in, PrintStream out) throws IOException {
+    private static String readScenario(String[] args, BufferedReader in, PrintStream out)
+            throws IOException {
         String scenario = null;
 
         if (args.length > 1) {
             out.println("Usage: java -jar SETTE.jar [scenario]");
             out.println("Available scenarios:");
             for (int i = 0; i < Run.scenarios.length; i++) {
-                out.println(String.format("  [%d] %s", i,
-                        Run.scenarios[i]));
+                out.println(String.format("  [%d] %s", i, Run.scenarios[i]));
             }
         } else if (args.length == 1) {
             scenario = Run.parseScenario(args[0]);
@@ -396,16 +377,14 @@ public final class Run {
                 out.println("Invalid scenario: " + args[0].trim());
                 out.println("Available scenarios:");
                 for (int i = 0; i < Run.scenarios.length; i++) {
-                    out.println(String.format("  [%d] %s", i,
-                            Run.scenarios[i]));
+                    out.println(String.format("  [%d] %s", i, Run.scenarios[i]));
                 }
             }
         } else {
             while (scenario == null) {
                 out.println("Available scenarios:");
                 for (int i = 0; i < Run.scenarios.length; i++) {
-                    out.println(String.format("  [%d] %s", i,
-                            Run.scenarios[i]));
+                    out.println(String.format("  [%d] %s", i, Run.scenarios[i]));
                 }
 
                 out.print("Select scenario: ");
@@ -433,8 +412,7 @@ public final class Run {
 
     private static String parseScenario(String scenario) {
         scenario = scenario.trim();
-        int idx = ArrayUtils.indexOf(Run.scenarios,
-                scenario.toLowerCase());
+        int idx = ArrayUtils.indexOf(Run.scenarios, scenario.toLowerCase());
 
         if (idx >= 0) {
             return Run.scenarios[idx];
@@ -447,16 +425,14 @@ public final class Run {
         }
     }
 
-    private static Tool readTool(BufferedReader in, PrintStream out)
-            throws IOException {
+    private static Tool readTool(BufferedReader in, PrintStream out) throws IOException {
         // select tool
         Tool[] tools = ToolRegister.toArray();
         Tool tool = null;
         while (tool == null) {
             out.println("Available tools:");
             for (int i = 0; i < tools.length; i++) {
-                out.println(String.format("  [%d] %s", i + 1,
-                        tools[i].getName()));
+                out.println(String.format("  [%d] %s", i + 1, tools[i].getName()));
             }
 
             out.print("Select tool: ");
@@ -505,8 +481,7 @@ public final class Run {
         throw new UnsupportedOperationException("Static class");
     }
 
-    private static void exportCSV(SnippetProject snippetProject,
-            File file) throws Exception {
+    private static void exportCSV(SnippetProject snippetProject, File file) throws Exception {
         // TODO enhance this method
         Tool[] tools = ToolRegister.toArray();
 
@@ -529,14 +504,11 @@ public final class Run {
         ResultType[] resultTypes = ResultType.values();
 
         for (Tool tool : tools) {
-            rpss.put(
-                    tool,
-                    new RunnerProjectSettings<>(snippetProject
-                            .getSettings(), OUTPUT_DIR, tool));
+            rpss.put(tool,
+                    new RunnerProjectSettings<>(snippetProject.getSettings(), OUTPUT_DIR, tool));
 
             for (ResultType resultType : resultTypes) {
-                columns.add(resultType.toString() + " - "
-                        + tool.getName());
+                columns.add(resultType.toString() + " - " + tool.getName());
             }
         }
 
@@ -547,24 +519,19 @@ public final class Run {
         sb.deleteCharAt(sb.length() - 1);
         sb.append("\n");
 
-        for (SnippetContainer container : snippetProject.getModel()
-                .getContainers()) {
+        for (SnippetContainer container : snippetProject.getModel().getContainers()) {
             for (Snippet snippet : container.getSnippets().values()) {
                 sb.append(container.getCategory()).append(",");
                 sb.append(container.getGoal()).append(",");
-                sb.append(container.getJavaClass().getName()).append(
-                        ",");
-                sb.append(container.getRequiredJavaVersion()).append(
-                        ",");
+                sb.append(container.getJavaClass().getName()).append(",");
+                sb.append(container.getRequiredJavaVersion()).append(",");
                 sb.append(snippet.getMethod().getName()).append(",");
                 sb.append(snippet.getRequiredStatementCoverage() + "%");
 
                 for (Tool tool : tools) {
                     RunnerProjectSettings<Tool> set = rpss.get(tool);
-                    File inputs = RunnerProjectUtils
-                            .getSnippetInputsFile(set, snippet);
-                    File result = RunnerProjectUtils
-                            .getSnippetResultFile(set, snippet);
+                    File inputs = RunnerProjectUtils.getSnippetInputsFile(set, snippet);
+                    File result = RunnerProjectUtils.getSnippetResultFile(set, snippet);
 
                     if (result.exists()) {
                         System.out.println(tool.getFullName());
@@ -583,11 +550,9 @@ public final class Run {
                         // throw new RuntimeException("INPUT NOT EXISTS");
                         rt = ResultType.NA;
                     } else {
-                        Serializer serializer = new Persister(
-                                new AnnotationStrategy());
+                        Serializer serializer = new Persister(new AnnotationStrategy());
 
-                        snippetInputsXml = serializer.read(
-                                SnippetInputsXml.class, inputs);
+                        snippetInputsXml = serializer.read(SnippetInputsXml.class, inputs);
                         snippetInputsXml.validate();
                         rt = snippetInputsXml.getResultType();
                     }

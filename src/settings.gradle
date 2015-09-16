@@ -1,0 +1,2 @@
+include 'sette', 'sette-base', 'sette-common'
+rootProject.name = 'sette-root'

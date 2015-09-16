@@ -1,33 +1,31 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.annotations.SetteSnippetContainer;
 import hu.bme.mit.sette.common.descriptors.java.JavaSourceFile;
-import hu.bme.mit.sette.common.exceptions.SetteConfigurationException;
+import hu.bme.mit.sette.common.exceptions.ConfigurationException;
 import hu.bme.mit.sette.common.util.JavaFileUtils;
 import hu.bme.mit.sette.common.util.reflection.ReflectionUtils;
 import hu.bme.mit.sette.common.validator.FileType;
@@ -67,7 +65,7 @@ public final class SnippetProject {
         PARSED,
         /** An error occurred during parsing. */
         PARSE_ERROR
-    };
+    }
 
     /** The state of the {@link SnippetProject} object. */
     private State state;
@@ -85,43 +83,42 @@ public final class SnippetProject {
     private Model model;
 
     /**
-     * The class loader for loading snippet project classes. The class loader
-     * has all the specified binary directories and JAR libraries on its path.
+     * The class loader for loading snippet project classes. The class loader has all the specified
+     * binary directories and JAR libraries on its path.
      */
     private ClassLoader classLoader = null;
 
     /**
      * Instantiates a new snippet project.
      *
-     * @param pSettings
+     * @param settings
      *            the settings
      */
-    public SnippetProject(final SnippetProjectSettings pSettings) {
-        Validate.notNull(pSettings, "The settings must not be null");
-        state = State.CREATED;
-        settings = pSettings;
+    public SnippetProject(SnippetProjectSettings settings) {
+        Validate.notNull(settings, "The settings must not be null");
+        this.state = State.CREATED;
+        this.settings = settings;
     }
 
     /**
      * Parses the snippet project. The procedure is the following:
      *
      * <ol>
-     * <li>Collect the snippet project files (sources, optional inputs and
-     * libraries, see {@link #getFiles()}).</li>
-     * <li>Creates a class loader for loading snippet project classes (see
-     * {@link #getClassLoader()})</li>
+     * <li>Collect the snippet project files (sources, optional inputs and libraries, see
+     * {@link #getFiles()}).</li>
+     * <li>Creates a class loader for loading snippet project classes (see {@link #getClassLoader()}
+     * )</li>
      * <li>Parse the Java source files (see {@link #getJavaSourceFiles()}).</li>
-     * <li>Parse and build the model of the snippet project (see
-     * {@link #getModel()}). Also performs classloading.</li>
+     * <li>Parse and build the model of the snippet project (see {@link #getModel()}). Also performs
+     * classloading.</li>
      * </ol>
      *
-     * @throws SetteConfigurationException
+     * @throws ConfigurationException
      *             if there was a configurational error
      * @throws ValidatorException
      *             if validation has failed
      */
-    public void parse() throws SetteConfigurationException,
-    ValidatorException {
+    public void parse() throws ConfigurationException, ValidatorException {
         // validate preconditions
         validateState(State.CREATED);
         // TODO validation???
@@ -146,8 +143,7 @@ public final class SnippetProject {
     }
 
     /**
-     * Collects the snippet project files (sources, optional inputs and
-     * libraries).
+     * Collects the snippet project files (sources, optional inputs and libraries).
      *
      * @throws ValidatorException
      *             if validation has failed
@@ -156,8 +152,8 @@ public final class SnippetProject {
         GeneralValidator validator = new GeneralValidator(this);
 
         // source files
-        files.snippetSourceFiles.addAll(FileUtils.listFiles(
-                settings.getSnippetSourceDirectory(), null, true));
+        files.snippetSourceFiles
+                .addAll(FileUtils.listFiles(settings.getSnippetSourceDirectory(), null, true));
 
         for (File file : files.snippetSourceFiles) {
             FileValidator v = new FileValidator(file);
@@ -167,8 +163,8 @@ public final class SnippetProject {
         }
 
         // input files
-        files.inputSourceFiles.addAll(FileUtils.listFiles(
-                settings.getInputSourceDirectory(), null, true));
+        files.inputSourceFiles
+                .addAll(FileUtils.listFiles(settings.getInputSourceDirectory(), null, true));
 
         for (File file : files.inputSourceFiles) {
             FileValidator v = new FileValidator(file);
@@ -179,8 +175,8 @@ public final class SnippetProject {
 
         // library files
         if (settings.getLibraryDirectory().exists()) {
-            files.libraryFiles.addAll(FileUtils.listFiles(
-                    settings.getLibraryDirectory(), null, true));
+            files.libraryFiles
+                    .addAll(FileUtils.listFiles(settings.getLibraryDirectory(), null, true));
 
             for (File file : files.libraryFiles) {
                 FileValidator v = new FileValidator(file);
@@ -194,19 +190,17 @@ public final class SnippetProject {
     }
 
     /**
-     * Creates a class loader for loading snippet project classes. The class
-     * loader will have all the specified binary directories and JAR libraries
-     * on its path.
+     * Creates a class loader for loading snippet project classes. The class loader will have all
+     * the specified binary directories and JAR libraries on its path.
      *
-     * @throws SetteConfigurationException
+     * @throws ConfigurationException
      *             if there was a configurational error
      */
-    private void createClassLoader() throws SetteConfigurationException {
+    private void createClassLoader() throws ConfigurationException {
         try {
             // collect all bytecode resources
             List<URL> urls = new ArrayList<>();
-            urls.add(settings.getSnippetBinaryDirectory().toURI()
-                    .toURL());
+            urls.add(settings.getSnippetBinaryDirectory().toURI().toURL());
             urls.add(settings.getInputBinaryDirectory().toURI().toURL());
 
             if (files != null && files.libraryFiles != null) {
@@ -216,44 +210,38 @@ public final class SnippetProject {
             }
 
             // instantiate class loader
-            classLoader = new URLClassLoader(urls.toArray(new URL[urls
-                                                                  .size()]));
+            classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
         } catch (MalformedURLException e) {
-            throw new SetteConfigurationException(
-                    "At least one directory/file cannot be converted to an URL",
-                    e);
+            throw new ConfigurationException(
+                    "At least one directory/file cannot be converted to an URL", e);
         }
     }
 
     /**
      * Parses the Java source files.
      *
-     * @throws SetteConfigurationException
+     * @throws ConfigurationException
      *             if there was a configurational error
      * @throws IOException
      */
-    private void parseJavaSourceFiles()
-            throws SetteConfigurationException {
+    private void parseJavaSourceFiles() throws ConfigurationException {
         // source Java files
         for (File file : files.snippetSourceFiles) {
-            JavaSourceFile jsf = JavaSourceFile.fromFile(
-                    settings.getSnippetSourceDirectory(), file,
+            JavaSourceFile jsf = JavaSourceFile.fromFile(settings.getSnippetSourceDirectory(), file,
                     classLoader);
             javaSourceFiles.snippetSources.put(jsf.getJavaClass(), jsf);
         }
 
         // input Java files
         for (File file : files.inputSourceFiles) {
-            JavaSourceFile jsf = JavaSourceFile.fromFile(
-                    settings.getInputSourceDirectory(), file,
+            JavaSourceFile jsf = JavaSourceFile.fromFile(settings.getInputSourceDirectory(), file,
                     classLoader);
             javaSourceFiles.inputSources.put(jsf.getJavaClass(), jsf);
         }
     }
 
     /**
-     * Parses and builds the model of the snippet project. Also performs
-     * classloading.
+     * Parses and builds the model of the snippet project. Also performs classloading.
      *
      * @throws ValidatorException
      *             if validation has failed
@@ -261,27 +249,22 @@ public final class SnippetProject {
     private void parseModel() throws ValidatorException {
         GeneralValidator validator = new GeneralValidator(this);
 
-        for (JavaSourceFile jsf : javaSourceFiles.snippetSources
-                .values()) {
+        for (JavaSourceFile jsf : javaSourceFiles.snippetSources.values()) {
             Class<?> javaClass = jsf.getJavaClass();
 
             try {
-                if (javaClass
-                        .getAnnotation(SetteSnippetContainer.class) != null) {
+                if (javaClass.getAnnotation(SetteSnippetContainer.class) != null) {
                     // create and add snippet container object
-                    SnippetContainer sc = new SnippetContainer(
-                            javaClass, classLoader);
+                    SnippetContainer sc = new SnippetContainer(javaClass, classLoader);
                     model.containers.add(sc);
 
                     // add input factory container
                     if (sc.getInputFactoryContainer() != null) {
-                        model.inputFactoryContainers.add(sc
-                                .getInputFactoryContainer());
+                        model.inputFactoryContainers.add(sc.getInputFactoryContainer());
                     }
                 } else {
                     // create and add dependency object
-                    SnippetDependency dep = new SnippetDependency(
-                            javaClass, classLoader);
+                    SnippetDependency dep = new SnippetDependency(javaClass, classLoader);
                     model.dependencies.add(dep);
                 }
             } catch (ValidatorException e) {
@@ -311,11 +294,9 @@ public final class SnippetProject {
     }
 
     /**
-     * Gets the files (sources, optional inputs and libraries) of the snippet
-     * project.
+     * Gets the files (sources, optional inputs and libraries) of the snippet project.
      *
-     * @return the files (sources, optional inputs and libraries) of the snippet
-     *         project
+     * @return the files (sources, optional inputs and libraries) of the snippet project
      */
     public Files getFiles() {
         validateState(State.PARSED);
@@ -343,9 +324,8 @@ public final class SnippetProject {
     }
 
     /**
-     * Gets the class loader for loading snippet project classes. The class
-     * loader has all the specified binary directories and JAR libraries on its
-     * path.
+     * Gets the class loader for loading snippet project classes. The class loader has all the
+     * specified binary directories and JAR libraries on its path.
      *
      * @return the class loader for loading snippet project classes
      */
@@ -361,10 +341,9 @@ public final class SnippetProject {
      * @param required
      *            the required state
      */
-    private void validateState(final State required) {
-        Validate.validState(state.equals(required),
-                "Invalid state (state: [%s], required: [%s])", state,
-                required);
+    private void validateState(State required) {
+        Validate.validState(state.equals(required), "Invalid state (state: [%s], required: [%s])",
+                state, required);
     }
 
     /**
@@ -395,8 +374,7 @@ public final class SnippetProject {
          * @return the snippet files (Java source files)
          */
         public SortedSet<File> getSnippetSourceFiles() {
-            return Collections
-                    .unmodifiableSortedSet(snippetSourceFiles);
+            return Collections.unmodifiableSortedSet(snippetSourceFiles);
         }
 
         /**
@@ -432,10 +410,8 @@ public final class SnippetProject {
          * Instantiates a new object.
          */
         private JavaSourceFiles() {
-            snippetSources = new TreeMap<>(
-                    ReflectionUtils.CLASS_COMPARATOR);
-            inputSources = new TreeMap<>(
-                    ReflectionUtils.CLASS_COMPARATOR);
+            snippetSources = new TreeMap<>(ReflectionUtils.CLASS_COMPARATOR);
+            inputSources = new TreeMap<>(ReflectionUtils.CLASS_COMPARATOR);
         }
 
         /**
@@ -504,8 +480,7 @@ public final class SnippetProject {
          * @return the input factory containers
          */
         public SortedSet<SnippetInputFactoryContainer> getInputFactoryContainers() {
-            return Collections
-                    .unmodifiableSortedSet(inputFactoryContainers);
+            return Collections.unmodifiableSortedSet(inputFactoryContainers);
         }
     }
 }

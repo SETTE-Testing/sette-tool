@@ -1,28 +1,26 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.util;
 
 import java.io.File;
@@ -60,10 +58,9 @@ public final class XmlUtils {
      * @throws ParserConfigurationException
      *             When it is not possible to create a Transformer instance.
      * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the
-     *             transformation.
+     *             If an unrecoverable error occurs during the course of the transformation.
      */
-    public static void writeXml(final Document document, final File file)
+    public static void writeXml(Document document, File file)
             throws ParserConfigurationException, TransformerException {
         Validate.notNull(document, "The document must not be null");
         Validate.notNull(file, "The file must not be null");
@@ -81,15 +78,12 @@ public final class XmlUtils {
      * @throws ParserConfigurationException
      *             When it is not possible to create a Transformer instance.
      * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the
-     *             transformation.
+     *             If an unrecoverable error occurs during the course of the transformation.
      */
-    public static void writeXml(final Document document,
-            final OutputStream outputStream)
-                    throws ParserConfigurationException, TransformerException {
+    public static void writeXml(Document document, OutputStream outputStream)
+            throws ParserConfigurationException, TransformerException {
         Validate.notNull(document, "The document must not be null");
-        Validate.notNull(outputStream,
-                "The outputStream must not be null");
+        Validate.notNull(outputStream, "The outputStream must not be null");
 
         XmlUtils.transformXml(document, new StreamResult(outputStream));
     }
@@ -104,12 +98,10 @@ public final class XmlUtils {
      * @throws ParserConfigurationException
      *             When it is not possible to create a Transformer instance.
      * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the
-     *             transformation.
+     *             If an unrecoverable error occurs during the course of the transformation.
      */
-    public static void writeXml(final Document document,
-            final Writer writer) throws ParserConfigurationException,
-            TransformerException {
+    public static void writeXml(Document document, Writer writer)
+            throws ParserConfigurationException, TransformerException {
         Validate.notNull(document, "The document must not be null");
         Validate.notNull(writer, "The writer must not be null");
 
@@ -124,22 +116,18 @@ public final class XmlUtils {
      * @param result
      *            The result.
      * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the
-     *             transformation.
+     *             If an unrecoverable error occurs during the course of the transformation.
      */
-    private static void transformXml(final Document document,
-            final Result result) throws TransformerException {
+    private static void transformXml(Document document, Result result) throws TransformerException {
         Validate.notNull(document, "The document must not be null");
         Validate.notNull(result, "The result must not be null");
 
         // write XML to stream
-        Transformer transformer = TransformerFactory.newInstance()
-                .newTransformer();
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty(
-                "{http://xml.apache.org/xslt}indent-amount", "4");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
         transformer.transform(new DOMSource(document), result);
     }

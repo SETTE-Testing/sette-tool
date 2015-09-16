@@ -1,3 +1,26 @@
+/*
+ * SETTE - Symbolic Execution based Test Tool Evaluator
+ *
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
+ *
+ * Budapest University of Technology and Economics (BME)
+ *
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
+ *
+ * Copyright 2014-2015
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+// TODO z revise this file
 package hu.bme.mit.sette.tools.jpet.xmlparser;
 
 import java.util.ArrayList;
@@ -10,10 +33,10 @@ final class Tag {
     private final TagType type;
     private final boolean isOpening;
 
-    private Tag(TagType pType, boolean isOpening) {
-        Validate.notNull(pType, "The type must not be null");
+    private Tag(TagType type, boolean isOpening) {
+        Validate.notNull(type, "The type must not be null");
 
-        type = pType;
+        this.type = type;
         this.isOpening = isOpening;
     }
 
@@ -45,11 +68,6 @@ final class Tag {
         return createClosingTag(TagType.fromString(type));
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         if (isOpening) {
@@ -68,8 +86,7 @@ final class Tag {
         List<String> validParentTagTypesAsString = new ArrayList<>();
 
         for (TagType validParentTagType : validParentTagTypes) {
-            if (parentTag != null
-                    && parentTag.getType() == validParentTagType) {
+            if (parentTag != null && parentTag.getType() == validParentTagType) {
                 // parent is not ROOT and type OK
                 return;
             } else if (parentTag == null && validParentTagType == null) {
@@ -80,14 +97,12 @@ final class Tag {
             if (validParentTagType == null) {
                 validParentTagTypesAsString.add("ROOT");
             } else {
-                validParentTagTypesAsString.add(validParentTagType
-                        .toString());
+                validParentTagTypesAsString.add(validParentTagType.toString());
             }
         }
 
         // invalid
-        String message = String.format(
-                "The parent of %s must be in %s, not in %s", this,
+        String message = String.format("The parent of %s must be in %s, not in %s", this,
                 StringUtils.join(validParentTagTypesAsString, " or "),
                 parentTag == null ? "ROOT" : parentTag.toString());
         Validate.isTrue(false, message);

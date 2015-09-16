@@ -1,33 +1,30 @@
 /*
  * SETTE - Symbolic Execution based Test Tool Evaluator
  *
- * SETTE is a tool to help the evaluation and comparison of symbolic execution
- * based test input generator tools.
+ * SETTE is a tool to help the evaluation and comparison of symbolic execution based test input 
+ * generator tools.
  *
  * Budapest University of Technology and Economics (BME)
  *
- * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei
- * <micskeiz@mit.bme.hu>
+ * Authors: Lajos Cseppentő <lajos.cseppento@inf.mit.bme.hu>, Zoltán Micskei <micskeiz@mit.bme.hu>
  *
- * Copyright 2014
+ * Copyright 2014-2015
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except 
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the 
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language governing permissions and 
+ * limitations under the License.
  */
+// TODO z revise this file
 package hu.bme.mit.sette.common.validator.exceptions;
 
 /**
- * Exception class for validation errors when the argument is null but it must
- * not be.
+ * Exception class for validation errors when the argument is null but it must not be.
  */
 public final class NullValidationException extends ValidationException {
     /** The Constant serialVersionUID. */
@@ -39,25 +36,23 @@ public final class NullValidationException extends ValidationException {
     /**
      * Instantiates a new null validation exception.
      *
-     * @param pSubject
+     * @param subject
      *            the subject
      */
-    public NullValidationException(final Object pSubject) {
-        this(pSubject, null);
+    public NullValidationException(Object subject) {
+        this(subject, null);
     }
 
     /**
      * Instantiates a new null validation exception.
      *
-     * @param pSubject
+     * @param subject
      *            the subject
      * @param cause
      *            the cause
      */
-    public NullValidationException(final Object pSubject,
-            final Throwable cause) {
-        this(String.format("The subject must be null\n(subject: [%s])",
-                pSubject), pSubject, cause);
+    public NullValidationException(Object subject, Throwable cause) {
+        this(String.format("The subject must be null\n(subject: [%s])", subject), subject, cause);
     }
 
     /**
@@ -65,12 +60,11 @@ public final class NullValidationException extends ValidationException {
      *
      * @param message
      *            the message
-     * @param pSubject
+     * @param subject
      *            the subject
      */
-    public NullValidationException(final String message,
-            final Object pSubject) {
-        this(message, pSubject, null);
+    public NullValidationException(String message, Object subject) {
+        this(message, subject, null);
     }
 
     /**
@@ -78,15 +72,14 @@ public final class NullValidationException extends ValidationException {
      *
      * @param message
      *            the message
-     * @param pSubject
+     * @param subject
      *            the subject
      * @param cause
      *            the cause
      */
-    public NullValidationException(final String message,
-            final Object pSubject, final Throwable cause) {
+    public NullValidationException(String message, Object subject, Throwable cause) {
         super(message, cause);
-        subject = pSubject;
+        this.subject = subject;
     }
 
     /**
