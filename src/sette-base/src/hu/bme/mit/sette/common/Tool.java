@@ -135,7 +135,7 @@ public abstract class Tool implements Comparable<Tool> {
      * @return the runner project generator
      */
     public abstract RunnerProjectGenerator<?> createRunnerProjectGenerator(
-            SnippetProject snippetProject, File outputDirectory);
+            SnippetProject snippetProject, File outputDirectory, String runnerProjectTag);
 
     /**
      * Creates a runner project runner.
@@ -147,7 +147,7 @@ public abstract class Tool implements Comparable<Tool> {
      * @return the runner project runner
      */
     public abstract RunnerProjectRunner<?> createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory);
+            File outputDirectory, String runnerProjectTag);
 
     /**
      * Creates a run result parser.
@@ -156,10 +156,12 @@ public abstract class Tool implements Comparable<Tool> {
      *            the snippet project
      * @param outputDirectory
      *            the output directory
+     * @param runnerProjectTag
+     *            the tag of the runner project
      * @return the run result parser
      */
     public abstract RunResultParser<?> createRunResultParser(SnippetProject snippetProject,
-            File outputDirectory);
+            File outputDirectory, String runnerProjectTag);
 
     @Override
     public final int compareTo(Tool o) {

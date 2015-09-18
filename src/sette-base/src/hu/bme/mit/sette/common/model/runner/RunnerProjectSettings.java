@@ -20,8 +20,12 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.model.runner;
+
+import java.io.File;
+
+import org.apache.commons.lang3.Validate;
 
 import hu.bme.mit.sette.common.Tool;
 import hu.bme.mit.sette.common.exceptions.ConfigurationException;
@@ -30,10 +34,6 @@ import hu.bme.mit.sette.common.validator.FileType;
 import hu.bme.mit.sette.common.validator.FileValidator;
 import hu.bme.mit.sette.common.validator.GeneralValidator;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-
-import java.io.File;
-
-import org.apache.commons.lang3.Validate;
 
 /**
  * Stores settings for a runner project.
@@ -60,31 +60,54 @@ public final class RunnerProjectSettings<T extends Tool> {
     /** The tool. */
     private final T tool;
 
-    /** The base directory. */
+    /** The base directory of the runner project. */
     private final File baseDirectory;
 
+    /** The tag for the runner project. */
+    private final String tag;
+
     /**
-     * Creates an instance of the object.
+     * Creates an instance of the object. The project will be located in the
+     * <code>parentDirectory</code> in a subdirectory named as
+     * <code>[snippet project name]___[tool name]___[tag]</code> (lowercase), e.g.:
+     * 
+     * <pre>
+     * <code>
+     * sette-snippets___random-tool___1st-run
+     * sette-snippets___random-tool___2nd-run
+     * sette-snippets___random-tool___3rd-run
+     * sette-snippets___se-tool___1st-run
+     * sette-snippets___se-tool___2nd-run
+     * sette-snippets___se-tool___3rd-run
+     * test-snippets___random-tool___1st-run
+     * test-snippets___random-tool___2nd-run
+     * test-snippets___se-tool___1st-run
+     * </code>
+     * </pre>
      *
      * @param snippetProjectSettings
      *            The settings of the snippet project.
-     * @param baseDirectory
-     *            the base directory
+     * @param parentDirectory
+     *            the parent directory
      * @param tool
      *            The tool.
+     * @param tag
      */
-    public RunnerProjectSettings(SnippetProjectSettings snippetProjectSettings, File baseDirectory,
-            T tool) {
+    public RunnerProjectSettings(SnippetProjectSettings snippetProjectSettings,
+            File parentDirectory, T tool, String tag) {
         Validate.notNull(snippetProjectSettings, "Snippet project settings must not be null");
-        Validate.notNull(baseDirectory, "The base directory must not be null");
+        Validate.notNull(parentDirectory, "The parent directory must not be null");
         Validate.notNull(tool, "The tool must not be null");
+        Validate.notBlank(tag, "The tag must not be blank");
+        Validate.isTrue(!tag.contains("___"), "The tag must contan the '___' substring");
 
         this.snippetProjectSettings = snippetProjectSettings;
         this.tool = tool;
+        this.tag = tag;
 
-        String projectName = String.format("%s-%s", snippetProjectSettings.getProjectName(),
-                tool.getName().toLowerCase());
-        this.baseDirectory = new File(baseDirectory, projectName);
+        String projectName = String.format("%s___%s___%s", snippetProjectSettings.getProjectName(),
+                tool.getName(), tag).toLowerCase();
+        this.baseDirectory = new File(parentDirectory, projectName);
     }
 
     /**
@@ -103,6 +126,15 @@ public final class RunnerProjectSettings<T extends Tool> {
      */
     public T getTool() {
         return this.tool;
+    }
+
+    /**
+     * Returns the tag of the runner project.
+     * 
+     * @return the tag of the runner project.
+     */
+    public String getTag() {
+        return tag;
     }
 
     /**
@@ -227,9 +259,9 @@ public final class RunnerProjectSettings<T extends Tool> {
             }
 
             validator.validate();
-        } catch (ValidatorException e) {
+        } catch (ValidatorException ex) {
             throw new ConfigurationException(
-                    "The runner project or a part of it does not exists or is not readable", e);
+                    "The runner project or a part of it does not exists or is not readable", ex);
         }
     }
 
@@ -245,8 +277,8 @@ public final class RunnerProjectSettings<T extends Tool> {
             FileValidator v = new FileValidator(this.baseDirectory);
             v.type(FileType.NONEXISTENT);
             v.validate();
-        } catch (ValidatorException e) {
-            throw new ConfigurationException("The runner project already exists", e);
+        } catch (ValidatorException ex) {
+            throw new ConfigurationException("The runner project already exists", ex);
         }
     }
 }

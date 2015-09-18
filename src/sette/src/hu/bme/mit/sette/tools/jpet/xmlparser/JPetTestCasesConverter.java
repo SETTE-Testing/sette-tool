@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.jpet.xmlparser;
 
 import hu.bme.mit.sette.common.model.parserxml.AbstractParameterElement;
@@ -292,7 +292,7 @@ public final class JPetTestCasesConverter {
                     } else {
                         parameterElement.setValue(intVal);
                     }
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ex) {
                     // problem: jpet sometimes generates refs in <data> fields
                     // with no real heap object!
                     parameterElement.setType(ParameterType.EXPRESSION);

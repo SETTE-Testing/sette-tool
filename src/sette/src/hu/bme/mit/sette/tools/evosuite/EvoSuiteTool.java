@@ -20,8 +20,10 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
+
+import java.io.File;
 
 import hu.bme.mit.sette.common.Tool;
 import hu.bme.mit.sette.common.ToolOutputType;
@@ -31,8 +33,6 @@ import hu.bme.mit.sette.common.snippets.JavaVersion;
 import hu.bme.mit.sette.common.validator.FileType;
 import hu.bme.mit.sette.common.validator.FileValidator;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-
-import java.io.File;
 
 public final class EvoSuiteTool extends Tool {
     private final File toolJAR;
@@ -54,8 +54,8 @@ public final class EvoSuiteTool extends Tool {
             FileValidator v = new FileValidator(toolJAR);
             v.type(FileType.REGULAR_FILE).readable(true);
             v.validate();
-        } catch (ValidatorException e) {
-            throw new ConfigurationException("The EvoSuite JAR is invalid: " + toolJAR, e);
+        } catch (ValidatorException ex) {
+            throw new ConfigurationException("The EvoSuite JAR is invalid: " + toolJAR, ex);
         }
 
         return toolJAR;
@@ -66,9 +66,9 @@ public final class EvoSuiteTool extends Tool {
             FileValidator v = new FileValidator(defaultBuildXml);
             v.type(FileType.REGULAR_FILE).readable(true);
             v.validate();
-        } catch (ValidatorException e) {
+        } catch (ValidatorException ex) {
             throw new ConfigurationException(
-                    "The default EvoSuite build.xml is invalid: " + defaultBuildXml, e);
+                    "The default EvoSuite build.xml is invalid: " + defaultBuildXml, ex);
         }
 
         return defaultBuildXml;
@@ -86,19 +86,19 @@ public final class EvoSuiteTool extends Tool {
 
     @Override
     public EvoSuiteGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new EvoSuiteGenerator(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new EvoSuiteGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
     public EvoSuiteRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new EvoSuiteRunner(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new EvoSuiteRunner(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
-    public EvoSuiteParser createRunResultParser(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new EvoSuiteParser(snippetProject, outputDirectory, this);
+    public EvoSuiteParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
+        return new EvoSuiteParser(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 }

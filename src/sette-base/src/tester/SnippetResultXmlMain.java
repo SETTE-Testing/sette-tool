@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package tester;
 
 import hu.bme.mit.sette.common.model.parserxml.SnippetElement;
@@ -50,8 +50,8 @@ public final class SnippetResultXmlMain {
 
         try {
             resultXml.validate();
-        } catch (ValidatorException e) {
-            System.err.println(e.getFullMessage());
+        } catch (ValidatorException ex) {
+            System.err.println(ex.getFullMessage());
             System.exit(-1);
         }
 

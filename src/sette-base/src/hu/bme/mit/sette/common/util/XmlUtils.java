@@ -20,14 +20,13 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.util;
 
 import java.io.File;
 import java.io.OutputStream;
 import java.io.Writer;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
@@ -38,6 +37,8 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang3.Validate;
 import org.w3c.dom.Document;
+
+import hu.bme.mit.sette.common.exceptions.XmlException;
 
 /**
  * Contains static helper methods for XML file manipulation.
@@ -55,13 +56,10 @@ public final class XmlUtils {
      *            The XML document.
      * @param file
      *            The output file.
-     * @throws ParserConfigurationException
-     *             When it is not possible to create a Transformer instance.
-     * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the transformation.
+     * @throws XmlException
+     *             If an XML related exception occurs.
      */
-    public static void writeXml(Document document, File file)
-            throws ParserConfigurationException, TransformerException {
+    public static void writeXml(Document document, File file) throws XmlException {
         Validate.notNull(document, "The document must not be null");
         Validate.notNull(file, "The file must not be null");
 
@@ -75,13 +73,10 @@ public final class XmlUtils {
      *            The XML document.
      * @param outputStream
      *            The output stream.
-     * @throws ParserConfigurationException
-     *             When it is not possible to create a Transformer instance.
-     * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the transformation.
+     * @throws XmlException
+     *             If an XML related exception occurs.
      */
-    public static void writeXml(Document document, OutputStream outputStream)
-            throws ParserConfigurationException, TransformerException {
+    public static void writeXml(Document document, OutputStream outputStream) throws XmlException {
         Validate.notNull(document, "The document must not be null");
         Validate.notNull(outputStream, "The outputStream must not be null");
 
@@ -95,13 +90,10 @@ public final class XmlUtils {
      *            The XML document.
      * @param writer
      *            The writer.
-     * @throws ParserConfigurationException
-     *             When it is not possible to create a Transformer instance.
-     * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the transformation.
+     * @throws XmlException
+     *             If an XML related exception occurs.
      */
-    public static void writeXml(Document document, Writer writer)
-            throws ParserConfigurationException, TransformerException {
+    public static void writeXml(Document document, Writer writer) throws XmlException {
         Validate.notNull(document, "The document must not be null");
         Validate.notNull(writer, "The writer must not be null");
 
@@ -115,20 +107,24 @@ public final class XmlUtils {
      *            The XML document.
      * @param result
      *            The result.
-     * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the transformation.
+     * @throws XmlException
+     *             If an XML related exception occurs.
      */
-    private static void transformXml(Document document, Result result) throws TransformerException {
+    private static void transformXml(Document document, Result result) throws XmlException {
         Validate.notNull(document, "The document must not be null");
         Validate.notNull(result, "The result must not be null");
 
         // write XML to stream
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        try {
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
-        transformer.transform(new DOMSource(document), result);
+            transformer.transform(new DOMSource(document), result);
+        } catch (TransformerException ex) {
+            throw new XmlException("Transformation failed", ex);
+        }
     }
 }

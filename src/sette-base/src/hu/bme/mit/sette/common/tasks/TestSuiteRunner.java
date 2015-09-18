@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
@@ -75,8 +75,9 @@ import junit.framework.TestCase;
 public final class TestSuiteRunner extends SetteTask<Tool> {
     private static final Logger logger = LoggerFactory.getLogger(TestSuiteRunner.class);
 
-    public TestSuiteRunner(SnippetProject snippetProject, File outputDirectory, Tool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public TestSuiteRunner(SnippetProject snippetProject, File outputDirectory, Tool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     public void analyze() throws Exception {
@@ -146,9 +147,9 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                 // toto remove try-catch
                 try {
                     analyzeOne(snippet, binaryDirectories);
-                } catch (Exception e) {
+                } catch (Exception ex) {
                     // now dump and go on
-                    e.printStackTrace();
+                    ex.printStackTrace();
                 }
             }
         }
@@ -197,8 +198,8 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                     logger.trace("Invoking: " + m.getName());
                     try {
                         m.invoke(testClassInstance);
-                    } catch (InvocationTargetException e) {
-                        Throwable cause = e.getCause();
+                    } catch (InvocationTargetException ex) {
+                        Throwable cause = ex.getCause();
 
                         if (cause instanceof NullPointerException
                                 || cause instanceof ArrayIndexOutOfBoundsException
@@ -209,7 +210,7 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                             logger.error("Exception: " + m.getDeclaringClass().getName() + "."
                                     + m.getName());
                         }
-                        logger.debug(e.getMessage(), e);
+                        logger.debug(ex.getMessage(), ex);
                     }
                 } else {
                     logger.warn("Not test method: {}", m.getName());
@@ -249,7 +250,7 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                     classLoader.loadClass(javaClass + "$" + i);
                     toAdd.add(javaClass + "$" + i);
                     i++;
-                } catch (ClassNotFoundException e) {
+                } catch (ClassNotFoundException ex) {
                     // bad guess, no more anonymous classes on this level
                     break;
                 }

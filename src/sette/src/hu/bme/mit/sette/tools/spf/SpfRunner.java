@@ -20,8 +20,11 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
+
+import java.io.File;
+import java.io.IOException;
 
 import hu.bme.mit.sette.common.exceptions.ConfigurationException;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
@@ -32,14 +35,10 @@ import hu.bme.mit.sette.common.util.process.ProcessRunner;
 import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
 import hu.bme.mit.sette.common.util.process.ProcessUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
-    public SpfRunner(SnippetProject snippetProject, File outputDirectory, SpfTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public SpfRunner(SnippetProject snippetProject, File outputDirectory, SpfTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -59,9 +58,9 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
             }
 
             @Override
-            public void onIOException(ProcessRunner processRunner, IOException e) {
+            public void onIOException(ProcessRunner processRunner, IOException ex) {
                 // TODO error handling
-                e.printStackTrace();
+                ex.printStackTrace();
             }
 
             @Override
@@ -101,8 +100,9 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
             throw new RuntimeException("SPF ant build has failed");
         }
 
-        System.out.println("Ant build done, press enter to continue");
-        new BufferedReader(new InputStreamReader(System.in)).readLine();
+        // FIXME
+        // System.out.println("Ant build done, press enter to continue");
+        // new BufferedReader(new InputStreamReader(System.in)).readLine();
     }
 
     @Override
@@ -159,9 +159,9 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
             System.err.println("  Terminating stuck process (PID: " + pid + ")");
             try {
                 ProcessUtils.terminateProcess(pid);
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 System.err.println("  Exception");
-                e.printStackTrace();
+                ex.printStackTrace();
             }
         }
 

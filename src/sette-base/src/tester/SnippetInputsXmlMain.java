@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package tester;
 
 import hu.bme.mit.sette.common.model.parserxml.ArrayParameterElement;
@@ -125,8 +125,8 @@ public final class SnippetInputsXmlMain {
 
         try {
             snippetInputsXml.validate();
-        } catch (ValidatorException e) {
-            System.err.println(e.getFullMessage());
+        } catch (ValidatorException ex) {
+            System.err.println(ex.getFullMessage());
             System.exit(-1);
         }
 
@@ -136,8 +136,8 @@ public final class SnippetInputsXmlMain {
 
         try {
             serializer.write(snippetInputsXml, s);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
             System.exit(-1);
         }
 

@@ -20,15 +20,8 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.model.snippet;
-
-import hu.bme.mit.sette.annotations.SetteIncludeCoverage;
-import hu.bme.mit.sette.annotations.SetteRequiredStatementCoverage;
-import hu.bme.mit.sette.common.util.SetteAnnotationUtils;
-import hu.bme.mit.sette.common.util.reflection.AnnotationMap;
-import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-import hu.bme.mit.sette.common.validator.reflection.MethodValidator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -41,6 +34,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+
+import hu.bme.mit.sette.annotations.SetteIncludeCoverage;
+import hu.bme.mit.sette.annotations.SetteRequiredStatementCoverage;
+import hu.bme.mit.sette.common.util.SetteAnnotationUtils;
+import hu.bme.mit.sette.common.util.reflection.AnnotationMap;
+import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
+import hu.bme.mit.sette.common.validator.reflection.MethodValidator;
 
 /**
  * Represents a code snippet (which is a Java method).
@@ -265,7 +265,7 @@ public final class Snippet {
                 } else {
                     try {
                         paramTypes[i] = ClassUtils.getClass(classLoader, parameterTypeString);
-                    } catch (ClassNotFoundException e) {
+                    } catch (ClassNotFoundException ex) {
                         // parameter type was not found
                         String format = "The parameter type in the included method string "
                                 + "could not have been loaded.\n(includedMethodString: [%s])\n"
@@ -284,7 +284,7 @@ public final class Snippet {
                         // only search declared constructors
                         Constructor<?> found = includedClass.getDeclaredConstructor(paramTypes);
                         addIncludedConstructor(found, v);
-                    } catch (NoSuchMethodException e) {
+                    } catch (NoSuchMethodException ex) {
                         String format = "Included constructor cannot be found "
                                 + "(it must be declared in the class)\n(includedClass: [%s])\n"
                                 + "(includedMethodString: [%s])";
@@ -297,12 +297,12 @@ public final class Snippet {
                         Method found = includedClass.getDeclaredMethod(includedMethodName,
                                 paramTypes);
                         addIncludedMethod(found, v);
-                    } catch (NoSuchMethodException e) {
+                    } catch (NoSuchMethodException ex) {
                         String format = "Included method cannot be found "
                                 + "(it must be declared in the class)\n(includedClass: [%s])\n"
                                 + "(includedMethodString: [%s])";
                         String message = String.format(format, includedClass, includedMethodString);
-                        v.addException(message, e);
+                        v.addException(message, ex);
                     }
                 }
             }

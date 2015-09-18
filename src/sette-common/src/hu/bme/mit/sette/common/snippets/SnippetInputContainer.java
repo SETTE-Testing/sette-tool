@@ -42,7 +42,7 @@ public final class SnippetInputContainer {
     /** The number of required parameters for the code snippet. */
     private final int parameterCount;
     /** The list of inputs for the code snippet. */
-    private final List<SnippetInput> inputs = new ArrayList<>();
+    private final List<SnippetInput> inputs = new ArrayList<SnippetInput>();
 
     /**
      * Creates an instance with the specified parameter count. Throws an

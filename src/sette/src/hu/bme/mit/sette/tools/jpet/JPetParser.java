@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
@@ -45,8 +45,9 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.commons.io.FileUtils;
 
 public class JPetParser extends RunResultParser<JPetTool> {
-    public JPetParser(SnippetProject snippetProject, File outputDirectory, JPetTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public JPetParser(SnippetProject snippetProject, File outputDirectory, JPetTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     private static final Pattern PATTERN_FULL_CODE = Pattern
@@ -345,13 +346,13 @@ public class JPetParser extends RunResultParser<JPetTool> {
             // try {
             // // just check the type format
             // pe.validate();
-            // } catch (Exception e) {
+            // } catch (Exception ex) {
             // // TODO debug - remove or log
             // System.out.println(parameterTypes[j]);
             // System.out.println(paramsStrings[j]);
             // System.out.println(pe.getType());
             // System.out.println(pe.getValue());
-            // e.printStackTrace();
+            // ex.printStackTrace();
             //
             // System.err
             // .println("=============================");

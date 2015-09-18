@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
 import hu.bme.mit.sette.common.model.parserxml.InputElement;
@@ -46,8 +46,9 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class SpfParser extends RunResultParser<SpfTool> {
-    public SpfParser(SnippetProject snippetProject, File outputDirectory, SpfTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public SpfParser(SnippetProject snippetProject, File outputDirectory, SpfTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -271,13 +272,13 @@ public class SpfParser extends RunResultParser<SpfTool> {
                                 try {
                                     // just check the type format
                                     pe.validate();
-                                } catch (Exception e) {
+                                } catch (Exception ex) {
                                     // TODO error handling
                                     System.out.println(parameterTypes[j]);
                                     System.out.println(paramsStrings[j]);
                                     System.out.println(pe.getType());
                                     System.out.println(pe.getValue());
-                                    e.printStackTrace();
+                                    ex.printStackTrace();
 
                                     System.err.println("=============================");
                                     System.err.println(snippet.getMethod());

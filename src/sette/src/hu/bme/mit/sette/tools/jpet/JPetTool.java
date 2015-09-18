@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
 import hu.bme.mit.sette.common.Tool;
@@ -59,8 +59,9 @@ public final class JPetTool extends Tool {
             FileValidator v = new FileValidator(petExecutable);
             v.type(FileType.REGULAR_FILE).readable(true).executable(true);
             v.validate();
-        } catch (ValidatorException e) {
-            throw new ConfigurationException("The jPET executable is invalid: " + petExecutable, e);
+        } catch (ValidatorException ex) {
+            throw new ConfigurationException("The jPET executable is invalid: " + petExecutable,
+                    ex);
         }
 
         return petExecutable;
@@ -71,9 +72,9 @@ public final class JPetTool extends Tool {
             FileValidator v = new FileValidator(defaultBuildXml);
             v.type(FileType.REGULAR_FILE).readable(true);
             v.validate();
-        } catch (ValidatorException e) {
+        } catch (ValidatorException ex) {
             throw new ConfigurationException("The jPET build.xml is invalid: " + defaultBuildXml,
-                    e);
+                    ex);
         }
 
         return defaultBuildXml;
@@ -91,17 +92,18 @@ public final class JPetTool extends Tool {
 
     @Override
     public JPetGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new JPetGenerator(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new JPetGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
-    public JPetRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new JPetRunner(snippetProject, outputDirectory, this);
+    public JPetRunner createRunnerProjectRunner(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
+        return new JPetRunner(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
-    public static File getTestCasesDirectory(RunnerProjectSettings<JPetTool> runnerProjectSettings) {
+    public static File getTestCasesDirectory(
+            RunnerProjectSettings<JPetTool> runnerProjectSettings) {
         return new File(runnerProjectSettings.getBaseDirectory(), TESTCASES_DIRNAME);
     }
 
@@ -113,8 +115,9 @@ public final class JPetTool extends Tool {
     }
 
     @Override
-    public JPetParser createRunResultParser(SnippetProject snippetProject, File outputDirectory) {
-        return new JPetParser(snippetProject, outputDirectory, this);
+    public JPetParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
+        return new JPetParser(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
 }

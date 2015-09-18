@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
 import hu.bme.mit.sette.common.exceptions.SetteException;
@@ -41,8 +41,8 @@ import java.io.IOException;
 public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
     private static final int TRIAL_COUNT = 100;
 
-    public CatgRunner(SnippetProject snippetProject, File outputDirectory, CatgTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public CatgRunner(SnippetProject snippetProject, File outputDirectory, CatgTool tool, String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -62,9 +62,9 @@ public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
             }
 
             @Override
-            public void onIOException(ProcessRunner processRunner, IOException e) {
+            public void onIOException(ProcessRunner processRunner, IOException ex) {
                 // TODO handle error
-                e.printStackTrace();
+                ex.printStackTrace();
             }
 
             @Override
@@ -166,9 +166,9 @@ public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
             System.err.println("  Terminating stuck process (PID: " + pid + ")");
             try {
                 ProcessUtils.terminateProcess(pid);
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 System.err.println("  Exception");
-                e.printStackTrace();
+                ex.printStackTrace();
             }
         }
 

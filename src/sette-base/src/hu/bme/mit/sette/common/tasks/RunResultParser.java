@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
@@ -45,8 +45,9 @@ import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 
 public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
-    public RunResultParser(SnippetProject snippetProject, File outputDirectory, T tool) {
-        super(snippetProject, outputDirectory, tool);
+    public RunResultParser(SnippetProject snippetProject, File outputDirectory, T tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     public final void parse() throws Exception {
@@ -84,8 +85,8 @@ public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
                     Serializer serializer = new Persister(new AnnotationStrategy(),
                             new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
                     serializer.write(inputsXml, inputsXmlFile);
-                } catch (ValidatorException e) {
-                    System.err.println(e.getFullMessage());
+                } catch (ValidatorException ex) {
+                    System.err.println(ex.getFullMessage());
                 }
             }
         }

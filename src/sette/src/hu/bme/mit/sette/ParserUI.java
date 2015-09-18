@@ -20,9 +20,9 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
-// TODO z revise this file
-// TODO z revise this file
+// NOTE revise this file
+// NOTE revise this file
+// NOTE revise this file
 package hu.bme.mit.sette;
 
 import hu.bme.mit.sette.common.Tool;
@@ -40,10 +40,10 @@ import org.apache.commons.lang3.Validate;
 public final class ParserUI implements BaseUI {
     private final RunResultParser<?> parser;
 
-    public ParserUI(SnippetProject snippetProject, Tool tool) {
+    public ParserUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag) {
         Validate.notNull(snippetProject, "Snippet project settings must not be null");
         Validate.notNull(tool, "The tool must not be null");
-        parser = tool.createRunResultParser(snippetProject, Run.OUTPUT_DIR);
+        parser = tool.createRunResultParser(snippetProject, Run.OUTPUT_DIR, runnerProjectTag);
     }
 
     @Override
@@ -58,13 +58,13 @@ public final class ParserUI implements BaseUI {
         try {
             // TODO enhance this section
             parser.parse();
-        } catch (Exception e) {
-            out.println("Parse failed: " + e.getMessage());
+        } catch (Exception ex) {
+            out.println("Parse failed: " + ex.getMessage());
 
-            if (e instanceof ValidatorException) {
-                throw (ValidatorException) e;
+            if (ex instanceof ValidatorException) {
+                throw (ValidatorException) ex;
             } else {
-                e.printStackTrace();
+                ex.printStackTrace();
             }
         }
     }

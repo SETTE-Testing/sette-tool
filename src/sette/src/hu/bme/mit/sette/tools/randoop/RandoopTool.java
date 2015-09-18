@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
 import hu.bme.mit.sette.common.Tool;
@@ -54,8 +54,8 @@ public final class RandoopTool extends Tool {
             FileValidator v = new FileValidator(toolJAR);
             v.type(FileType.REGULAR_FILE).readable(true);
             v.validate();
-        } catch (ValidatorException e) {
-            throw new ConfigurationException("The Randoop JAR is invalid: " + toolJAR, e);
+        } catch (ValidatorException ex) {
+            throw new ConfigurationException("The Randoop JAR is invalid: " + toolJAR, ex);
         }
 
         return toolJAR;
@@ -66,9 +66,9 @@ public final class RandoopTool extends Tool {
             FileValidator v = new FileValidator(defaultBuildXml);
             v.type(FileType.REGULAR_FILE).readable(true);
             v.validate();
-        } catch (ValidatorException e) {
+        } catch (ValidatorException ex) {
             throw new ConfigurationException(
-                    "The default Randoop build.xml is invalid: " + defaultBuildXml, e);
+                    "The default Randoop build.xml is invalid: " + defaultBuildXml, ex);
         }
 
         return defaultBuildXml;
@@ -86,19 +86,19 @@ public final class RandoopTool extends Tool {
 
     @Override
     public RandoopGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new RandoopGenerator(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new RandoopGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
     public RandoopRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new RandoopRunner(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new RandoopRunner(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
-    public RandoopParser createRunResultParser(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new RandoopParser(snippetProject, outputDirectory, this);
+    public RandoopParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
+        return new RandoopParser(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 }

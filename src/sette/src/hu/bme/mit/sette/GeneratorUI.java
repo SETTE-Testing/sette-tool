@@ -20,18 +20,14 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
-// TODO z revise this file
-// TODO z revise this file
+// NOTE revise this file
+// NOTE revise this file
+// NOTE revise this file
 package hu.bme.mit.sette;
-
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
-import hu.bme.mit.sette.run.Run;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,13 +35,19 @@ import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 
+import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.model.snippet.SnippetProject;
+import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.run.Run;
+
 public final class GeneratorUI implements BaseUI {
     private final RunnerProjectGenerator<?> generator;
 
-    public GeneratorUI(SnippetProject snippetProject, Tool tool) {
+    public GeneratorUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag) {
         Validate.notNull(snippetProject, "Snippet project settings must not be null");
         Validate.notNull(tool, "The tool must not be null");
-        generator = tool.createRunnerProjectGenerator(snippetProject, Run.OUTPUT_DIR);
+        generator = tool.createRunnerProjectGenerator(snippetProject, Run.OUTPUT_DIR,
+                runnerProjectTag);
     }
 
     @Override
@@ -59,28 +61,25 @@ public final class GeneratorUI implements BaseUI {
 
         // backup output directory if it exists
         if (runnerProjectDir.exists()) {
-            out.print(
-                    "The output directory exists. It will be deleted before generation. Would you like to make a backup? [yes] ");
+            if (Run.CREATE_BACKUP) {
+                // create
+                doBackup(runnerProjectDir, out);
+            } else if (Run.SKIP_BACKUP) {
+                // skip
+            } else {
+                // ask
+                out.print("The output directory exists. It will be deleted before generation. "
+                        + "Would you like to make a backup? [yes] ");
 
-            String line = in.readLine();
+                String line = in.readLine();
 
-            if (line == null) {
-                out.println("EOF detected, exiting");
-                return;
-            }
-
-            if (!line.trim().equalsIgnoreCase("no")) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH;mm;ss");
-
-                File backup = new File(runnerProjectDir.getParentFile(),
-                        runnerProjectDir.getName() + "-backup-" + dateFormat.format(new Date()))
-                                .getCanonicalFile();
-
-                if (runnerProjectDir.renameTo(backup)) {
-                    out.println("Backup location: " + backup);
-                } else {
-                    out.println("Backup failed, exiting");
+                if (line == null) {
+                    out.println("EOF detected, exiting");
                     return;
+                }
+
+                if (!line.trim().equalsIgnoreCase("no")) {
+                    doBackup(runnerProjectDir, out);
                 }
             }
         }
@@ -91,9 +90,23 @@ public final class GeneratorUI implements BaseUI {
             FileUtils.deleteDirectory(runnerProjectDir);
             generator.generate();
             out.println("Generation successful");
-        } catch (Exception e) {
-            out.println("Generation failed: " + e.getMessage());
-            e.printStackTrace();
+        } catch (Exception ex) {
+            out.println("Generation failed: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    private static void doBackup(File runnerProjectDir, PrintStream out) throws IOException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH;mm;ss");
+
+        File backup = new File(runnerProjectDir.getParentFile(),
+                runnerProjectDir.getName() + "___backup-" + dateFormat.format(new Date()))
+                        .getCanonicalFile();
+
+        if (runnerProjectDir.renameTo(backup)) {
+            out.println("Backup location: " + backup);
+        } else {
+            throw new RuntimeException("Backup failed, exiting");
         }
     }
 }

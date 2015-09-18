@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
@@ -34,8 +34,9 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 
 public class RandoopGenerator extends RunnerProjectGenerator<RandoopTool> {
-    public RandoopGenerator(SnippetProject snippetProject, File outputDirectory, RandoopTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public RandoopGenerator(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.util.process;
 
 import java.io.BufferedReader;
@@ -96,9 +96,9 @@ public final class ProcessRunner {
         Process process;
         try {
             process = Runtime.getRuntime().exec(command, environmentVariables, workingDirectory);
-        } catch (IOException e) {
+        } catch (IOException ex) {
             for (ProcessRunnerListener listener : listeners) {
-                listener.onIOException(this, e);
+                listener.onIOException(this, ex);
             }
             return;
         }
@@ -140,48 +140,44 @@ public final class ProcessRunner {
 
                 try {
                     stdoutReaderThread.join();
-                } catch (InterruptedException e) {
+                } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
                 try {
                     stderrReaderThread.join();
-                } catch (InterruptedException e) {
+                } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
                 break;
-            } catch (IllegalThreadStateException e) {
-                // process is still running
-                if (timeoutInMs > 0 && elapsed > timeoutInMs) {
-                    // timeout, try to stop readers
-                    stdoutReader.initiateStop();
-                    stderrReader.initiateStop();
+            } catch (IllegalThreadStateException ex) {
+                try {
+                    // process is still running
+                    if (timeoutInMs > 0 && elapsed > timeoutInMs) {
+                        // timeout, try to stop readers
+                        stdoutReader.initiateStop();
+                        stderrReader.initiateStop();
 
-                    try {
                         // giving a short time for the readers to stop before
                         // destroying the process
                         Thread.sleep(WAIT_BEFORE_DESTROY);
-                    } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
-                    }
 
-                    // destroy the process
-                    process.destroy();
-                    isDestroyed = true;
+                        // destroy the process
+                        process.destroy();
+                        isDestroyed = true;
 
-                    try {
                         lExitValue = process.waitFor();
-                    } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
-                    }
 
-                    break;
-                } else {
-                    // wait
-                    try {
-                        Thread.sleep(pollIntervalInMs);
-                    } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
+                        break;
+                    } else {
+                        // wait
+                        try {
+                            Thread.sleep(pollIntervalInMs);
+                        } catch (InterruptedException interrupted) {
+                            Thread.currentThread().interrupt();
+                        }
                     }
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
                 }
             }
         }

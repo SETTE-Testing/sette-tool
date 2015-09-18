@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
 import hu.bme.mit.sette.common.Tool;
@@ -54,8 +54,8 @@ public final class SpfTool extends Tool {
             FileValidator v = new FileValidator(toolJAR);
             v.type(FileType.REGULAR_FILE).readable(true);
             v.validate();
-        } catch (ValidatorException e) {
-            throw new ConfigurationException("The SPF JAR is invalid: " + toolJAR, e);
+        } catch (ValidatorException ex) {
+            throw new ConfigurationException("The SPF JAR is invalid: " + toolJAR, ex);
         }
 
         return toolJAR;
@@ -66,9 +66,9 @@ public final class SpfTool extends Tool {
             FileValidator v = new FileValidator(defaultBuildXml);
             v.type(FileType.REGULAR_FILE).readable(true);
             v.validate();
-        } catch (ValidatorException e) {
+        } catch (ValidatorException ex) {
             throw new ConfigurationException(
-                    "The default SPF build.xml is invalid: " + defaultBuildXml, e);
+                    "The default SPF build.xml is invalid: " + defaultBuildXml, ex);
         }
 
         return defaultBuildXml;
@@ -86,18 +86,19 @@ public final class SpfTool extends Tool {
 
     @Override
     public SpfGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new SpfGenerator(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new SpfGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
-    public SpfRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new SpfRunner(snippetProject, outputDirectory, this);
+    public SpfRunner createRunnerProjectRunner(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
+        return new SpfRunner(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
-    public SpfParser createRunResultParser(SnippetProject snippetProject, File outputDirectory) {
-        return new SpfParser(snippetProject, outputDirectory, this);
+    public SpfParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
+        return new SpfParser(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 }

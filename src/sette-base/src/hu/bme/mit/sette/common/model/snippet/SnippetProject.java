@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.annotations.SetteSnippetContainer;
@@ -211,9 +211,9 @@ public final class SnippetProject {
 
             // instantiate class loader
             classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException ex) {
             throw new ConfigurationException(
-                    "At least one directory/file cannot be converted to an URL", e);
+                    "At least one directory/file cannot be converted to an URL", ex);
         }
     }
 
@@ -267,8 +267,8 @@ public final class SnippetProject {
                     SnippetDependency dep = new SnippetDependency(javaClass, classLoader);
                     model.dependencies.add(dep);
                 }
-            } catch (ValidatorException e) {
-                validator.addChild(e.getValidator());
+            } catch (ValidatorException ex) {
+                validator.addChild(ex.getValidator());
             }
         }
 

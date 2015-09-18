@@ -31,9 +31,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * Represents a Java class with a main() method. Please note that this class generates a lines for a
- * Java file based on the given data does not perform any Java compiler check. This class is used
- * for to generated test drivers for test input generators. Example for the generated code:
+ * Builds a Java source file with a main() method. Please note that this class generates a lines for
+ * a Java file based on the given data does not perform any Java compiler check. This class is used
+ * to generate test drivers for test input generators. Example for the generated code:
  *
  * <pre>
  * <code>
@@ -52,7 +52,7 @@ import org.apache.commons.lang3.Validate;
  * </code>
  * </pre>
  */
-public final class JavaClassWithMain {
+public final class JavaFileWithMainBuilder {
     /** The name of the package. */
     private String packageName = null;
 
@@ -66,7 +66,7 @@ public final class JavaClassWithMain {
     private final List<String> codeLines;
 
     /** Creates an instance of the object. */
-    public JavaClassWithMain() {
+    public JavaFileWithMainBuilder() {
         imports = new ArrayList<>();
         codeLines = new ArrayList<>();
     }
@@ -146,7 +146,7 @@ public final class JavaClassWithMain {
      *
      * @return A {@link List} containing the lines of the Java code.
      */
-    public List<String> generateJavaCodeLines() {
+    public List<String> build() {
         List<String> generated = new ArrayList<>();
 
         if (packageName != null) {

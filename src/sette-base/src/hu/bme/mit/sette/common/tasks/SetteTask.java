@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import hu.bme.mit.sette.common.Tool;
@@ -54,19 +54,19 @@ abstract class SetteTask<T extends Tool> {
      *            the output directory
      * @param tool
      *            the tool
+     * @param runnerProjectTag
+     *            tag for the runner project
      */
-    public SetteTask(SnippetProject snippetProject, File outputDirectory, T tool) {
+    public SetteTask(SnippetProject snippetProject, File outputDirectory, T tool,
+            String runnerProjectTag) {
         Validate.notNull(snippetProject, "The snippet project must not be null");
         Validate.isTrue(snippetProject.getState().equals(SnippetProject.State.PARSED),
                 "The snippet project must be parsed (state: [%s]) ",
                 snippetProject.getState().name());
 
-        Validate.notNull(outputDirectory, "The output directory must not be null");
-        Validate.notNull(tool, "The tool must not be null");
-
         this.snippetProject = snippetProject;
         this.runnerProjectSettings = new RunnerProjectSettings<>(snippetProject.getSettings(),
-                outputDirectory, tool);
+                outputDirectory, tool, runnerProjectTag);
     }
 
     /**

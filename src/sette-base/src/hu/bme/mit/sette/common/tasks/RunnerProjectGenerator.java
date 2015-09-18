@@ -20,40 +20,45 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.tasks;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.Validate;
+
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseException;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.MemberValuePair;
 
 import hu.bme.mit.sette.common.Tool;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathDescriptor;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry.Kind;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.exceptions.RunnerProjectGeneratorException;
 import hu.bme.mit.sette.common.exceptions.ConfigurationException;
+import hu.bme.mit.sette.common.exceptions.RunnerProjectGeneratorException;
 import hu.bme.mit.sette.common.exceptions.SetteException;
+import hu.bme.mit.sette.common.exceptions.XmlException;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectSettings;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import japa.parser.JavaParser;
-import japa.parser.ParseException;
-import japa.parser.ast.CompilationUnit;
-import japa.parser.ast.ImportDeclaration;
-import japa.parser.ast.body.BodyDeclaration;
-import japa.parser.ast.body.TypeDeclaration;
-import japa.parser.ast.expr.AnnotationExpr;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.Validate;
 
 /**
  * A SETTE task which provides base for runner project generation. The phases are the following:
@@ -75,9 +80,12 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T
      *            the output directory
      * @param tool
      *            the tool
+     * @param runnerProjectTag
+     *            the tag of the runner project
      */
-    public RunnerProjectGenerator(SnippetProject snippetProject, File outputDirectory, T tool) {
-        super(snippetProject, outputDirectory, tool);
+    public RunnerProjectGenerator(SnippetProject snippetProject, File outputDirectory, T tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     /**
@@ -107,11 +115,11 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T
             afterWriteRunnerProject(eclipseProject);
 
             phase = "complete";
-        } catch (Exception e) {
+        } catch (Exception xe) {
             String message = String.format(
                     "The runner project generation has failed\n(phase: [%s])\n(tool: [%s])", phase,
                     getTool().getFullName());
-            throw new RunnerProjectGeneratorException(message, this, e);
+            throw new RunnerProjectGeneratorException(message, this, xe);
         }
     }
 
@@ -126,7 +134,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T
                 "The snippet project must be parsed (state: [%s]) ",
                 getSnippetProject().getState().name());
 
-        // TODO snippet proj. val. can fail even if it is valid
+        // TODO snippet project validation can fail even if it is valid
         // getSnippetProjectSettings().validateExists();
         getRunnerProjectSettings().validateNotExists();
     }
@@ -163,38 +171,15 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T
      *             Signals that an I/O exception has occurred.
      * @throws ParseException
      *             If the source code has parser errors.
-     * @throws ParserConfigurationException
-     *             If a DocumentBuilder cannot be created which satisfies the configuration
-     *             requested or when it is not possible to create a Transformer instance.
-     * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the transformation.
+     * @throws XmlException
+     *             If an XML related exception occurs.
      */
-    private void writeRunnerProject()
-            throws IOException, ParseException, ParserConfigurationException, TransformerException {
+    private void writeRunnerProject() throws IOException, XmlException, ParseException {
         // TODO revise whole method
-        // TODO now using JAPA, which does not support Java 7/8 -> maybe ANTLR
-        // supports
-        // better
+        // TODO now using a newer JAPA (suuports java 8), -> maybe ANTLR supports better
 
         // create INFO file
-        // TODO later maybe use an XML file!!!
-
-        File infoFile = new File(getRunnerProjectSettings().getBaseDirectory(), "SETTE-INFO");
-
-        StringBuilder infoFileData = new StringBuilder();
-        infoFileData.append("Tool name: " + getTool().getName()).append('\n');
-        infoFileData.append("Tool version: " + getTool().getVersion()).append('\n');
-        infoFileData.append("Tool supported Java version: " + getTool().getSupportedJavaVersion())
-                .append('\n');
-
-        // TODO externalise somewhere the date format string
-        String generatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        infoFileData.append("Generated at: ").append(generatedAt).append('\n');
-
-        String id = generatedAt + ' ' + getTool().getName() + " (" + getTool().getVersion() + ')';
-        infoFileData.append("ID: ").append(id).append('\n');
-
-        FileUtils.write(infoFile, infoFileData);
+        writeInfoFile();
 
         // copy snippets
         FileUtils.copyDirectory(getSnippetProjectSettings().getSnippetSourceDirectory(),
@@ -204,88 +189,61 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T
         Collection<File> filesWritten = FileUtils
                 .listFiles(getRunnerProjectSettings().getSnippetSourceDirectory(), null, true);
 
-        mainLoop: for (File file : filesWritten) {
+        for (File file : filesWritten) {
+            // parse source with JavaParser
             CompilationUnit compilationUnit = JavaParser.parse(file);
 
-            // remove SETTE annotations
-            if (compilationUnit.getTypes() != null) {
-                for (TypeDeclaration type : compilationUnit.getTypes()) {
-                    if (type.getAnnotations() != null) {
-                        for (Iterator<AnnotationExpr> iterator = type.getAnnotations()
-                                .iterator(); iterator.hasNext();) {
-                            AnnotationExpr annot = iterator.next();
-
-                            String annotStr = annot.toString().trim();
-
-                            // TODO enhance
-                            // if container and has req version and it is java 7
-                            // and tool does not support -> remove
-                            if (annotStr.startsWith("@SetteSnippetContainer")
-                                    && annotStr.contains("requiredJavaVersion")
-                                    && annotStr.contains("JavaVersion.JAVA_7")
-                                    && !getTool().supportsJavaVersion(JavaVersion.JAVA_7)) {
-                                // TODO support java version JAVA_8
-                                // TODO error handling
-                                // remove file
-                                System.err.println("Skipping file: " + file
-                                        + " (required Java version: " + JavaVersion.JAVA_7 + ")");
-                                FileUtils.forceDelete(file);
-                                continue mainLoop;
-
-                            }
-
-                            // TODO enhance
-                            if (annot.getName().toString().startsWith("Sette")) {
-                                iterator.remove();
-                            }
-                        }
-                    }
-
-                    if (type.getMembers() != null) {
-                        for (BodyDeclaration member : type.getMembers()) {
-                            if (member.getAnnotations() != null) {
-                                for (Iterator<AnnotationExpr> iterator = member.getAnnotations()
-                                        .iterator(); iterator.hasNext();) {
-                                    AnnotationExpr annotation = iterator.next();
-
-                                    // TODO enhance
-                                    if (annotation.getName().toString().startsWith("Sette")) {
-                                        iterator.remove();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            // extract type
+            List<TypeDeclaration> types = ListUtils.emptyIfNull(compilationUnit.getTypes());
+            if (types.size() != 1) {
+                // NOTE better exception type
+                throw new RuntimeException(
+                        "Java source files containing more that one types are not supported");
             }
 
-            // remove SETTE imports
-            if (compilationUnit.getImports() != null) {
-                for (Iterator<ImportDeclaration> iterator = compilationUnit.getImports()
-                        .iterator(); iterator.hasNext();) {
-                    ImportDeclaration importDeclaration = iterator.next();
+            TypeDeclaration type = types.get(0);
 
-                    // TODO enhance
-                    String p1 = "hu.bme.mit.sette.annotations";
-                    String p2 = "hu.bme.mit.sette.snippets.inputs";
-                    // TODO enhance
-                    String p3 = "catg.CATG";
-                    String p4 = "hu.bme.mit.sette.common.snippets.JavaVersion";
+            // skip file if Java version is not supported by the tool (@SetteSnippetContainer)
+            // NOTE it can be also done with snippet containers... (and also done in CATG
+            // generator!)
+            List<AnnotationExpr> classAnnotations = ListUtils.emptyIfNull(type.getAnnotations());
+            JavaVersion reqJavaVer = getRequiredJavaVersion(classAnnotations);
 
-                    if (importDeclaration.getName().toString().equals(p3)) {
-                        // keep CATG
-                    } else if (importDeclaration.getName().toString().equals(p4)) {
-                        iterator.remove();
-                    } else if (importDeclaration.getName().toString().startsWith(p1)) {
-                        iterator.remove();
-                    } else if (importDeclaration.getName().toString().startsWith(p2)) {
-                        iterator.remove();
-                    }
+            if (reqJavaVer != null && !getTool().supportsJavaVersion(reqJavaVer)) {
+                System.err.println(
+                        "Skipping file: " + file + " (required Java version: " + reqJavaVer + ")");
+                FileUtils.forceDelete(file);
+            } else {
+                // remove SETTE annotations from the class
+                Predicate<AnnotationExpr> isSetteAnnotation = (a -> a.getName().getName()
+                        .startsWith("Sette"));
+                classAnnotations.removeIf(isSetteAnnotation);
+
+                // remove SETTE annotations from the members
+                for (BodyDeclaration member : ListUtils.emptyIfNull(type.getMembers())) {
+                    ListUtils.emptyIfNull(member.getAnnotations()).removeIf(isSetteAnnotation);
                 }
-            }
 
-            // save edited source code
-            FileUtils.write(file, compilationUnit.toString());
+                // remove SETTE imports
+                ListUtils.emptyIfNull(compilationUnit.getImports()).removeIf(importDeclaration -> {
+                    // TODO enhance
+                    List<String> toRemovePrefixes = new ArrayList<>();
+                    toRemovePrefixes.add("hu.bme.mit.sette.annotations");
+                    toRemovePrefixes.add("hu.bme.mit.sette.snippets.inputs");
+                    toRemovePrefixes.add("hu.bme.mit.sette.common.snippets.JavaVersion");
+
+                    String impDecl = importDeclaration.getName().toString();
+                    for (String prefix : toRemovePrefixes) {
+                        if (impDecl.startsWith(prefix)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                // save edited source code
+                FileUtils.write(file, compilationUnit.toString());
+            }
         }
 
         // copy libraries
@@ -296,6 +254,55 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T
 
         // create project
         this.eclipseProject.save(getRunnerProjectSettings().getBaseDirectory());
+    }
+
+    private void writeInfoFile() throws IOException {
+        // TODO later maybe use an XML file!!!
+        File infoFile = new File(getRunnerProjectSettings().getBaseDirectory(), "SETTE-INFO");
+
+        StringBuilder infoFileData = new StringBuilder();
+        infoFileData.append("Runner project name: " + getRunnerProjectSettings().getProjectName())
+                .append('\n');
+        infoFileData.append("Snippet project name: " + getSnippetProjectSettings().getProjectName())
+                .append('\n');
+        infoFileData.append("Tool name: " + getTool().getName()).append('\n');
+        infoFileData.append("Tool version: " + getTool().getVersion()).append('\n');
+        infoFileData.append("Tool supported Java version: " + getTool().getSupportedJavaVersion())
+                .append('\n');
+
+        // TODO externalise somewhere the date format string
+        String generatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        infoFileData.append("Generated at: ").append(generatedAt).append('\n');
+
+        FileUtils.write(infoFile, infoFileData);
+    }
+
+    private static JavaVersion getRequiredJavaVersion(List<AnnotationExpr> classAnnotations) {
+        Optional<AnnotationExpr> containerAnnotation = classAnnotations.stream()
+                .filter(a -> "SetteSnippetContainer".equals(a.getName().getName())).findAny();
+
+        if (containerAnnotation.isPresent()) {
+            List<Node> children = ListUtils
+                    .emptyIfNull(containerAnnotation.get().getChildrenNodes());
+
+            Optional<String> reqJavaVerStr = children.stream()
+                    .filter(c -> c instanceof MemberValuePair).map(c -> (MemberValuePair) c)
+                    .filter(mvp -> "requiredJavaVersion".equals(mvp.getName()))
+                    .map(mvp -> mvp.getValue().toString()).findAny();
+
+            if (reqJavaVerStr.isPresent()) {
+                Optional<JavaVersion> reqJavaVer = Stream.of(JavaVersion.values())
+                        .filter(jv -> reqJavaVerStr.get().endsWith(jv.name())).findAny();
+
+                if (reqJavaVer.isPresent()) {
+                    return reqJavaVer.get();
+                } else {
+                    // NOTE make better
+                    throw new RuntimeException("Cannot recignize java version:" + reqJavaVerStr);
+                }
+            }
+        }
+        return null;
     }
 
     /**

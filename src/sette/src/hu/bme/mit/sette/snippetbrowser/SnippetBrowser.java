@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.snippetbrowser;
 
 import hu.bme.mit.sette.common.exceptions.SetteException;
@@ -102,7 +102,7 @@ public final class SnippetBrowser extends JFrame {
         treeSnippets.setModel(model);
         treeSnippets.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
-            public void valueChanged(TreeSelectionEvent e) {
+            public void valueChanged(TreeSelectionEvent event) {
                 if (treeSnippets.getSelectionCount() == 1) {
                     TreeNodeBase<?, ?> treeNode = (TreeNodeBase<?, ?>) treeSnippets
                             .getSelectionPath().getLastPathComponent();

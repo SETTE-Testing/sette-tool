@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.util.process;
 
 import java.io.IOException;
@@ -151,11 +151,11 @@ public final class RunnableReader extends Reader implements Runnable {
                 // the execution has finished
                 state = State.FINISHED;
             }
-        } catch (IOException e) {
+        } catch (IOException ex) {
             state = State.ERROR;
 
             for (RunnableReaderListener listener : listeners) {
-                listener.onIOException(this, e);
+                listener.onIOException(this, ex);
             }
         }
 

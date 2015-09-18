@@ -53,4 +53,4 @@ randoop-version-file = sette-tool/test-generator-tools/randoop/VERSION
 output-dir = sette-results
 
 # settings for the runner
-runner.timeout = 30000
+runner.timeout = 30

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.jpet.xmlparser;
 
 import java.util.ArrayDeque;
@@ -31,7 +31,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import hu.bme.mit.sette.tools.jpet.xmlparser.DataOrRef.Data;
@@ -56,7 +55,7 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
     }
 
     @Override
-    public void startDocument() throws SAXException {
+    public void startDocument() {
         testCases = new ArrayList<>();
         testCase = null;
         heap = null;
@@ -74,8 +73,7 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
     }
 
     @Override
-    public void startElement(String uri, String localName, String qName, Attributes attributes)
-            throws SAXException {
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
         Tag parentTag = tagStack.peek();
 
         if (parentTag != null && parentTag.getType() == TagType.TRACE) {
@@ -128,7 +126,7 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
     }
 
     @Override
-    public void endElement(String uri, String localName, String qName) throws SAXException {
+    public void endElement(String uri, String localName, String qName) {
         Tag openingTag = tagStack.peek();
 
         if (openingTag.getType() == TagType.TRACE && !TagType.TRACE.getTagName().equals(qName)) {
@@ -176,7 +174,7 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
     }
 
     @Override
-    public void characters(char ch[], int start, int length) throws SAXException {
+    public void characters(char ch[], int start, int length) {
         Tag parentTag = tagStack.peek();
         if (parentTag == null) {
             return;

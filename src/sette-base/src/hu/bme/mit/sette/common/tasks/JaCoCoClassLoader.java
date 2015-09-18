@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import hu.bme.mit.sette.common.util.JavaFileUtils;
@@ -93,17 +93,17 @@ public final class JaCoCoClassLoader extends ClassLoader {
                         className);
                 return super.loadClass(className, resolve);
             }
-        } catch (IOException e) {
-            logger.error(className + ": An IOException was thrown", e);
+        } catch (IOException ex) {
+            logger.error(className + ": An IOException was thrown", ex);
             // TODO some better handling
-            throw new RuntimeException(e);
+            throw new RuntimeException(ex);
         }
     }
 
     public Class<?> tryLoadClass(String name) {
         try {
             return loadClass(name);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException ex) {
             return null;
         }
     }

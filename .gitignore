@@ -1,7 +1,6 @@
 ### SETTE ###
 sette.jar
 sette.properties
-sette.properties.default
 
 ### Ant ###
 build/

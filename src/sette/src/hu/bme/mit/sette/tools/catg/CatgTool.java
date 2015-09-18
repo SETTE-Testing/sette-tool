@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
 import java.io.File;
@@ -50,9 +50,9 @@ public final class CatgTool extends Tool {
             FileValidator v = new FileValidator(toolDirectory);
             v.type(FileType.DIRECTORY).readable(true).executable(true);
             v.validate();
-        } catch (ValidatorException e) {
+        } catch (ValidatorException ex) {
             throw new ConfigurationException("The CATG tool directory is invalid: " + toolDirectory,
-                    e);
+                    ex);
         }
 
         return toolDirectory;
@@ -70,18 +70,19 @@ public final class CatgTool extends Tool {
 
     @Override
     public CatgGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new CatgGenerator(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new CatgGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
     public CatgRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory) {
-        return new CatgRunner(snippetProject, outputDirectory, this);
+            File outputDirectory, String runnerProjectTag) {
+        return new CatgRunner(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 
     @Override
-    public CatgParser createRunResultParser(SnippetProject snippetProject, File outputDirectory) {
-        return new CatgParser(snippetProject, outputDirectory, this);
+    public CatgParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
+        return new CatgParser(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 }

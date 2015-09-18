@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
 import hu.bme.mit.sette.common.model.parserxml.InputElement;
@@ -41,8 +41,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 
 public class CatgParser extends RunResultParser<CatgTool> {
-    public CatgParser(SnippetProject snippetProject, File outputDirectory, CatgTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public CatgParser(SnippetProject snippetProject, File outputDirectory, CatgTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override

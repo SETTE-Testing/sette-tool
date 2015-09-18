@@ -20,8 +20,18 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 
 import hu.bme.mit.sette.common.exceptions.ConfigurationException;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
@@ -31,22 +41,10 @@ import hu.bme.mit.sette.common.util.process.ProcessRunner;
 import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
 import hu.bme.mit.sette.common.util.process.ProcessUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
 public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
-    public EvoSuiteRunner(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public EvoSuiteRunner(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -66,9 +64,9 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
             }
 
             @Override
-            public void onIOException(ProcessRunner processRunner, IOException e) {
+            public void onIOException(ProcessRunner processRunner, IOException ex) {
                 // TODO error handling
-                e.printStackTrace();
+                ex.printStackTrace();
             }
 
             @Override
@@ -108,8 +106,9 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
             throw new RuntimeException("EvoSuite ant build has failed");
         }
 
-        System.out.println("Ant build done, press enter to continue");
-        new BufferedReader(new InputStreamReader(System.in)).readLine();
+        // FIXME
+        // System.out.println("Ant build done, press enter to continue");
+        // new BufferedReader(new InputStreamReader(System.in)).readLine();
     }
 
     @Override
@@ -146,7 +145,8 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
         cmd.add(classpath);
         cmd.add("-generateSuite");
         cmd.add("-class=" + snippet.getContainer().getJavaClass().getName());
-        // cmd.add("-Dtarget_method" + snippet.getMethod().getName()); // TODO it does not seem to work in EvoSuite
+        // cmd.add("-Dtarget_method" + snippet.getMethod().getName()); // TODO it does not seem to
+        // work in EvoSuite
         cmd.add("-Dsearch_budget=" + timelimit);
         cmd.add("-Dassertions=false");
         cmd.add("-Dlog_goals=true");
@@ -178,9 +178,9 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
             System.err.println("  Terminating stuck process (PID: " + pid + ")");
             try {
                 ProcessUtils.terminateProcess(pid);
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 System.err.println("  Exception");
-                e.printStackTrace();
+                ex.printStackTrace();
             }
         }
 
@@ -197,7 +197,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
      */
     private static String getMethodNameAndParameterTypesString(Method method) {
         // collect and join parameter type names
-        String paramsString = Arrays.stream(method.getParameterTypes()).map(p -> p.getTypeName())
+        String paramsString = Stream.of(method.getParameterTypes()).map(p -> p.getTypeName())
                 .collect(Collectors.joining(","));
 
         // create string

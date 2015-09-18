@@ -20,56 +20,34 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// NOTE revise this file
-package hu.bme.mit.sette.common.validator.exceptions.reflection;
-
-import hu.bme.mit.sette.common.validator.exceptions.ValidationException;
-
-import java.lang.reflect.Field;
+package hu.bme.mit.sette.common.exceptions;
 
 /**
- * Exception class for field validation errors.
+ * Exception class for XML related exceptions.
  */
-public final class FieldValidationException extends ValidationException {
+public class XmlException extends Exception {
     /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = -5114362201456168839L;
-
-    /** The field. */
-    private final Field field;
+    private static final long serialVersionUID = -3158072434495596862L;
 
     /**
-     * Instantiates a new field validation exception.
+     * Instantiates a new XML related exception.
      *
      * @param message
      *            the message
-     * @param field
-     *            the field
      */
-    public FieldValidationException(String message, Field field) {
-        this(message, field, null);
+    public XmlException(String message) {
+        this(message, null);
     }
 
     /**
-     * Instantiates a new field validation exception.
+     * Instantiates a new XML related exception.
      *
      * @param message
      *            the message
-     * @param field
-     *            the field
      * @param cause
      *            the cause
      */
-    public FieldValidationException(String message, Field field, Throwable cause) {
-        super(message + String.format("\n(field: [%s])", field), cause);
-        this.field = field;
-    }
-
-    /**
-     * Gets the field.
-     *
-     * @return the field
-     */
-    public Field getField() {
-        return field;
+    public XmlException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

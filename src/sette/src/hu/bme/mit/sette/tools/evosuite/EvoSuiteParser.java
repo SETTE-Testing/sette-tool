@@ -20,8 +20,13 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
+
+import java.io.File;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.runner.ResultType;
@@ -30,14 +35,10 @@ import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunResultParser;
 
-import java.io.File;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-
 public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
-    public EvoSuiteParser(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public EvoSuiteParser(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override

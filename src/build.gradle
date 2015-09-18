@@ -37,13 +37,16 @@ project(':sette') {
     String mainClass = 'hu.bme.mit.sette.run.Run'
     File deployTarget = new File(project.projectDir, '../..').canonicalFile
 
-    dependencies { compile project(':sette-base') }
+    dependencies {
+        compile project(':sette-base')
+        compile 'commons-cli:commons-cli:1.3.1'
+    }
 
     jar { manifest { attributes 'Main-Class': mainClass } }
 
     tasks.assemble.dependsOn tasks.shadowJar
 
-    task deployLocal(dependsOn: [tasks.shadowJar, tasks.test]) {
+    task deployLocal(dependsOn: tasks.shadowJar) {
         /*
          * Gradle copy task creates MD5 hash of the target directory. In this case it is very
          * large and the copy would take several minutes.
@@ -52,8 +55,13 @@ project(':sette') {
         description = 'Deploys SETTE to ' + deployTarget.path
 
         doLast {
-            new File(deployTarget, 'sette.jar') << tasks.shadowJar.archivePath.bytes
-            new File(deployTarget, 'sette.properties.default') << new File(project.projectDir, 'sette.properties.default')
+            File setteJar = new File(deployTarget, 'sette.jar')
+            File settePropsDefault = new File(deployTarget, 'sette.properties.default')
+            setteJar.delete()
+            settePropsDefault.delete()
+            
+            setteJar << tasks.shadowJar.archivePath.bytes
+            settePropsDefault << new File(project.projectDir, 'sette.properties.default').text
         }
     }
 }
@@ -74,7 +82,7 @@ project(':sette-base') {
         compile 'org.jacoco:org.jacoco.agent:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.core:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.report:' + jacocoVersion
-        compile 'com.google.code.javaparser:javaparser:1.0.11'
+        compile 'com.github.javaparser:javaparser-core:2.2.2'
 
         // Utilities
         compile 'commons-io:commons-io:2.4'
@@ -94,6 +102,10 @@ project(':sette-base') {
 // Project sette-common
 //
 project(':sette-common') {
+    // Maximaze compatibility for the common project
+    project.sourceCompatibility = 1.6
+    project.targetCompatibility = 1.6
+    
     dependencies {
         testCompile 'org.codehaus.groovy:groovy-all:2.4.4'
         testCompile 'junit:junit:4.12' // JUnit 4 is used for testing SETTE

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.snippetbrowser;
 
 import hu.bme.mit.sette.common.model.snippet.Snippet;
@@ -78,9 +78,9 @@ public final class SnippetTreeNode extends TreeNodeBase<SnippetContainerTreeNode
             sb.append('\n');
 
             return sb.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return e.getMessage();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ex.getMessage();
         }
     }
 }

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.common.util.SetteAnnotationUtils;
@@ -99,8 +99,8 @@ public final class SnippetInputFactoryContainer
                 SnippetInputFactory inputFactory = new SnippetInputFactory(this, method,
                         classLoader);
                 inputFactories.put(method.getName(), inputFactory);
-            } catch (ValidatorException e) {
-                validator.addChild(e.getValidator());
+            } catch (ValidatorException ex) {
+                validator.addChild(ex.getValidator());
             }
         }
 
@@ -187,8 +187,8 @@ public final class SnippetInputFactoryContainer
             // call the private ctor
             constructor.setAccessible(true);
             constructor.newInstance();
-        } catch (Exception e) {
-            exception = e.getCause();
+        } catch (Exception ex) {
+            exception = ex.getCause();
         } finally {
             // restore visibility
             constructor.setAccessible(false);

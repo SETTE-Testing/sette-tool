@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.common.validator.FileType;
@@ -117,9 +117,9 @@ public final class SnippetProjectSettings {
         try {
             is = new FileInputStream(configurationFile);
             configuration.load(is);
-        } catch (IOException | SecurityException | IllegalArgumentException e) {
+        } catch (IOException | SecurityException | IllegalArgumentException ex) {
             IOUtils.closeQuietly(is);
-            vc.addException("Cannot read file contents as Java properties", e);
+            vc.addException("Cannot read file contents as Java properties", ex);
             vc.validate();// stop if already error
         }
 

@@ -20,9 +20,9 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
-// TODO z revise this file
-// TODO z revise this file
+// NOTE revise this file
+// NOTE revise this file
+// NOTE revise this file
 package hu.bme.mit.sette;
 
 import hu.bme.mit.sette.common.Tool;
@@ -39,14 +39,15 @@ import org.apache.commons.lang3.Validate;
 public final class RunnerUI implements BaseUI {
     private final RunnerProjectRunner<?> runner;
 
-    public RunnerUI(SnippetProject snippetProject, Tool tool) {
-        this(snippetProject, tool, RunnerProjectRunner.DEFAULT_TIMEOUT);
+    public RunnerUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag) {
+        this(snippetProject, tool, runnerProjectTag, RunnerProjectRunner.DEFAULT_TIMEOUT);
     }
 
-    public RunnerUI(SnippetProject snippetProject, Tool tool, int timeoutInMs) {
+    public RunnerUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag,
+            int timeoutInMs) {
         Validate.notNull(snippetProject, "Snippet project settings must not be null");
         Validate.notNull(tool, "The tool must not be null");
-        runner = tool.createRunnerProjectRunner(snippetProject, Run.OUTPUT_DIR);
+        runner = tool.createRunnerProjectRunner(snippetProject, Run.OUTPUT_DIR, runnerProjectTag);
         runner.setTimeoutInMs(timeoutInMs);
     }
 
@@ -64,8 +65,9 @@ public final class RunnerUI implements BaseUI {
             out.println("Clean up");
             runner.cleanUp();
 
-            out.println("Press [Enter] to start execution");
-            in.readLine();
+            // TODO fixme
+            // out.println("Press [Enter] to start execution");
+            // in.readLine();
 
             out.println("Clean up");
             runner.cleanUp();
@@ -73,9 +75,9 @@ public final class RunnerUI implements BaseUI {
             out.println("Starting run");
             runner.run(out);
             out.println("Run successful");
-        } catch (Exception e) {
-            out.println("Run failed: " + e.getMessage());
-            e.printStackTrace();
+        } catch (Exception ex) {
+            out.println("Run failed: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 }

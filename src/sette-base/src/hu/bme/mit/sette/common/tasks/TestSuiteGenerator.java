@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
@@ -47,8 +47,9 @@ import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.util.JavaFileUtils;
 
 public final class TestSuiteGenerator extends SetteTask<Tool> {
-    public TestSuiteGenerator(SnippetProject snippetProject, File outputDirectory, Tool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public TestSuiteGenerator(SnippetProject snippetProject, File outputDirectory, Tool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     public void generate() throws Exception {
@@ -153,7 +154,9 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                         appendMethodCall(java, javaClass, method, inputElement);
                         java.append("            fail();\n");
                         java.append("        } catch (").append(inputElement.getExpected())
-                                .append(" e) {\n");
+                                .append(" ex) {\n");
+                        // empty catch
+                        // FIXME maybe assert to fail?
                         java.append("        }\n");
                     } else {
                         java.append("        ");
@@ -161,6 +164,8 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                     }
 
                     java.append("    }\n\n");
+
+                    // FIXME assert generation
                 }
 
                 java.append("}\n");
@@ -231,8 +236,8 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
     //
     // FileUtils.forceMkdir(inputsXmlFile.getParentFile());
     //
-    // } catch (ValidatorException e) {
-    // System.err.println(e.getFullMessage());
+    // } catch (ValidatorException ex) {
+    // System.err.println(ex.getFullMessage());
     // }
     // }
     // }

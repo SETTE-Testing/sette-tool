@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
@@ -34,8 +34,9 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 
 public class JPetGenerator extends RunnerProjectGenerator<JPetTool> {
-    public JPetGenerator(SnippetProject snippetProject, File outputDirectory, JPetTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public JPetGenerator(SnippetProject snippetProject, File outputDirectory, JPetTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override

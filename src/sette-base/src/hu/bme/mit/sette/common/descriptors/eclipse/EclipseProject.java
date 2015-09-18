@@ -26,11 +26,11 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 
+import hu.bme.mit.sette.common.exceptions.XmlException;
 import hu.bme.mit.sette.common.util.XmlUtils;
 
 /**
@@ -138,14 +138,10 @@ public final class EclipseProject {
      * @throws IOException
      *             If the directory cannot be created or the file already exists but is not a
      *             directory.
-     * @throws ParserConfigurationException
-     *             If a DocumentBuilder cannot be created which satisfies the configuration
-     *             requested or when it is not possible to create a Transformer instance.
-     * @throws TransformerException
-     *             If an unrecoverable error occurs during the course of the transformation.
+     * @throws XmlException
+     *             If an XML related exception occurs.
      */
-    public void save(File directory)
-            throws IOException, ParserConfigurationException, TransformerException {
+    public void save(File directory) throws IOException, XmlException {
         Validate.notNull(directory, "The directory must not be null");
 
         // create directory if not exists
@@ -154,13 +150,18 @@ public final class EclipseProject {
         }
 
         // save .project file
-        File projectFile = new File(directory, ".project");
-        XmlUtils.writeXml(projectDescriptor.createXmlDocument(), projectFile);
+        try {
+            File projectFile = new File(directory, ".project");
+            XmlUtils.writeXml(projectDescriptor.createXmlDocument(), projectFile);
 
-        // save .classpath file if classpath is specified
-        if (classpathDescriptor != null) {
-            File classpathFile = new File(directory, ".classpath");
-            XmlUtils.writeXml(classpathDescriptor.createXmlDocument(), classpathFile);
+            // save .classpath file if classpath is specified
+            if (classpathDescriptor != null) {
+                File classpathFile = new File(directory, ".classpath");
+                XmlUtils.writeXml(classpathDescriptor.createXmlDocument(), classpathFile);
+            }
+        } catch (ParserConfigurationException ex) {
+            // TODO Auto-generated catch block
+            ex.printStackTrace();
         }
     }
 }

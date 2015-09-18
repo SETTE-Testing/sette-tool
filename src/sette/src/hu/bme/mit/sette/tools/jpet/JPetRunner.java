@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
 import hu.bme.mit.sette.common.exceptions.ConfigurationException;
@@ -42,8 +42,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
 
-    public JPetRunner(SnippetProject snippetProject, File outputDirectory, JPetTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public JPetRunner(SnippetProject snippetProject, File outputDirectory, JPetTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -63,9 +64,9 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
             }
 
             @Override
-            public void onIOException(ProcessRunner processRunner, IOException e) {
+            public void onIOException(ProcessRunner processRunner, IOException ex) {
                 // TODO error handling
-                e.printStackTrace();
+                ex.printStackTrace();
             }
 
             @Override
@@ -206,9 +207,9 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
             System.err.println("  Terminating stuck process (PID: " + pid + ")");
             try {
                 ProcessUtils.terminateProcess(pid);
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 System.err.println("  Exception");
-                e.printStackTrace();
+                ex.printStackTrace();
             }
         }
 

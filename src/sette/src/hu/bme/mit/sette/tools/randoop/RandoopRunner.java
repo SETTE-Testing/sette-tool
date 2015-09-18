@@ -20,8 +20,20 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import hu.bme.mit.sette.common.exceptions.ConfigurationException;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
@@ -31,23 +43,10 @@ import hu.bme.mit.sette.common.util.process.ProcessRunner;
 import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
 import hu.bme.mit.sette.common.util.process.ProcessUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
-
 public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
-    public RandoopRunner(SnippetProject snippetProject, File outputDirectory, RandoopTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public RandoopRunner(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -67,9 +66,9 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
             }
 
             @Override
-            public void onIOException(ProcessRunner processRunner, IOException e) {
+            public void onIOException(ProcessRunner processRunner, IOException ex) {
                 // TODO error handling
-                e.printStackTrace();
+                ex.printStackTrace();
             }
 
             @Override
@@ -109,8 +108,9 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
             throw new RuntimeException("Randoop ant build has failed");
         }
 
-        System.out.println("Ant build done, press enter to continue");
-        new BufferedReader(new InputStreamReader(System.in)).readLine();
+        // FIXME
+        // System.out.println("Ant build done, press enter to continue");
+        // new BufferedReader(new InputStreamReader(System.in)).readLine();
     }
 
     @Override
@@ -214,9 +214,9 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
             System.err.println("  Terminating stuck process (PID: " + pid + ")");
             try {
                 ProcessUtils.terminateProcess(pid);
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 System.err.println("  Exception");
-                e.printStackTrace();
+                ex.printStackTrace();
             }
         }
 
@@ -233,7 +233,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
      */
     private static String getMethodNameAndParameterTypesString(Method method) {
         // collect and join parameter type names
-        String paramsString = Arrays.stream(method.getParameterTypes()).map(p -> p.getTypeName())
+        String paramsString = Stream.of(method.getParameterTypes()).map(p -> p.getTypeName())
                 .collect(Collectors.joining(","));
 
         // create string

@@ -20,11 +20,11 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.descriptors.java.JavaClassWithMain;
+import hu.bme.mit.sette.common.descriptors.java.JavaFileWithMainBuilder;
 import hu.bme.mit.sette.common.exceptions.SetteException;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
@@ -42,8 +42,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
-    public SpfGenerator(SnippetProject snippetProject, File outputDirectory, SpfTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public SpfGenerator(SnippetProject snippetProject, File outputDirectory, SpfTool tool, String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
                 jpfConfig.decisionProcedure = JPFConfig.DP_CORAL;
 
                 // generate main()
-                JavaClassWithMain main = new JavaClassWithMain();
+                JavaFileWithMainBuilder main = new JavaFileWithMainBuilder();
                 main.setPackageName(javaClass.getPackage().getName());
                 main.setClassName(javaClass.getSimpleName() + '_' + method.getName());
 
@@ -131,7 +131,7 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
                 File targetMainFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
                         relativePathMain);
                 FileUtils.forceMkdir(targetMainFile.getParentFile());
-                FileUtils.writeLines(targetMainFile, main.generateJavaCodeLines());
+                FileUtils.writeLines(targetMainFile, main.build());
             }
         }
     }

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
@@ -75,8 +75,9 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
      * @param tool
      *            the tool
      */
-    public RunnerProjectRunner(SnippetProject snippetProject, File outputDirectory, T tool) {
-        super(snippetProject, outputDirectory, tool);
+    public RunnerProjectRunner(SnippetProject snippetProject, File outputDirectory, T tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
         this.timeoutInMs = RunnerProjectRunner.DEFAULT_TIMEOUT;
     }
 
@@ -145,11 +146,11 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
 
             cleanUp();
             phase = "complete";
-        } catch (Exception e) {
+        } catch (Exception ex) {
             String message = String.format(
                     "The runner project run has failed\n(phase: [%s])\n(tool: [%s])", phase,
                     getTool().getFullName());
-            throw new RunnerProjectRunnerException(message, this, e);
+            throw new RunnerProjectRunnerException(message, this, ex);
         } finally {
             IOUtils.closeQuietly(logger);
         }
@@ -167,8 +168,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
                 getSnippetProject().getState().name());
 
         // TODO currently snippet project validation can fail even if it is
-        // valid
-        // getSnippetProjectSettings().validateExists();
+        // valid getSnippetProjectSettings().validateExists();
         getRunnerProjectSettings().validateExists();
     }
 
@@ -228,10 +228,10 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
                     loggerOut.println("[" + timestamp + "] Running for snippet: " + filenameBase);
                     this.runOne(snippet, infoFile, outputFile, errorFile);
                     this.cleanUp();
-                } catch (Exception e) {
-                    loggerOut.println("Exception: " + e.getMessage());
+                } catch (Exception ex) {
+                    loggerOut.println("Exception: " + ex.getMessage());
                     loggerOut.println("==========");
-                    e.printStackTrace(loggerOut);
+                    ex.printStackTrace(loggerOut);
                     loggerOut.println("==========");
                 }
             }
@@ -335,9 +335,9 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
         }
 
         @Override
-        public void onIOException(ProcessRunner processRunner, IOException e) {
+        public void onIOException(ProcessRunner processRunner, IOException ex) {
             System.err.println("  IOException occured");
-            System.err.println(e);
+            System.err.println(ex);
         }
 
         @Override

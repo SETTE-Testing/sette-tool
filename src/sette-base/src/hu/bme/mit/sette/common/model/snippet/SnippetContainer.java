@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.common.model.snippet;
 
 import hu.bme.mit.sette.annotations.SetteNotSnippet;
@@ -114,8 +114,8 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                     // create and add snippet object
                     Snippet snippet = new Snippet(this, method, classLoader);
                     snippets.put(method.getName(), snippet);
-                } catch (ValidatorException e) {
-                    validator.addChild(e.getValidator());
+                } catch (ValidatorException ex) {
+                    validator.addChild(ex.getValidator());
                 }
             }
         }
@@ -128,8 +128,8 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                 // create input factory container
                 inputFactCont = new SnippetInputFactoryContainer(this,
                         containerAnnotation.inputFactoryContainer(), classLoader);
-            } catch (ValidatorException e) {
-                validator.addChild(e.getValidator());
+            } catch (ValidatorException ex) {
+                validator.addChild(ex.getValidator());
             }
         }
 
@@ -242,8 +242,8 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             // call the private ctor
             constructor.setAccessible(true);
             constructor.newInstance();
-        } catch (Exception e) {
-            exception = e.getCause();
+        } catch (Exception ex) {
+            exception = ex.getCause();
         } finally {
             // restore visibility
             constructor.setAccessible(false);

@@ -138,12 +138,12 @@ public final class JavaSourceFile {
                         sourceDirectory, sourceFile);
                 throw new ConfigurationException(message);
             }
-        } catch (ValidatorException e) {
-            throw new ConfigurationException("A validation exception occurred", e);
-        } catch (IOException e) {
-            throw new ConfigurationException("An IO exception occurred", e);
-        } catch (ClassNotFoundException e) {
-            throw new ConfigurationException("The Java class could not have been loaded", e);
+        } catch (ValidatorException ex) {
+            throw new ConfigurationException("A validation exception occurred", ex);
+        } catch (IOException ex) {
+            throw new ConfigurationException("An IO exception occurred", ex);
+        } catch (ClassNotFoundException ex) {
+            throw new ConfigurationException("The Java class could not have been loaded", ex);
         }
     }
 

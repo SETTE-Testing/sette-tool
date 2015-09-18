@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
@@ -35,8 +35,8 @@ import org.apache.commons.io.FileUtils;
 
 public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
     public EvoSuiteGenerator(SnippetProject snippetProject, File outputDirectory,
-            EvoSuiteTool tool) {
-        super(snippetProject, outputDirectory, tool);
+            EvoSuiteTool tool, String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override

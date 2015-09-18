@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
 import java.io.File;
@@ -40,7 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry.Kind;
 import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.descriptors.java.JavaClassWithMain;
+import hu.bme.mit.sette.common.descriptors.java.JavaFileWithMainBuilder;
 import hu.bme.mit.sette.common.exceptions.ConfigurationException;
 import hu.bme.mit.sette.common.exceptions.SetteException;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
@@ -50,8 +50,9 @@ import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
 import hu.bme.mit.sette.common.util.JavaFileUtils;
 
 public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
-    public CatgGenerator(SnippetProject snippetProject, File outputDirectory, CatgTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public CatgGenerator(SnippetProject snippetProject, File outputDirectory, CatgTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
@@ -89,12 +90,11 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
                 Class<?>[] parameterTypes = method.getParameterTypes();
 
                 // generate main()
-                JavaClassWithMain main = new JavaClassWithMain();
+                JavaFileWithMainBuilder main = new JavaFileWithMainBuilder();
                 main.setPackageName(javaClass.getPackage().getName());
                 main.setClassName(javaClass.getSimpleName() + '_' + method.getName());
 
                 main.imports().add(javaClass.getName());
-                main.imports().add("catg.CATG");
 
                 String[] paramNames = new String[parameterTypes.length];
                 List<String> createVariableLines = new ArrayList<>(parameterTypes.length);
@@ -108,13 +108,13 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
 
                     if (varType == null || catgRead == null) {
                         // TODO make better
-                        System.err.println("Method has an unsupported parameter type: "
-                                + parameterType.getName() + " (method: " + method.getName() + ")");
+                        // System.err.println("Method has an unsupported parameter type: "
+                        // + parameterType.getName() + " (method: " + method.getName() + ")");
                         continue snippetLoop;
                     }
 
                     paramNames[i] = paramName;
-                    // e.g.: int param1 = CATG.readInt(0);
+                    // e.g.: int param1 = catg.CATG.readInt(0);
                     createVariableLines
                             .add(String.format("%s %s = %s;", varType, paramName, catgRead));
                     // e.g.: System.out.println(" int param1 = " + param1);
@@ -154,7 +154,7 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
                 File targetMainFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
                         relativePathMain);
                 FileUtils.forceMkdir(targetMainFile.getParentFile());
-                FileUtils.writeLines(targetMainFile, main.generateJavaCodeLines());
+                FileUtils.writeLines(targetMainFile, main.build());
             }
         }
     }
@@ -257,19 +257,19 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
         }
 
         if (javaClass.equals(Byte.class)) {
-            return "CATG.readByte((byte) 1)";
+            return "catg.CATG.readByte((byte) 1)";
         } else if (javaClass.equals(Short.class)) {
-            return "CATG.readShort((short) 1)";
+            return "catg.CATG.readShort((short) 1)";
         } else if (javaClass.equals(Integer.class)) {
-            return "CATG.readInt(1)";
+            return "catg.CATG.readInt(1)";
         } else if (javaClass.equals(Long.class)) {
-            return "CATG.readLong(1L)";
+            return "catg.CATG.readLong(1L)";
         } else if (javaClass.equals(Boolean.class)) {
-            return "CATG.readBool(false)";
+            return "catg.CATG.readBool(false)";
         } else if (javaClass.equals(Character.class)) {
-            return "CATG.readChar(' ')";
+            return "catg.CATG.readChar(' ')";
         } else if (javaClass.equals(String.class)) {
-            return "CATG.readString(\"\")";
+            return "catg.CATG.readString(\"\")";
         } else {
             return null;
         }

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO z revise this file
+// NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
@@ -36,8 +36,9 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 public class RandoopParser extends RunResultParser<RandoopTool> {
-    public RandoopParser(SnippetProject snippetProject, File outputDirectory, RandoopTool tool) {
-        super(snippetProject, outputDirectory, tool);
+    public RandoopParser(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
+            String runnerProjectTag) {
+        super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
