@@ -1,5 +1,7 @@
 ### SETTE ###
-sette.jar
+sette-all.jar
+sette-*.log
+sette-log4j2.xml
 sette.properties
 
 ### Ant ###
@@ -7,6 +9,8 @@ build/
 dist/
 
 ### Eclipse ###
+.project
+.classpath
 *.pydevproject
 .metadata
 .gradle
