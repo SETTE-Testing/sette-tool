@@ -120,7 +120,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
             phase = "validate (do)";
             log.info("== Phase: {}", phase);
             validate();
-            
+
             phase = "validate (after)";
             log.info("== Phase: {}", phase);
             afterValidate();
@@ -129,7 +129,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
             phase = "prepare (do)";
             log.info("== Phase: {}", phase);
             prepare();
-            
+
             phase = "prepare (after)";
             log.info("== Phase: {}", phase);
             afterPrepare();
@@ -140,7 +140,8 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
             if (loggerStream != null) {
                 loggerStream.println("Log file: " + runnerLogFile.getCanonicalPath());
                 runnerLogger = new PrintStream(
-                        new TeeOutputStream(new FileOutputStream(runnerLogFile), loggerStream), true);
+                        new TeeOutputStream(new FileOutputStream(runnerLogFile), loggerStream),
+                        true);
             } else {
                 runnerLogger = new PrintStream(new FileOutputStream(runnerLogFile), true);
             }
@@ -149,14 +150,14 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
             phase = "run all (do)";
             log.info("== Phase: {}", phase);
             runAll(runnerLogger);
-            
+
             phase = "run all (after)";
             log.info("== Phase: {}", phase);
             afterRunAll();
 
             log.info("== Cleaning up");
             cleanUp();
-            
+
             phase = "complete";
             log.info("== Phase: {}", phase);
         } catch (Exception ex) {
@@ -238,7 +239,8 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
 
                 try {
                     String timestamp = dateFormat.format(new Date());
-                    runnerLoggerOut.println("[" + timestamp + "] Running for snippet: " + filenameBase);
+                    runnerLoggerOut
+                            .println("[" + timestamp + "] Running for snippet: " + filenameBase);
                     this.runOne(snippet, infoFile, outputFile, errorFile);
                     this.cleanUp();
                 } catch (Exception ex) {

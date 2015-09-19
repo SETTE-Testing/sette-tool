@@ -76,7 +76,6 @@ import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.model.snippet.SnippetProjectSettings;
-import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
 import hu.bme.mit.sette.common.tasks.TestSuiteGenerator;
 import hu.bme.mit.sette.common.tasks.TestSuiteRunner;
 import hu.bme.mit.sette.common.validator.FileType;
@@ -145,8 +144,7 @@ public final class Run {
         String randoopDefaultBuildXml = prop.getProperty("randoop-default-build.xml");
         String outputDir = prop.getProperty("output-dir");
 
-        String runnerTimeout = prop.getProperty("runner-timeout",
-                String.valueOf(RunnerProjectRunner.DEFAULT_TIMEOUT));
+        String runnerTimeout = prop.getProperty("runner-timeout", "30");
 
         Validate.notEmpty(basedirs,
                 "At least one basedir must be specified in " + SETTE_PROPERTIES);

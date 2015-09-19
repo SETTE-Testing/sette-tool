@@ -210,7 +210,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
     @Override
     public void cleanUp() throws IOException {
         // TODO better search
-        for (Integer pid : ProcessUtils.searchProcess("randoop")) {
+        for (Integer pid : ProcessUtils.searchProcess("randoop.main.Main")) {
             System.err.println("  Terminating stuck process (PID: " + pid + ")");
             try {
                 ProcessUtils.terminateProcess(pid);
