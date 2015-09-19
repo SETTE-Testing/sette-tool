@@ -1,6 +1,6 @@
 ### SETTE ###
 sette-all.jar
-sette-*.log
+sette*.log
 sette-log4j2.xml
 sette.properties
 

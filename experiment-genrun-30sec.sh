@@ -1,7 +1,7 @@
 #!/bin/bash 
 # Usage: ./experiment-genrun-30sec.sh TOOL FROM TO
 # Example: ./experiment-genrun-30sec.sh randoop 5 7
-# It will generate runs with 30 second timout numberet from 05 to 07
+# It will generate runs with 30 second timeout numbered from 05 to 07
 TIMEOUT=30
 TOOL=$1
 FROM=$2

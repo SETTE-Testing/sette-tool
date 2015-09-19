@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,9 +45,12 @@ import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
 import hu.bme.mit.sette.common.util.process.ProcessUtils;
 
 public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
+    private final Random seedGenerator;
+
     public RandoopRunner(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        this.seedGenerator = new Random();
     }
 
     @Override
@@ -177,6 +181,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         cmd.add("--junit-output-dir=test");
         cmd.add("--junit-package-name=" + junitPackageName);
         cmd.add("--junit-classname=Test");
+        cmd.add("--randomseed=" + seedGenerator.nextInt());
         // TODO limit strings to 50
         cmd.add("--string-maxlen=50");
         // TODO limit generated test cases to 5000 (Randoop first generates,

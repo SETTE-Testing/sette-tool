@@ -1,2 +1,3 @@
-# .sh should always have LF ending
-*.sh text merge=union eol=lf
+# Linux executables (*.sh and gradlew) should always have LF ending
+*.sh     text merge=union eol=lf
+gradlew  text merge=union eol=lf

@@ -23,6 +23,16 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
+import java.io.File;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+
 import hu.bme.mit.sette.common.model.parserxml.InputElement;
 import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
@@ -32,15 +42,23 @@ import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunResultParser;
-
-import java.io.File;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.FileUtils;
+import hu.bme.mit.sette.common.util.FileUtilsEx;
 
 public class CatgParser extends RunResultParser<CatgTool> {
+    private static final Pattern EXCEPTION_LINE_PATTERN;
+    private static Pattern[] ACCEPTED_ERROR_LINE_PATTERNS;
+
+    static {
+        EXCEPTION_LINE_PATTERN = Pattern
+                .compile("Exception in thread \"main\" ([0-9A-Za-z\\._]+).*");
+
+        Stream<String> patterns = Stream.of(
+                "^WARNING: [!]{17} Prediction failed [!]{17} index \\d+ history\\.size\\(\\) \\d+$",
+                "^WARNING: At old iid \\d+ at iid \\d+ constraint .* at iid \\d+ and index \\d+$");
+        ACCEPTED_ERROR_LINE_PATTERNS = patterns.map(p -> Pattern.compile(p))
+                .toArray(Pattern[]::new);
+    }
+
     public CatgParser(SnippetProject snippetProject, File outputDirectory, CatgTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);
@@ -53,77 +71,78 @@ public class CatgParser extends RunResultParser<CatgTool> {
         File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
                 snippet);
 
-        if (errorFile.exists()) {
-            // TODO enhance this section and make it more clear
+        List<String> outputLines = FileUtilsEx.readLinesIfExists(outputFile);
+        List<String> errorLines = FileUtilsEx.readLinesIfExists(errorFile);
 
-            List<String> lines = FileUtils.readLines(errorFile);
+        if (!errorLines.isEmpty()) {
+            // error / warning from CATG
 
-            String firstLine = lines.get(0);
+            // check whether there was any exception and get result possibilities according to them
+            Set<ResultType> resTypes = errorLines.stream()
+                    .filter(line -> line.startsWith("Exception in thread \"main\"")).map(line -> {
+                        // exceptions
+                        Matcher m = EXCEPTION_LINE_PATTERN.matcher(line);
 
-            if (firstLine.startsWith("Exception in thread \"main\"")) {
-                Pattern p = Pattern.compile("Exception in thread \"main\" ([a-z0-9\\._]+).*",
-                        Pattern.CASE_INSENSITIVE);
+                        if (!m.matches()) {
+                            System.err.println(snippet.getMethod());
+                            System.err.println("NO MATCH FOR LINE: " + line);
+                            throw new RuntimeException("SETTE parser problem");
+                        }
 
-                Matcher m = p.matcher(firstLine);
-                if (m.matches()) {
-                    String exceptionType = m.group(1);
+                        String exceptionType = m.group(1);
 
-                    if (exceptionType.equals("java.lang.NoClassDefFoundError")) {
-                        inputsXml.setResultType(ResultType.NA);
-                    } else if (exceptionType.equals("java.lang.VerifyError")) {
-                        inputsXml.setResultType(ResultType.EX);
-                    } else if (exceptionType.endsWith("Exception")) {
-                        // enhance
-                        inputsXml.setResultType(ResultType.EX);
-                    } else {
-                        System.err.println(snippet.getMethod());
-                        System.err.println("NOT HANDLED TYPE: " + exceptionType);
-                    }
+                        if (exceptionType.equals("java.lang.NoClassDefFoundError")) {
+                            return ResultType.NA;
+                        } else if (exceptionType.equals("java.lang.VerifyError")) {
+                            return ResultType.EX;
+                        } else if (exceptionType.endsWith("Exception")) {
+                            // enhance
+                            return ResultType.EX;
+                        } else {
+                            System.err.println(snippet.getMethod());
+                            System.err.println(errorFile);
+                            System.err.println("NOT HANDLED EXCEPTION TYPE: " + exceptionType);
+                            throw new RuntimeException("SETTE parser problem");
+                        }
+                    }).collect(Collectors.toSet());
+
+            if (!resTypes.isEmpty()) {
+                // had exception line
+                if (resTypes.size() == 1) {
+                    // exactly one typed exception
+                    inputsXml.setResultType(resTypes.iterator().next());
                 } else {
-                    System.err.println(snippet.getMethod());
-                    System.err.println("NO MATCH");
+                    // very unlikely to have both NoClassDefFoundError and other exception
+                    throw new RuntimeException("SETTE parser problem");
                 }
-            } else if (firstLine.startsWith("java.lang.ArrayIndexOutOfBoundsException")) {
+            } else {
+                // no exception lines
+                // check whether the other lines are accepted warnings
+                for (String errorLine : errorLines) {
+                    if (StringUtils.isBlank(errorLine)) {
+                        // skip blank lines
+                    } else if (!Stream.of(ACCEPTED_ERROR_LINE_PATTERNS)
+                            .anyMatch(p -> p.matcher(errorLine.trim()).matches())) {
+                        System.err.println(
+                                ACCEPTED_ERROR_LINE_PATTERNS[0].matcher(errorLine).matches());
+                        System.err.println(String.join("\n", errorLines));
+                        System.err.println("Unknown line: " + errorLine);
+                        throw new RuntimeException("SETTE parser problem");
+                    }
+                }
+
+                // all lines are accepted warnings
                 inputsXml.setResultType(ResultType.EX);
-            } else if (firstLine
-                    .startsWith("WARNING: !!!!!!!!!!!!!!!!! Prediction failed !!!!!!!!!!!!!!!!!")) {
-                // TODO enhance (it was just warning)
-                inputsXml.setResultType(ResultType.S);
-            }
-
-            // if (firstLine
-            // .startsWith("Exception in thread \"main\" java.lang.NoClassDefFoundError"))
-            // {
-            // inputsXml.setResultType(ResultType.NA);
-            // return;
-            // } else if (firstLine
-            // .startsWith("Exception in thread \"main\"
-            // java.lang.StringIndexOutOfBoundsException"))
-            // {
-            // inputsXml.setResultType(ResultType.EX);
-            // return;
-            // }// else if(firstLine.startsWith("))
-
-            // TODO enhance error message
-
-            // this is debug (only if unhandled error)
-            if (inputsXml.getResultType() == null) {
-                System.err.println("=============================");
-                System.err.println(snippet.getMethod());
-                System.err.println("=============================");
-
-                for (String line : lines) {
-                    System.err.println(line);
-                }
-                System.err.println("=============================");
             }
         } else {
-            // TODO enhance this section
+            // no error file, always S
             inputsXml.setResultType(ResultType.S);
+        }
 
+        // collect inputs if S
+        if (inputsXml.getResultType() == ResultType.S) {
             // collect inputs
-            List<String> lines = FileUtils.readLines(outputFile);
-            if (!lines.get(0).startsWith("Now testing ")) {
+            if (!outputLines.get(0).startsWith("Now testing ")) {
                 throw new RuntimeException("File beginning problem: " + outputFile);
             }
 
@@ -132,8 +151,8 @@ public class CatgParser extends RunResultParser<CatgTool> {
 
             int inputNumber = 1;
 
-            for (int i = 1; i < lines.size(); inputNumber++) {
-                String line = lines.get(i);
+            for (int i = 1; i < outputLines.size(); inputNumber++) {
+                String line = outputLines.get(i);
 
                 Matcher m = p.matcher(line);
                 if (m.matches()) {
@@ -146,8 +165,8 @@ public class CatgParser extends RunResultParser<CatgTool> {
 
                     // find end of generated input
                     int nextInputLine = -1;
-                    for (int j = i + 1; j < lines.size(); j++) {
-                        if (p.matcher(lines.get(j)).matches()) {
+                    for (int j = i + 1; j < outputLines.size(); j++) {
+                        if (p.matcher(outputLines.get(j)).matches()) {
                             nextInputLine = j;
                             break;
                         }
@@ -155,7 +174,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
 
                     if (nextInputLine < 0) {
                         // EOF
-                        nextInputLine = lines.size();
+                        nextInputLine = outputLines.size();
                     }
 
                     int paramCount = snippet.getMethod().getParameterTypes().length;
@@ -163,7 +182,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
                     InputElement ie = new InputElement();
 
                     for (int j = 0; j < paramCount; j++) {
-                        String l = lines.get(i + 1 + j + 1);
+                        String l = outputLines.get(i + 1 + j + 1);
                         Matcher m2 = p2.matcher(l);
 
                         if (m2.matches()) {
