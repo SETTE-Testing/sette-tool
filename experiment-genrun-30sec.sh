@@ -13,9 +13,9 @@ set -v
 for i in `seq $FROM $TO`;
 do
 	echo == Execution $i generator
-echo	./sette.sh --tool $TOOL --task generator --runner-project-tag run-$(printf "%02d" $i)-30sec --skip-backup --runner-timeout $TIMEOUT
+	./run-sette.sh --tool $TOOL --task generator --runner-project-tag run-$(printf "%02d" $i)-30sec --skip-backup --runner-timeout $TIMEOUT
 	echo == Execution $i runner
-echo	./sette.sh --tool $TOOL --task runner    --runner-project-tag run-$(printf "%02d" $i)-30sec --skip-backup --runner-timeout $TIMEOUT
+	./run-sette.sh --tool $TOOL --task runner    --runner-project-tag run-$(printf "%02d" $i)-30sec --skip-backup --runner-timeout $TIMEOUT
 done
 
 echo Finished
