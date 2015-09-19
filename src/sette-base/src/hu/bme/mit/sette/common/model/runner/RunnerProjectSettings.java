@@ -99,7 +99,7 @@ public final class RunnerProjectSettings<T extends Tool> {
         Validate.notNull(parentDirectory, "The parent directory must not be null");
         Validate.notNull(tool, "The tool must not be null");
         Validate.notBlank(tag, "The tag must not be blank");
-        Validate.isTrue(!tag.contains("___"), "The tag must contan the '___' substring");
+        Validate.isTrue(!tag.contains("___"), "The tag must not contain the '___' substring");
 
         this.snippetProjectSettings = snippetProjectSettings;
         this.tool = tool;

@@ -143,14 +143,14 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
         cmd.add(evosuiteJar.getAbsolutePath());
         cmd.add("-projectCP");
         cmd.add(classpath);
-        cmd.add("-generateSuite");
+        // NOTE default: cmd.add("-generateSuite");
         cmd.add("-class=" + snippet.getContainer().getJavaClass().getName());
         // cmd.add("-Dtarget_method" + snippet.getMethod().getName()); // TODO it does not seem to
         // work in EvoSuite
         cmd.add("-Dsearch_budget=" + timelimit);
         cmd.add("-Dassertions=false");
         cmd.add("-Dlog_goals=true");
-        cmd.add("-Dtest_format=JUNIT4"); // JUnit 3 is not working
+        // NOTE default: cmd.add("-Dtest_format=JUNIT4"); // JUnit 3 is not working
         cmd.add("-Djunit_suffix=_" + snippet.getMethod().getName() + "_Test");
         cmd.add("-Dtest_dir=test");
 
