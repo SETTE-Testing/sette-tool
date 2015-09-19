@@ -12,10 +12,11 @@ echo "$TOOL from $FROM to $TO"
 set -v
 for i in `seq $FROM $TO`;
 do
+    TAG=run-$(printf "%02d" $i)-30sec
 	echo == Execution $i generator
-	./run-sette.sh --tool $TOOL --task generator --runner-project-tag run-$(printf "%02d" $i)-30sec --skip-backup --runner-timeout $TIMEOUT
+	./run-sette.sh --tool $TOOL --task generator --runner-project-tag $TAG --skip-backup --runner-timeout $TIMEOUT | tee sette___${TOOL}___${TAG}___generator.log
 	echo == Execution $i runner
-	./run-sette.sh --tool $TOOL --task runner    --runner-project-tag run-$(printf "%02d" $i)-30sec --skip-backup --runner-timeout $TIMEOUT
+	./run-sette.sh --tool $TOOL --task runner    --runner-project-tag $TAG --skip-backup --runner-timeout $TIMEOUT | tee sette___${TOOL}___${TAG}___runner.log
 done
 
 echo Finished
