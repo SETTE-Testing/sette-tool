@@ -32,11 +32,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper class for process handling.
  */
 public final class ProcessUtils {
+    private static final Logger log = LoggerFactory.getLogger(ProcessUtils.class);
+
     /**
      * The minimal ASCII code in the search expression of the {@link #searchProcess(String)}
      * method..
@@ -76,7 +80,10 @@ public final class ProcessUtils {
     public static void terminateProcess(int pid) throws InterruptedException, IOException {
         // example: kill -9 12345
         String command = String.format("kill -9 %d", pid);
+
+        log.debug("Killing process {}: {}", pid, command);
         Runtime.getRuntime().exec(command).waitFor();
+        log.debug("Killed process {}", pid);
     }
 
     /**
@@ -112,6 +119,7 @@ public final class ProcessUtils {
         // command: /bin/bash -c "ps asx | grep \"MyProc\""
         // example: 1000 12345 ... where 12345 is the PID
         String command = String.format("ps asx | grep \"%s\"", searchExpression);
+        log.debug("Search for process: {}", command);
 
         Process p = Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", command });
 
@@ -126,14 +134,18 @@ public final class ProcessUtils {
             if (br.readLine() == null) {
                 break;
             }
+            log.trace("[line] {}", line);
 
             Matcher m = ProcessUtils.SEARCH_PROCESS_PATTERN.matcher(line);
 
             if (m.matches() && !m.group(2).contains(command)) {
+                log.debug("Found: {}", line);
                 pids.add(Integer.parseInt(m.group(1)));
             }
         }
 
+        pids.sort(null);
+        log.debug("Found processes: {}", pids.toString());
         return pids;
     }
 }

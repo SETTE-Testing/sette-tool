@@ -55,13 +55,22 @@ project(':sette') {
         description = 'Deploys SETTE to ' + deployTarget.path
 
         doLast {
-            File setteJar = new File(deployTarget, 'sette.jar')
-            File settePropsDefault = new File(deployTarget, 'sette.properties.default')
+            File setteJar = new File(deployTarget, 'sette-all.jar')
+            File setteProps = new File(deployTarget, 'sette.properties')
+            File setteLog4j2Xml = new File(deployTarget, 'sette-log4j2.xml')
+
+            // Always deploy the new JAR
             setteJar.delete()
-            settePropsDefault.delete()
-            
             setteJar << tasks.shadowJar.archivePath.bytes
-            settePropsDefault << new File(project.projectDir, 'sette.properties.default').text
+
+            // Always deploy log4j2.xml
+            setteLog4j2Xml.delete()
+            setteLog4j2Xml << new File(project.projectDir, 'log4j2.xml').text
+
+            // Only deploy sette.properties of not present
+            if (!setteProps.exists()) {
+                setteProps << new File(project.projectDir, 'sette.properties.default').text
+            }
         }
     }
 }
@@ -105,7 +114,7 @@ project(':sette-common') {
     // Maximaze compatibility for the common project
     project.sourceCompatibility = 1.6
     project.targetCompatibility = 1.6
-    
+
     dependencies {
         testCompile 'org.codehaus.groovy:groovy-all:2.4.4'
         testCompile 'junit:junit:4.12' // JUnit 4 is used for testing SETTE

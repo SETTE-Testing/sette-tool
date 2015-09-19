@@ -25,30 +25,33 @@
 // NOTE revise this file
 package hu.bme.mit.sette;
 
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
-import hu.bme.mit.sette.run.Run;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.PrintStream;
 
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.model.snippet.SnippetProject;
+import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.run.Run;
 
 public final class RunnerUI implements BaseUI {
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final RunnerProjectRunner<?> runner;
-
-    public RunnerUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag) {
-        this(snippetProject, tool, runnerProjectTag, RunnerProjectRunner.DEFAULT_TIMEOUT);
-    }
 
     public RunnerUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag,
             int timeoutInMs) {
         Validate.notNull(snippetProject, "Snippet project settings must not be null");
         Validate.notNull(tool, "The tool must not be null");
+
         runner = tool.createRunnerProjectRunner(snippetProject, Run.OUTPUT_DIR, runnerProjectTag);
         runner.setTimeoutInMs(timeoutInMs);
+
+        log.info("Created {} for {} @ {} ms timeout", runner.getClass().getSimpleName(),
+                runner.getRunnerProjectSettings().getProjectName(), runner.getTimeoutInMs());
     }
 
     @Override

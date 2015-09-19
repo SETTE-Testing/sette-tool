@@ -77,3 +77,7 @@ gradle-app.setting
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
+*.project
+src/sette-base/.classpath
+*.project
+src/sette/.classpath

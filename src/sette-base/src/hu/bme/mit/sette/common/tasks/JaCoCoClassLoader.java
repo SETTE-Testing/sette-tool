@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * A class loader which loads and instruments classes for JaCoCo.
  */
 public final class JaCoCoClassLoader extends ClassLoader {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final File[] binaryDirectories;
     private final Instrumenter instrumenter;
@@ -57,7 +57,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
         this.binaryDirectories = Arrays.copyOf(binaryDirectories, binaryDirectories.length);
         this.instrumenter = instrumenter;
 
-        logger.debug("JaCoCoClassLoader has been created");
+        log.debug("JaCoCoClassLoader has been created");
     }
 
     @Override
@@ -69,7 +69,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
         if (javaClass != null) {
             // class was already loaded (and instrumented if bytecode was
             // found)
-            logger.debug("{}: the class was already loaded", className);
+            log.debug("{}: the class was already loaded", className);
             return javaClass;
         }
 
@@ -79,7 +79,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
             byte[] bytes = readBytes(className);
 
             if (bytes != null) {
-                logger.debug("{}: instrumenting and defining class", className);
+                log.debug("{}: instrumenting and defining class", className);
 
                 // instrument
                 byte[] instrumentedBytes = instrumenter.instrument(bytes, className);
@@ -89,12 +89,12 @@ public final class JaCoCoClassLoader extends ClassLoader {
             } else {
                 // was not found, try to load with the parent, but it will
                 // not be instrumented
-                logger.debug("{}: calling super.loadClass() (corresponding file was not found)",
+                log.debug("{}: calling super.loadClass() (corresponding file was not found)",
                         className);
                 return super.loadClass(className, resolve);
             }
         } catch (IOException ex) {
-            logger.error(className + ": An IOException was thrown", ex);
+            log.error(className + ": An IOException was thrown", ex);
             // TODO some better handling
             throw new RuntimeException(ex);
         }

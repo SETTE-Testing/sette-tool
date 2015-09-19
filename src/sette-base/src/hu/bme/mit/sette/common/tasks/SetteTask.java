@@ -31,6 +31,8 @@ import hu.bme.mit.sette.common.model.snippet.SnippetProjectSettings;
 import java.io.File;
 
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for SETTE tasks, i.e. phases of the whole workflow.
@@ -39,6 +41,8 @@ import org.apache.commons.lang3.Validate;
  *            the type of the tool
  */
 abstract class SetteTask<T extends Tool> {
+    protected final Logger log = LoggerFactory.getLogger(getClass());
+    
     /** The snippet project. */
     private final SnippetProject snippetProject;
 

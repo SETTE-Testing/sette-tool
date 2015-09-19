@@ -60,7 +60,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
     public static final int POLL_INTERVAL = 100;
 
     /** The default timeout for called processes. */
-    public static final int DEFAULT_TIMEOUT = 30000;
+    private static final int DEFAULT_TIMEOUT = 30000;
 
     /** The timeout in ms for the called processes. */
     private int timeoutInMs;
@@ -110,49 +110,62 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
      */
     public final void run(PrintStream loggerStream) throws RunnerProjectRunnerException {
         String phase = null;
-        PrintStream logger = null;
+        PrintStream runnerLogger = null;
 
         try {
+            log.info("== Cleaning up");
             cleanUp();
 
             // validate preconditions
             phase = "validate (do)";
+            log.info("== Phase: {}", phase);
             validate();
+            
             phase = "validate (after)";
+            log.info("== Phase: {}", phase);
             afterValidate();
 
             // prepare
             phase = "prepare (do)";
+            log.info("== Phase: {}", phase);
             prepare();
+            
             phase = "prepare (after)";
+            log.info("== Phase: {}", phase);
             afterPrepare();
 
             // create logger
-            File logFile = RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings());
+            File runnerLogFile = RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings());
 
             if (loggerStream != null) {
-                loggerStream.println("Log file: " + logFile.getCanonicalPath());
-                logger = new PrintStream(
-                        new TeeOutputStream(new FileOutputStream(logFile), loggerStream), true);
+                loggerStream.println("Log file: " + runnerLogFile.getCanonicalPath());
+                runnerLogger = new PrintStream(
+                        new TeeOutputStream(new FileOutputStream(runnerLogFile), loggerStream), true);
             } else {
-                logger = new PrintStream(new FileOutputStream(logFile), true);
+                runnerLogger = new PrintStream(new FileOutputStream(runnerLogFile), true);
             }
 
             // run all
             phase = "run all (do)";
-            runAll(logger);
+            log.info("== Phase: {}", phase);
+            runAll(runnerLogger);
+            
             phase = "run all (after)";
+            log.info("== Phase: {}", phase);
             afterRunAll();
 
+            log.info("== Cleaning up");
             cleanUp();
+            
             phase = "complete";
+            log.info("== Phase: {}", phase);
         } catch (Exception ex) {
             String message = String.format(
                     "The runner project run has failed\n(phase: [%s])\n(tool: [%s])", phase,
                     getTool().getFullName());
             throw new RunnerProjectRunnerException(message, this, ex);
         } finally {
-            IOUtils.closeQuietly(logger);
+            IOUtils.closeQuietly(runnerLogger);
         }
     }
 
@@ -191,12 +204,12 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
     /**
      * Runs the tool on all the snippets.
      *
-     * @param loggerOut
+     * @param runnerLoggerOut
      *            the {@link PrintStream} of the logger
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    private void runAll(PrintStream loggerOut) throws IOException {
+    private void runAll(PrintStream runnerLoggerOut) throws IOException {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         // foreach containers
@@ -205,7 +218,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
             if (container.getRequiredJavaVersion()
                     .compareTo(getTool().getSupportedJavaVersion()) > 0) {
                 // TODO error/warning handling
-                loggerOut.println("Skipping container: " + container.getJavaClass().getName()
+                runnerLoggerOut.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");
                 System.err.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");
@@ -225,14 +238,14 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
 
                 try {
                     String timestamp = dateFormat.format(new Date());
-                    loggerOut.println("[" + timestamp + "] Running for snippet: " + filenameBase);
+                    runnerLoggerOut.println("[" + timestamp + "] Running for snippet: " + filenameBase);
                     this.runOne(snippet, infoFile, outputFile, errorFile);
                     this.cleanUp();
                 } catch (Exception ex) {
-                    loggerOut.println("Exception: " + ex.getMessage());
-                    loggerOut.println("==========");
-                    ex.printStackTrace(loggerOut);
-                    loggerOut.println("==========");
+                    runnerLoggerOut.println("Exception: " + ex.getMessage());
+                    runnerLoggerOut.println("==========");
+                    ex.printStackTrace(runnerLoggerOut);
+                    runnerLoggerOut.println("==========");
                 }
             }
         }
