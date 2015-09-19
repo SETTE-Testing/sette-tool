@@ -1,0 +1,2 @@
+# .sh should always have LF ending
+*.sh text merge=union eol=lf
