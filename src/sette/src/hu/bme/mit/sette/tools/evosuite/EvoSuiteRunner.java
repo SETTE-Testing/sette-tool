@@ -36,7 +36,6 @@ import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
 import hu.bme.mit.sette.common.util.process.ProcessRunner;
 import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
-import hu.bme.mit.sette.common.util.process.ProcessUtils;
 
 public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
     public EvoSuiteRunner(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
@@ -172,17 +171,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
 
     @Override
     public void cleanUp() throws IOException {
-        // TODO better search
-        for (Integer pid : ProcessUtils.searchProcess("randoop")) {
-            System.err.println("  Terminating stuck process (PID: " + pid + ")");
-            try {
-                ProcessUtils.terminateProcess(pid);
-            } catch (Exception ex) {
-                System.err.println("  Exception");
-                ex.printStackTrace();
-            }
-        }
-
+        // NOTE not needed to handle processes, only try gc
         System.gc();
     }
 
