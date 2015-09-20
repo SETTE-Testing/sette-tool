@@ -1,3 +1,3 @@
-Website: https://code.google.com/p/randoop/
+Website: http://www.evosuite.org/
 
-"Randoop is an automatic unit test generator for Java. It automatically creates unit tests for your classes, in JUnit format."
+"EvoSuite is a tool that automatically generates test cases with assertions for classes written in Java code. To achieve this, EvoSuite applies a novel hybrid approach that generates and optimizes whole test suites towards satisfying a coverage criterion. For the produced test suites, EvoSuite suggests possible oracles by adding small and effective sets of assertions that concisely summarize the current behavior; these assertions allow the developer to detect deviations from expected behavior, and to capture the current behavior in order to protect against future defects breaking this behaviour."
