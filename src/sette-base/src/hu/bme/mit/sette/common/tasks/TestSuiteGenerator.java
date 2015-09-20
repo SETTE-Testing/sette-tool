@@ -25,8 +25,10 @@ package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
@@ -134,6 +136,7 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                 for (InputElement inputElement : inputsXml.getGeneratedInputs()) {
                     i++;
 
+                    // throws if required to prevent compile errors
                     java.append("    public void test_").append(i)
                             .append("() throws Exception {\n");
 
@@ -145,27 +148,97 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
 
                         java.append("        \n");
                     }
+                    java.append("        \n");
 
                     // try-catch for exception if any expected
                     if (inputElement.getExpected() != null) {
                         java.append("        try {\n");
-                        java.append("            ");
-
-                        appendMethodCall(java, javaClass, method, inputElement);
+                        java.append("            ")
+                                .append(createMethodCallString(javaClass, method, inputElement))
+                                .append(";\n");
                         java.append("            fail();\n");
                         java.append("        } catch (").append(inputElement.getExpected())
                                 .append(" ex) {\n");
                         // empty catch
-                        // FIXME maybe assert to fail?
                         java.append("        }\n");
                     } else {
-                        java.append("        ");
-                        appendMethodCall(java, javaClass, method, inputElement);
+                        // append method call and assert
+                        List<AbstractParameterElement> params = inputElement.getParameters();
+                        Object[] methodParams = new Object[params.size()];
+
+                        try {
+                            int ii = 0;
+                            for (AbstractParameterElement ape : params) {
+                                methodParams[ii] = ape.getValueAsObject();
+                                ii++;
+                            }
+
+                            Class<?> snippetReturnType = snippet.getMethod().getReturnType();
+                            Object returnValue = snippet.getMethod().invoke(null, methodParams);
+                            if (snippetReturnType == Void.class
+                                    || (returnValue != null && returnValue.toString()
+                                            .startsWith(snippetReturnType.getName() + "@"))) {
+                                // no return value or object return type written as tostring()
+                                // NOTE fix in the future
+                                // no assert, only method call
+                                java.append("        ").append(
+                                        createMethodCallString(javaClass, method, inputElement))
+                                        .append(";\n");
+                            } else {
+                                String returnValueStr;
+                                if (returnValue == null) {
+                                    returnValueStr = "null";
+                                } else {
+                                    returnValueStr = getParamValueAsString(snippetReturnType,
+                                            returnValue.toString());
+                                }
+
+                                // add cast if primitive value and boxed return type
+                                if (!snippetReturnType.isPrimitive()) {
+                                    Class<?> asPrimitive = ClassUtils
+                                            .wrapperToPrimitive(snippetReturnType);
+                                    if (asPrimitive != null) {
+                                        // boxed type
+                                        returnValueStr = String.format("(%s) (%s)",
+                                                snippetReturnType.getSimpleName(), returnValueStr);
+                                    }
+                                }
+
+                                // NOTE this code casts both ret and call to primitive, if not
+                                // casted -> revise
+                                //
+                                // String castRet = "";
+                                // String castCall = "";
+                                // if (snippet.getMethod().getReturnType().isPrimitive()) {
+                                // String tn = snippet.getMethod().getReturnType().getName();
+                                // String cast = String.format("(%s)", tn);
+                                //
+                                // if (returnValueStr.trim().startsWith(cast)) {
+                                // // only if not casted yet
+                                // castRet = cast;
+                                // }
+                                // castCall = cast;
+                                // } else if (returnValue.get) {
+                                //
+                                // }
+
+                                // append line
+                                java.append(String.format("        assertEquals(%s, %s);",
+                                        returnValueStr,
+                                        createMethodCallString(javaClass, method, inputElement)))
+                                        .append("\n");
+                            }
+                        } catch (Exception ex) {
+                            // the test might fail, the tool has not recorded the exception
+                            // (or just heap)
+                            java.append("        ")
+                                    .append(createMethodCallString(javaClass, method, inputElement))
+                                    .append(";\n");
+                        }
                     }
 
+                    java.append("        \n");
                     java.append("    }\n\n");
-
-                    // FIXME assert generation
                 }
 
                 java.append("}\n");
@@ -280,52 +353,67 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
     // return inputsXml;
     // }
 
-    private static void appendMethodCall(StringBuilder sb, Class<?> javaClass, Method method,
+    private static String createMethodCallString(Class<?> javaClass, Method method,
             InputElement inputElement) {
-        sb.append(javaClass.getSimpleName()).append('.').append(method.getName());
-        sb.append("(");
+        Object[] paramValuesAsString = new String[inputElement.getParameters().size()];
 
+        int i = 0;
         for (AbstractParameterElement parameter : inputElement.getParameters()) {
             if (parameter instanceof ParameterElement) {
                 ParameterElement p = (ParameterElement) parameter;
                 String value = p.getValue();
-
-                if (p.getType() == ParameterType.CHAR) {
-                    sb.append('\'').append(value).append('\'');
-                } else if (p.getType() == ParameterType.BYTE) {
-                    sb.append("(byte) ").append(value);
-                } else if (p.getType() == ParameterType.SHORT) {
-                    sb.append("(short) ").append(value);
-                } else if (p.getType() == ParameterType.LONG) {
-                    value = value.toUpperCase();
-                    sb.append(value);
-                    if (!value.endsWith("L")) {
-                        sb.append("L");
-                    }
-                } else if (p.getType() == ParameterType.FLOAT) {
-                    value = value.toLowerCase();
-                    sb.append(value);
-                    if (!value.endsWith("f")) {
-                        sb.append("f");
-                    }
-                } else if (p.getType() == ParameterType.DOUBLE) {
-                    sb.append(value);
-                    if (value.indexOf('.') < 0) {
-                        sb.append(".0");
-                    }
-                } else {
-                    sb.append(value);
-                }
-                sb.append(", ");
+                paramValuesAsString[i] = getParamValueAsString(p.getType().getJavaClass(), value);
             } else {
                 System.err.println("Unhandled type: " + parameter.getClass());
+                throw new RuntimeException("Not supported");
             }
+
+            i++;
         }
 
-        if (inputElement.getParameters().size() > 0) {
-            sb.delete(sb.length() - 2, sb.length());
+        String parametersString = String.format(
+                StringUtils.repeat("%s", ", ", inputElement.getParameters().size()),
+                paramValuesAsString);
+
+        String methodCallString = String.format("%s.%s(%s)", javaClass.getSimpleName(),
+                method.getName(), parametersString);
+
+        return methodCallString;
+    }
+
+    private static String getParamValueAsString(Class<?> javaClass, String value) {
+        javaClass = ClassUtils.primitiveToWrapper(javaClass);
+        String ret;
+
+        if (javaClass == ParameterType.CHAR.getJavaClass()) {
+            ret = String.format("'%s'", value);
+        } else if (javaClass == ParameterType.BYTE.getJavaClass()) {
+            // (byte) (-1)
+            ret = "(byte) (" + value + ")";
+        } else if (javaClass == ParameterType.SHORT.getJavaClass()) {
+            // (short) (-1)
+            ret = "(short) (" + value + ")";
+        } else if (javaClass == ParameterType.LONG.getJavaClass()) {
+            ret = value.toUpperCase();
+            if (!value.endsWith("L")) {
+                ret += "L";
+            }
+        } else if (javaClass == ParameterType.FLOAT.getJavaClass()) {
+            ret = value.toLowerCase();
+            if (!value.endsWith("f")) {
+                ret += "f";
+            }
+        } else if (javaClass == ParameterType.DOUBLE.getJavaClass()) {
+            ret = value;
+            if (value.indexOf('.') < 0) {
+                ret += ".0";
+            }
+        } else if (javaClass == String.class) {
+            ret = String.format("\"%s\"", value);
+        } else {
+            ret = value;
         }
 
-        sb.append(");\n");
+        return ret;
     }
 }

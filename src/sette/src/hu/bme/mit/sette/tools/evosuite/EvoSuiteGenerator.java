@@ -23,26 +23,115 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
-import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+
+import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
+import hu.bme.mit.sette.common.exceptions.SetteException;
+import hu.bme.mit.sette.common.model.snippet.Snippet;
+import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.common.model.snippet.SnippetProject;
+import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
+
 public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
-    public EvoSuiteGenerator(SnippetProject snippetProject, File outputDirectory,
-            EvoSuiteTool tool, String runnerProjectTag) {
+    public EvoSuiteGenerator(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
+            String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
     protected void afterWriteRunnerProject(EclipseProject eclipseProject)
             throws IOException, SetteException {
+        createSpecialSnippetFiles();
+
         File buildXml = new File(getRunnerProjectSettings().getBaseDirectory(), "build.xml");
         FileUtils.copyFile(getTool().getDefaultBuildXml(), buildXml);
     }
+
+    private void createSpecialSnippetFiles() {
+        // generate snippet classes containing exactly one one-method
+        // generation is based on the runner project snippet source files (which does not have
+        // annotations, only Java code)
+        // NOTE this iteration is repeated at a lot of places, maybe visitor?
+        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
+            String javaPackageName = container.getJavaClass().getPackage().getName();
+            String javaClassName = container.getJavaClass().getSimpleName();
+            Set<String> snippetMethodNames = container.getSnippets().keySet();
+
+            for (Snippet snippet : container.getSnippets().values()) {
+                String methodName = snippet.getMethod().getName();
+                String newJavaClassName = javaClassName + '_' + methodName;
+
+                File originalSourceFile = new File(
+                        getRunnerProjectSettings().getSnippetSourceDirectory(),
+                        javaPackageName.replace('.', '/') + '/' + javaClassName + ".java");
+                if (!originalSourceFile.exists()) {
+                    throw new RuntimeException("SETTE ERROR: " + originalSourceFile);
+                }
+                File newSourceFile = new File(originalSourceFile.getParentFile(),
+                        newJavaClassName + ".java");
+
+                try {
+                    CompilationUnit originalCu = JavaParser.parse(originalSourceFile);
+                    CompilationUnit newCu = (CompilationUnit) originalCu.clone();
+
+                    // NOTE this does not work for private methods, so keep all non-snippet method!
+                    // delete this code if reviewed and not needed
+                    //
+                    // // add static import to the original class
+                    // // e.g.: import static my.snippet.proj.SnippetContainer.*;
+                    // // so other methods will be used from this class
+                    // if (snippetCu.getImports() == null) {
+                    // snippetCu.setImports(new ArrayList<>());
+                    // }
+                    //
+                    // snippetCu.getImports().add(new ImportDeclaration(
+                    // new NameExpr(javaPackageName + '.' + javaClassName), true, true));
+
+                    // remove all methods which are not the snippet method
+                    TypeDeclaration newCuType = newCu.getTypes().get(0);
+                    newCuType.setName(newJavaClassName);
+                    for (Iterator<BodyDeclaration> iterator = newCuType.getMembers()
+                            .iterator(); iterator.hasNext();) {
+                        BodyDeclaration bodyDecl = iterator.next();
+
+                        if (bodyDecl instanceof ConstructorDeclaration) {
+                            // keep constructor, but change name
+                            ((ConstructorDeclaration) bodyDecl).setName(newJavaClassName);
+                        } else if (bodyDecl instanceof MethodDeclaration) {
+                            MethodDeclaration methodDecl = (MethodDeclaration) bodyDecl;
+                            if (!methodDecl.getName().equals(methodName)
+                                    && snippetMethodNames.contains(methodDecl.getName())) {
+                                // another snippet method, remove
+                                iterator.remove();
+                            }
+                        } else if (bodyDecl instanceof FieldDeclaration) {
+                            // keep fields
+                        } else {
+                            throw new RuntimeException(
+                                    "SETTE ERROR " + bodyDecl.getClass().getName());
+                        }
+                    }
+
+                    // save new source code
+                    FileUtils.write(newSourceFile, newCu.toString());
+                } catch (Exception ex) {
+                    throw new RuntimeException("SETTE ERROR", ex);
+                }
+            }
+        }
+    }
+
 }

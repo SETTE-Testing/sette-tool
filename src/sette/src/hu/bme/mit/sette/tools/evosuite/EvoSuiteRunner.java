@@ -25,11 +25,8 @@ package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -144,12 +141,14 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
         cmd.add("-projectCP");
         cmd.add(classpath);
         // NOTE default: cmd.add("-generateSuite");
-        cmd.add("-class=" + snippet.getContainer().getJavaClass().getName());
+        // use the one-snippet-per-class version
+        cmd.add("-class=" + snippet.getContainer().getJavaClass().getName() + "_"
+                + snippet.getMethod().getName());
         // cmd.add("-Dtarget_method" + snippet.getMethod().getName()); // TODO it does not seem to
         // work in EvoSuite
         cmd.add("-Dsearch_budget=" + timelimit);
-        cmd.add("-Dassertions=false");
-        cmd.add("-Dlog_goals=true");
+        // NOTE default: cmd.add("-Dassertions=true");
+        // NOTE not working cmd.add("-Dlog_goals=true");
         // NOTE default: cmd.add("-Dtest_format=JUNIT4"); // JUnit 3 is not working
         cmd.add("-Djunit_suffix=_" + snippet.getMethod().getName() + "_Test");
         cmd.add("-Dtest_dir=test");
@@ -187,21 +186,22 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
         System.gc();
     }
 
-    /**
-     * Gets the method name and parameter types string.
-     *
-     * @param method
-     *            the method
-     * @return the method name and parameter types string, e.g.
-     *         <code>pkg.Cls.m(int[],java.lang.String[])</code>
-     */
-    private static String getMethodNameAndParameterTypesString(Method method) {
-        // collect and join parameter type names
-        String paramsString = Stream.of(method.getParameterTypes()).map(p -> p.getTypeName())
-                .collect(Collectors.joining(","));
-
-        // create string
-        return String.format("%s.%s(%s)", method.getDeclaringClass().getName(), method.getName(),
-                paramsString);
-    }
+    // NOTE was not used, revise and move/delete
+    // /**
+    // * Gets the method name and parameter types string.
+    // *
+    // * @param method
+    // * the method
+    // * @return the method name and parameter types string, e.g.
+    // * <code>pkg.Cls.m(int[],java.lang.String[])</code>
+    // */
+    // private static String getMethodNameAndParameterTypesString(Method method) {
+    // // collect and join parameter type names
+    // String paramsString = Stream.of(method.getParameterTypes()).map(p -> p.getTypeName())
+    // .collect(Collectors.joining(","));
+    //
+    // // create string
+    // return String.format("%s.%s(%s)", method.getDeclaringClass().getName(), method.getName(),
+    // paramsString);
+    // }
 }

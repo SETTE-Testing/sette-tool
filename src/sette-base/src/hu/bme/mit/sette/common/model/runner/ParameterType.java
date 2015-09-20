@@ -36,23 +36,23 @@ import org.apache.commons.lang3.Validate;
 // T getValue(), void setValue(T), String getValueAsString() etc..
 public enum ParameterType {
     /** Java primitive byte. */
-    BYTE("byte"),
+    BYTE("byte", Byte.class),
     /** Java primitive short. */
-    SHORT("short"),
+    SHORT("short", Short.class),
     /** Java primitive int. */
-    INT("int"),
+    INT("int", Integer.class),
     /** Java primitive long. */
-    LONG("long"),
+    LONG("long", Long.class),
     /** Java primitive float. */
-    FLOAT("float"),
+    FLOAT("float", Float.class),
     /** Java primitive double. */
-    DOUBLE("double"),
+    DOUBLE("double", Double.class),
     /** Java primitive boolean. */
-    BOOLEAN("boolean"),
+    BOOLEAN("boolean", Boolean.class),
     /** Java primitive char. */
-    CHAR("char"),
+    CHAR("char", Character.class),
     /** Java expression (one statement). */
-    EXPRESSION("expression");
+    EXPRESSION("expression", null);
     // TODO it is really needed after heap was added? heap+expression should be
     // enough
     // /** Factory (Java code). */
@@ -61,14 +61,35 @@ public enum ParameterType {
     /** The string representation. */
     private final String toString;
 
+    /** The corresponding Java class. */
+    private Class<?> javaClass;
+
     /**
      * Instantiates a new parameter type.
      *
      * @param toString
      *            the string representation
      */
-    private ParameterType(String toString) {
+    private ParameterType(String toString, Class<?> javaClass) {
         this.toString = toString;
+        this.javaClass = javaClass;
+    }
+
+    /**
+     * Returns the corresponding Java class.
+     * 
+     * @return the corresponding Java class or <code>null</code> if unknown (expression).
+     */
+    public Class<?> getJavaClass() {
+        return javaClass;
+    }
+
+    /**
+     * @param javaClass
+     *            the javaClass to set
+     */
+    public void setJavaClass(Class<?> javaClass) {
+        this.javaClass = javaClass;
     }
 
     /**

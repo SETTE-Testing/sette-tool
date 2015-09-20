@@ -34,6 +34,7 @@ import org.simpleframework.xml.stream.Format;
 
 import hu.bme.mit.sette.common.Tool;
 import hu.bme.mit.sette.common.exceptions.RunResultParserException;
+import hu.bme.mit.sette.common.model.parserxml.InputElement;
 import hu.bme.mit.sette.common.model.parserxml.SnippetElement;
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.parserxml.SnippetProjectElement;
@@ -122,6 +123,16 @@ public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
 
         if (inputsXml.getResultType() == null) {
             parseSnippet(snippet, inputsXml);
+
+            if (inputsXml.getGeneratedInputs().isEmpty()
+                    && (inputsXml.getResultType() == ResultType.S
+                            || inputsXml.getResultType() == ResultType.NC
+                            || inputsXml.getResultType() == ResultType.C)) {
+                // no inputs but S, add an empty one
+                inputsXml.getGeneratedInputs().add(new InputElement());
+
+                // NOTE maybe parameters with default values can be added as well
+            }
         }
 
         return inputsXml;

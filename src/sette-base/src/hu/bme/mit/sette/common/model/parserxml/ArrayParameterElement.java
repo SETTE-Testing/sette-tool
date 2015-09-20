@@ -83,4 +83,10 @@ public final class ArrayParameterElement extends AbstractParameterElement {
             // TODO validate elements for type
         }
     }
+
+    @Override
+    public Object getValueAsObject() {
+        // TODO implement
+        throw new RuntimeException("NOT SUPPORTED");
+    }
 }

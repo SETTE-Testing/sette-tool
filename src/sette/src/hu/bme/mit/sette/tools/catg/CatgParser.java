@@ -216,6 +216,5 @@ public class CatgParser extends RunResultParser<CatgTool> {
                 }
             }
         }
-
     }
 }

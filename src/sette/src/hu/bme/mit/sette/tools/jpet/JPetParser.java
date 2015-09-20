@@ -168,8 +168,11 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 new FileValidator(testCasesFile).type(FileType.REGULAR_FILE).validate();
 
                 if (testCasesFile.length() > 10 * 10e6) {
+                    // just to not kill the XML parser with extremely big files
                     // TODO enhance this section
-                    System.err.println("Filesize is bigger than 10 MB: " + testCasesFile);
+                    System.err.println(String.format("Filesize is bigger than 10 MB (%2d MB): %s",
+                            testCasesFile.length() / 10e6, 2, testCasesFile));
+                    throw new RuntimeException("Too big file");
                 }
                 // TODO it was used to dump the cases where jpet cannot decide
                 // coverage
@@ -192,6 +195,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 JPetTestCasesConverter.convert(snippet, testCasesParser.getTestCases(), inputsXml);
             }
 
+            // NOTE old code, revise and act
             // find input lines
             //
             // List<String> inputLines = new ArrayList<>();
@@ -224,7 +228,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
             // inputLines = new ArrayList<>(new LinkedHashSet<>(inputLines));
             //
             // String firstLine = inputLines.get(0);
-            // assert (firstLine.startsWith("Inputs: "));
+            // if (!firstLine.startsWith("Inputs: ")) throw new RuntimeException();
             // firstLine = firstLine.substring(7).trim();
             // String[] parameterStrings = StringUtils.split(firstLine, ',');
             // ParameterType[] parameterTypes = new

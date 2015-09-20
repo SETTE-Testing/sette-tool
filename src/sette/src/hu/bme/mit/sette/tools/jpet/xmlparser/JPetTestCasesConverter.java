@@ -56,6 +56,7 @@ public final class JPetTestCasesConverter {
                 inputsXml.getGeneratedInputs().add(inputElement);
             } else {
                 System.err.println("Invalid input, skip");
+                throw new RuntimeException("Invalid input, skip");
             }
         }
 

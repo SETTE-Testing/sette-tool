@@ -23,6 +23,10 @@
 // NOTE revise this file
 package hu.bme.mit.sette.common.model.parserxml;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.simpleframework.xml.Element;
 
@@ -148,6 +152,51 @@ public final class ParameterElement extends AbstractParameterElement {
                     throw new RuntimeException("Blank expression");
                 }
                 break;
+
+            default:
+                // TODO error handling
+                throw new RuntimeException("Unhandled parameter type: " + getType());
+        }
+    }
+
+    @Override
+    public Object getValueAsObject() {
+        switch (getType()) {
+            case BYTE:
+                return Byte.valueOf(value);
+
+            case SHORT:
+                return Short.valueOf(value);
+
+            case INT:
+                return Integer.valueOf(value);
+
+            case LONG:
+                return Long.valueOf(value);
+
+            case FLOAT:
+                return Float.valueOf(value);
+
+            case DOUBLE:
+                return Double.valueOf(value);
+
+            case BOOLEAN:
+                return Boolean.valueOf(value);
+
+            case CHAR:
+                return value.charAt(0);
+
+            case EXPRESSION:
+                try {
+                    // try if we can eval it regarding the expression as JS code
+                    ScriptEngineManager manager = new ScriptEngineManager();
+                    ScriptEngine engine = manager.getEngineByName("JavaScript");
+
+                    return engine.eval(value);
+                } catch (ScriptException ex) {
+                    // FIXME
+                    throw new RuntimeException("Not supported", ex);
+                }
 
             default:
                 // TODO error handling

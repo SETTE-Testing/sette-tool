@@ -77,11 +77,14 @@ public class SpfParser extends RunResultParser<SpfTool> {
             } else if (firstLine.startsWith("***********Warning: everything false")) {
                 // TODO enhance
                 // now skip
-            } else if (snippet.getMethod().toString().contains("_Constants")
-                    || snippet.getMethod().toString().contains(".always()")) {
+            } else if (firstLine.startsWith(
+                    "java.lang.RuntimeException: ERROR: you need to turn debug option on")) {
                 // TODO JPF/SPF compilation differences between javac and ecj:
                 // https://groups.google.com/forum/#!topic/java-pathfinder/jhOkvLx-SKE
                 // now just accept
+
+                // constant() and always() exception snippets (void return value and no parameters
+                // -> useless methods)
             } else {
                 // TODO error handling
 
@@ -104,50 +107,50 @@ public class SpfParser extends RunResultParser<SpfTool> {
             // TODO enhance
             inputsXml.setResultType(ResultType.S);
 
-            if (snippet.getMethod().toString().contains("_Constants")
-                    || snippet.getMethod().toString().contains(".always()")) {
-                // TODO JPF/SPF compilation differences between javac and ecj:
-                // https://groups.google.com/forum/#!topic/java-pathfinder/jhOkvLx-SKE
-                // now just accept
+            // if (snippet.getMethod().toString().contains("_Constants")
+            // || snippet.getMethod().toString().contains(".always()")) {
+            // // TODO JPF/SPF compilation differences between javac and ecj:
+            // // https://groups.google.com/forum/#!topic/java-pathfinder/jhOkvLx-SKE
+            // // now just accept
+            //
+            // // no inputs for constant tests, just call them once
+            // inputsXml.getGeneratedInputs().add(new InputElement());
+            // } else {
+            LineIterator lines = FileUtils.lineIterator(outputFile);
 
-                // no inputs for constant tests, just call them once
-                inputsXml.getGeneratedInputs().add(new InputElement());
-            } else {
-                LineIterator lines = FileUtils.lineIterator(outputFile);
+            // find input lines
 
-                // find input lines
-
-                List<String> inputLines = new ArrayList<>();
-                boolean shouldCollect = false;
-                while (lines.hasNext()) {
-                    String line = lines.next();
-                    if (line.trim().equals(
-                            "====================================================== Method Summaries")) {
-                        shouldCollect = true;
-                    } else if (shouldCollect) {
-                        if (line.startsWith(
-                                "======================================================")) {
-                            // start of next section
-                            shouldCollect = false;
-                            break;
-                        } else {
-                            if (!StringUtils.isBlank(line)) {
-                                inputLines.add(line.trim());
-                            }
+            List<String> inputLines = new ArrayList<>();
+            boolean shouldCollect = false;
+            while (lines.hasNext()) {
+                String line = lines.next();
+                if (line.trim().equals(
+                        "====================================================== Method Summaries")) {
+                    shouldCollect = true;
+                } else if (shouldCollect) {
+                    if (line.startsWith("======================================================")) {
+                        // start of next section
+                        shouldCollect = false;
+                        break;
+                    } else {
+                        if (!StringUtils.isBlank(line)) {
+                            inputLines.add(line.trim());
                         }
                     }
                 }
+            }
 
-                // close iterator
-                lines.close();
+            // close iterator
+            lines.close();
 
-                // remove duplicates
-                inputLines = new ArrayList<>(new LinkedHashSet<>(inputLines));
+            // remove duplicates
+            inputLines = new ArrayList<>(new LinkedHashSet<>(inputLines));
 
-                System.out.println(snippet.getMethod());
-
+            if (!inputLines.isEmpty()) {
                 String firstLine = inputLines.get(0);
-                assert(firstLine.startsWith("Inputs: "));
+                if (!firstLine.startsWith("Inputs: "))
+                    throw new RuntimeException();
+
                 firstLine = firstLine.substring(7).trim();
                 String[] parameterStrings = StringUtils.split(firstLine, ',');
                 ParameterType[] parameterTypes = new ParameterType[parameterStrings.length];
@@ -202,6 +205,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                         } else {
                             // TODO error handling
                             // int for something else
+                            System.out.println(snippet.getMethod());
                             System.err.println(parameterString);
                             throw new RuntimeException("PARSER PROBLEM");
                         }
@@ -288,7 +292,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                                     }
                                     System.err.println("=============================");
 
-                                    System.exit(-1);
+                                    throw new RuntimeException();
                                 }
 
                                 input.getParameters().add(pe);
@@ -319,6 +323,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                             inputsXml.getGeneratedInputs().add(input);
                         } else {
                             System.err.println("NO MATCH");
+                            System.err.println(snippet.getMethod());
                             System.err.println(ps);
                             System.err.println(line);
                             throw new Exception("NO MATCH: " + line);
@@ -326,6 +331,9 @@ public class SpfParser extends RunResultParser<SpfTool> {
                     }
                 }
             }
+
+            // inputsXml.getGeneratedInputs().add(new InputElement());
+            // }
             inputsXml.validate();
         }
     }

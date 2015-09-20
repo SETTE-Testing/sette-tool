@@ -95,4 +95,11 @@ public abstract class AbstractParameterElement implements XmlElement {
      *            a validator
      */
     abstract void validateValue(GeneralValidator validator);
+    
+    /**
+     * Returns the value as a Java object.
+     * 
+     * @return the value as a Java object.
+     */
+    public abstract Object getValueAsObject();
 }
