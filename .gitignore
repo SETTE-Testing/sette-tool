@@ -81,3 +81,7 @@ gradle-app.setting
 src/sette-base/.classpath
 *.project
 src/sette/.classpath
+src/sette/resources/junit.jar.res
+src/sette/.classpath
+src/sette/.classpath
+*.classpath
