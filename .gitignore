@@ -4,11 +4,16 @@ sette*.log
 sette-log4j2.xml
 sette.properties
 
+src/sette/resources/junit.jar.res
+
 ### Ant ###
 build/
 dist/
 
 ### Eclipse ###
+*.project
+*.classpath
+
 .project
 .classpath
 *.pydevproject
@@ -77,11 +82,3 @@ gradle-app.setting
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
-*.project
-src/sette-base/.classpath
-*.project
-src/sette/.classpath
-src/sette/resources/junit.jar.res
-src/sette/.classpath
-src/sette/.classpath
-*.classpath
