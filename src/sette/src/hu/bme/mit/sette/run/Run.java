@@ -331,9 +331,15 @@ public final class Run {
                         + "if missing then the setting in sette.properties will be used")
                 .build();
 
+        Option snippetProjectOption = Option.builder().longOpt("snippet-project").hasArg()
+                .argName("PROJECT_NAME").desc("Name of the snippet project use - "
+                        + "if missing then the setting in sette.properties will be used")
+                .build();
+
         options.addOption(helpOption).addOption(taskOption).addOption(toolOption)
                 .addOption(runnerProjectTagOption).addOption(skipBackupOption)
-                .addOption(createBackupOption).addOption(runnerTimeoutOption);
+                .addOption(createBackupOption).addOption(runnerTimeoutOption)
+                .addOption(snippetProjectOption);
 
         String task, toolName, runnerProjectTag;
 
@@ -361,6 +367,11 @@ public final class Run {
 
             if (line.hasOption("runner-timeout")) {
                 RUNNER_TIMEOUT_IN_MS = parseRunnerTimeout(line.getOptionValue("runner-timeout"));
+            }
+
+            if (line.hasOption("snippet-project")) {
+                SNIPPET_PROJECT = line.getOptionValue("snippet-project");
+                Validate.notBlank(SNIPPET_PROJECT, "The snippet-project must not be blank");
             }
         } catch (ParseException ex) {
             System.out.println("Cannot parse arguments: " + ex.getMessage());
