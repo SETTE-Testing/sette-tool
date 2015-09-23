@@ -28,6 +28,7 @@ import hu.bme.mit.sette.common.validator.GeneralValidator;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.convert.Convert;
 
@@ -131,6 +132,9 @@ public abstract class SnippetBaseXml implements XmlElement {
      *            the new result type
      */
     public final void setResultType(ResultType resultType) {
+        Validate.isTrue(this.resultType == null,
+                "The result type can be only set once [resultType: %s, newResultType: %s",
+                this.resultType, resultType);
         this.resultType = resultType;
     }
 

@@ -23,15 +23,16 @@
 // NOTE revise this file
 package hu.bme.mit.sette.common.model.parserxml;
 
+import java.util.List;
+
+import org.apache.commons.lang3.Validate;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Root;
+
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.validator.GeneralValidator;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.simpleframework.xml.ElementList;
-import org.simpleframework.xml.Root;
 
 /**
  * Represents an XML file containing the generated inputs for a snippet.
@@ -41,14 +42,17 @@ public final class SnippetInputsXml extends SnippetBaseXml {
     /** The generated inputs. */
     @ElementList(name = "generatedInputs", entry = "input", type = InputElement.class,
             required = false)
-    private List<InputElement> generatedInputs;
+    private List<InputElement> generatedInputs = null;
+
+    /** The number of the generated inputs. */
+    @Element(name = "generatedInputCount", required = false)
+    private Integer generatedInputCount = null;
 
     /**
      * Instantiates a new snippet inputs XML.
      */
     public SnippetInputsXml() {
         super();
-        generatedInputs = new ArrayList<InputElement>();
     }
 
     /**
@@ -67,7 +71,34 @@ public final class SnippetInputsXml extends SnippetBaseXml {
      *            the new list of generated inputs
      */
     public void setGeneratedInputs(List<InputElement> generatedInputs) {
+        Validate.isTrue(generatedInputCount == null,
+                "The generated input count property must be set to null before setting this variable");
         this.generatedInputs = generatedInputs;
+    }
+
+    /**
+     * Gets the generated input count.
+     *
+     * @return the generated input count
+     */
+    public Integer getGeneratedInputCount() {
+        if (generatedInputs != null) {
+            return generatedInputs.size();
+        } else {
+            return generatedInputCount;
+        }
+    }
+
+    /**
+     * Sets the generated input count if the list of generated inputs is <code>null</code>.
+     *
+     * @param generatedInputCount
+     *            the new generated input count
+     */
+    public void setGeneratedInputCount(Integer generatedInputCount) {
+        Validate.isTrue(generatedInputs == null,
+                "The list of generated inputs must be set to null before setting this variable");
+        this.generatedInputCount = generatedInputCount;
     }
 
     @Override
@@ -75,6 +106,15 @@ public final class SnippetInputsXml extends SnippetBaseXml {
         if (getResultType() == ResultType.NC || getResultType() == ResultType.C) {
             // TODO enable back?
             // validator.addException("The result type must not be NC or C");
+        }
+
+        if (getResultType() == null) {
+            validator.addException("The result type must not be null");
+        }
+
+        if (generatedInputCount != null && generatedInputs != null) {
+            validator.addException(
+                    "Only one of the generatedInputs and generatedInputCount properties can be specified");
         }
 
         if (generatedInputs == null) {
@@ -87,6 +127,29 @@ public final class SnippetInputsXml extends SnippetBaseXml {
                     validator.addChild(ex.getValidator());
                 }
             }
+        }
+
+        switch (getResultType()) {
+            case NA:
+            case EX:
+            case TM:
+                if (getGeneratedInputCount() != null && getGeneratedInputCount() != 0) {
+                    validator.addException(
+                            "N/A, EX and T/M results must not have any generated inputs");
+                }
+                break;
+
+            case S:
+            case NC:
+            case C:
+                if (getGeneratedInputCount() == null && getGeneratedInputCount() < 1) {
+                    validator.addException("S, NC and C results must have at least one input");
+                }
+                break;
+
+            default:
+                // NOTE
+                throw new RuntimeException("UNKNOWN RESULT TYPE");
         }
     }
 }

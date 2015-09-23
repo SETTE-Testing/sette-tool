@@ -23,21 +23,20 @@
 // NOTE revise this file
 package hu.bme.mit.sette.common.model.parserxml;
 
-import hu.bme.mit.sette.annotations.SetteRequiredStatementCoverage;
-import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.validator.GeneralValidator;
-
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
+
+import hu.bme.mit.sette.common.model.runner.ResultType;
+import hu.bme.mit.sette.common.validator.GeneralValidator;
 
 /**
  * Represents an XML file containing the result of the generation for a snippet.
  */
 @Root(name = "setteSnippetResult")
 public final class SnippetResultXml extends SnippetBaseXml {
-    /** The statement coverage. */
-    @Element(name = "statementCoverage")
-    private double statementCoverage;
+    /** The achieved coverage. */
+    @Element(name = "achievedCoverage")
+    private String achievedCoverage;
 
     /**
      * Instantiates a new snippet result XML.
@@ -45,23 +44,41 @@ public final class SnippetResultXml extends SnippetBaseXml {
     public SnippetResultXml() {
     }
 
-    /**
-     * Gets the statement coverage.
-     *
-     * @return the statement coverage
-     */
-    public double getStatementCoverage() {
-        return statementCoverage;
+    public static SnippetResultXml createForWithResult(SnippetInputsXml inputsXml,
+            ResultType resultType, String achievedCoverage) {
+        SnippetResultXml ret = new SnippetResultXml();
+        ret.setToolName(inputsXml.getToolName());
+        ret.setSnippetProjectElement(inputsXml.getSnippetProjectElement());
+        ret.setSnippetElement(inputsXml.getSnippetElement());
+        ret.setResultType(resultType);
+        ret.setAchievedCoverage(achievedCoverage);
+        return ret;
+    }
+
+    public static SnippetResultXml createForWithResult(SnippetInputsXml inputsXml,
+            ResultType resultType, double achievedCoverage) {
+        SnippetResultXml ret = new SnippetResultXml();
+        ret.setToolName(inputsXml.getToolName());
+        ret.setSnippetProjectElement(inputsXml.getSnippetProjectElement());
+        ret.setSnippetElement(inputsXml.getSnippetElement());
+        ret.setResultType(resultType);
+        ret.setAchievedCoverage(achievedCoverage);
+        return ret;
+    }
+
+    public String getAchievedCoverage() {
+        return achievedCoverage;
+    }
+
+    public void setAchievedCoverage(String achievedCoverage) {
+        this.achievedCoverage = achievedCoverage;
     }
 
     /**
-     * Sets the statement coverage.
-     *
-     * @param statementCoverage
-     *            the new statement coverage
+     * E.g.: 50.623453 -> 50.62%
      */
-    public void setStatementCoverage(double statementCoverage) {
-        this.statementCoverage = statementCoverage;
+    public void setAchievedCoverage(double achievedCoverage) {
+        this.achievedCoverage = String.format("%.2f%%", achievedCoverage);
     }
 
     @Override
@@ -70,10 +87,8 @@ public final class SnippetResultXml extends SnippetBaseXml {
             v.addException("The result type must not be S");
         }
 
-        if (statementCoverage < SetteRequiredStatementCoverage.MIN
-                || statementCoverage > SetteRequiredStatementCoverage.MAX) {
-            v.addException(String.format("The statement coverage must be between %.2f%% and %.2f%%",
-                    SetteRequiredStatementCoverage.MIN, SetteRequiredStatementCoverage.MAX));
+        if (achievedCoverage == null) {
+            v.addException("The achieved coverage of an execution must be set!");
         }
     }
 }

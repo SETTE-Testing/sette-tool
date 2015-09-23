@@ -45,7 +45,7 @@ public final class SnippetResultXmlMain {
         resultXml.setSnippetElement(new SnippetElement());
         resultXml.getSnippetElement().setContainerName("hu.bme.mit.sette.snippets.MyContainer");
         resultXml.getSnippetElement().setName("mySnippet");
-        resultXml.setStatementCoverage(95.6);
+        // resultXml.setStatementCoverage(95.6);
         resultXml.setResultType(ResultType.C);
 
         try {
