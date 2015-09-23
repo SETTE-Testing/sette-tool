@@ -63,6 +63,25 @@ public final class ToolRegister {
     }
 
     /**
+     * Gets the {@link Tool} object by its name.
+     *
+     * @param javaClass
+     *            the Java class of the tool
+     * @return the t
+     */
+    public static Tool get(String name) {
+        Validate.notBlank(name, "The name must not be blank");
+
+        for (Tool tool : ToolRegister.tools) {
+            if (tool.getName().equalsIgnoreCase(name)) {
+                return tool;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Adds a tool to the register.
      *
      * @param tool

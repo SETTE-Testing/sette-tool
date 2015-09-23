@@ -24,17 +24,27 @@
 package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 
 import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.exceptions.TestSuiteGeneratorException;
 import hu.bme.mit.sette.common.model.parserxml.AbstractParameterElement;
 import hu.bme.mit.sette.common.model.parserxml.InputElement;
@@ -49,6 +59,41 @@ import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.util.JavaFileUtils;
 
 public final class TestSuiteGenerator extends SetteTask<Tool> {
+    public static final String ANT_BUILD_TEST_FILENAME;
+    private static final String ANT_BUILD_TEST_DATA;
+
+    static {
+        ANT_BUILD_TEST_FILENAME = "build-test.xml";
+
+        List<String> lines = new ArrayList<>();
+        lines.add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        lines.add("<!-- Build file for compiling tests -->");
+        lines.add("<project default=\"compile-test\">");
+        lines.add("    <import file=\"build.xml\" />");
+        lines.add("");
+        lines.add("    <target name=\"compile-test\">");
+        lines.add("        <mkdir dir=\"build\" />");
+        lines.add(
+                "        <javac destdir=\"build\" includeantruntime=\"false\" source=\"${source}\" target=\"${target}\" debug=\"on\" nowarn=\"on\">");
+        lines.add("            <compilerarg value=\"-Xlint:none\" />");
+        lines.add("            <compilerarg value=\"-encoding\" />");
+        lines.add("            <compilerarg value=\"UTF8\" />");
+        lines.add("            <classpath>");
+        lines.add("                <pathelement path=\"junit.jar\" />");
+        lines.add("                <fileset dir=\"snippet-libs\">");
+        lines.add("                    <include name=\"**/*.jar\" />");
+        lines.add("                </fileset>");
+        lines.add("            </classpath>");
+        lines.add("            <src path=\"snippet-src\" />");
+        lines.add("            <src path=\"test\" />");
+        lines.add("        </javac>");
+        lines.add("    </target>");
+        lines.add("</project>");
+        lines.add("");
+
+        ANT_BUILD_TEST_DATA = String.join("\n", lines);
+    }
+
     public TestSuiteGenerator(SnippetProject snippetProject, File outputDirectory, Tool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);
@@ -61,14 +106,22 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
         }
 
         File testDir = getRunnerProjectSettings().getTestDirectory();
-        if (testDir.exists()) {
-            System.out.println("Removing test dir");
-            FileUtils.forceDelete(testDir);
+
+        // FIXME
+        if (getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+            if (testDir.exists()) {
+                System.out.println("Removing test dir");
+                FileUtils.forceDelete(testDir);
+            }
         }
 
         FileUtils.forceMkdir(testDir);
 
         Serializer serializer = new Persister(new AnnotationStrategy());
+
+        //
+        // Generate test classes
+        //
 
         // foreach containers
         for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
@@ -103,176 +156,269 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
                 // set back the original class loader
                 Thread.currentThread().setContextClassLoader(originalClassLoader);
 
-                if (inputsXml.getResultType() != ResultType.S
-                        && inputsXml.getResultType() != ResultType.C
-                        && inputsXml.getResultType() != ResultType.NC) {
-                    // skip!
+                // skip N/A, EX, T/M
+                if (inputsXml.getResultType() != ResultType.S) {
+                    if (inputsXml.getResultType() == ResultType.NC
+                            || inputsXml.getResultType() == ResultType.C) {
+                        System.err.println("Skipping " + inputsXml.getResultType() + " file: "
+                                + inputsXmlFile.getName());
+                    }
+
                     continue;
                 }
 
-                if (inputsXml.getGeneratedInputs().size() == 0) {
-                    System.err.println("No inputs: " + inputsXmlFile);
+                if (inputsXml.getGeneratedInputCount() == 0
+                        && getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+                    System.err.println("No inputs: " + inputsXmlFile.getName());
                 }
 
                 Class<?> javaClass = container.getJavaClass();
                 Package pkg = javaClass.getPackage();
                 Method method = snippet.getMethod();
 
-                StringBuilder java = new StringBuilder();
+                // FIXME
+                if (getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+                    StringBuilder java = new StringBuilder();
 
-                String classSimpleName = javaClass.getSimpleName() + '_' + method.getName()
-                        + "_Test";
-                String className = pkg.getName() + "." + classSimpleName;
+                    String classSimpleName = javaClass.getSimpleName() + '_' + method.getName()
+                            + "_Test";
+                    String className = pkg.getName() + "." + classSimpleName;
 
-                java.append("package ").append(pkg.getName()).append(";\n");
-                java.append("\n");
-                java.append("import junit.framework.TestCase;\n");
-                java.append("import ").append(container.getJavaClass().getName()).append(";\n");
-                java.append("\n");
-                java.append("public final class ").append(classSimpleName)
-                        .append(" extends TestCase {\n");
+                    java.append("package ").append(pkg.getName()).append(";\n");
+                    java.append("\n");
+                    java.append("import junit.framework.TestCase;\n");
+                    java.append("import ").append(container.getJavaClass().getName()).append(";\n");
+                    java.append("\n");
+                    java.append("public final class ").append(classSimpleName)
+                            .append(" extends TestCase {\n");
 
-                int i = 0;
-                for (InputElement inputElement : inputsXml.getGeneratedInputs()) {
-                    i++;
+                    int i = 0;
+                    for (InputElement inputElement : inputsXml.getGeneratedInputs()) {
+                        i++;
 
-                    // throws if required to prevent compile errors
-                    java.append("    public void test_").append(i)
-                            .append("() throws Exception {\n");
-
-                    // heap
-                    if (StringUtils.isNotBlank(inputElement.getHeap())) {
-                        for (String heapLine : inputElement.getHeap().split("\\r?\\n")) {
-                            java.append("        ").append(heapLine).append('\n');
-                        }
-
-                        java.append("        \n");
-                    }
-                    java.append("        \n");
-
-                    // try-catch for exception if any expected
-                    if (inputElement.getExpected() != null) {
-                        java.append("        try {\n");
-                        java.append("            ")
-                                .append(createMethodCallString(javaClass, method, inputElement))
-                                .append(";\n");
-                        java.append("            fail();\n");
-                        java.append("        } catch (").append(inputElement.getExpected())
-                                .append(" ex) {\n");
-                        // empty catch
-                        java.append("        }\n");
-                    } else {
-                        // append method call and assert
-                        List<AbstractParameterElement> params = inputElement.getParameters();
-                        Object[] methodParams = new Object[params.size()];
-
-                        try {
-                            int ii = 0;
-                            for (AbstractParameterElement ape : params) {
-                                methodParams[ii] = ape.getValueAsObject();
-                                ii++;
-                            }
-
-                            Class<?> snippetReturnType = snippet.getMethod().getReturnType();
-                            Object returnValue = snippet.getMethod().invoke(null, methodParams);
-                            if (snippetReturnType == Void.class
-                                    || (returnValue != null && returnValue.toString()
-                                            .startsWith(snippetReturnType.getName() + "@"))) {
-                                // no return value or object return type written as tostring()
-                                // NOTE fix in the future
-                                // no assert, only method call
-                                java.append("        ").append(
-                                        createMethodCallString(javaClass, method, inputElement))
-                                        .append(";\n");
-                            } else {
-                                String returnValueStr;
-                                if (returnValue == null) {
-                                    returnValueStr = "null";
-                                } else {
-                                    returnValueStr = getParamValueAsString(snippetReturnType,
-                                            returnValue.toString());
-                                }
-
-                                // add cast if primitive value and boxed return type
-                                if (!snippetReturnType.isPrimitive()) {
-                                    Class<?> asPrimitive = ClassUtils
-                                            .wrapperToPrimitive(snippetReturnType);
-                                    if (asPrimitive != null) {
-                                        // boxed type
-                                        returnValueStr = String.format("(%s) (%s)",
-                                                snippetReturnType.getSimpleName(), returnValueStr);
-                                    }
-                                }
-
-                                // NOTE this code casts both ret and call to primitive, if not
-                                // casted -> revise
-                                //
-                                // String castRet = "";
-                                // String castCall = "";
-                                // if (snippet.getMethod().getReturnType().isPrimitive()) {
-                                // String tn = snippet.getMethod().getReturnType().getName();
-                                // String cast = String.format("(%s)", tn);
-                                //
-                                // if (returnValueStr.trim().startsWith(cast)) {
-                                // // only if not casted yet
-                                // castRet = cast;
-                                // }
-                                // castCall = cast;
-                                // } else if (returnValue.get) {
-                                //
-                                // }
-
-                                // append line
-                                java.append(String.format("        assertEquals(%s, %s);",
-                                        returnValueStr,
-                                        createMethodCallString(javaClass, method, inputElement)))
-                                        .append("\n");
-                            }
-                        } catch (Exception ex) {
-                            // the test might fail, the tool has not recorded the exception
-                            // (or just heap)
-                            java.append("        ")
-                                    .append(createMethodCallString(javaClass, method, inputElement))
-                                    .append(";\n");
+                        CharSequence javaMethod = generateTestCaseMethod(snippet, i, inputElement);
+                        if (javaMethod != null) {
+                            java.append(javaMethod);
                         }
                     }
 
-                    java.append("        \n");
-                    java.append("    }\n\n");
+                    java.append("}\n");
+
+                    File testFile = new File(testDir,
+                            JavaFileUtils.classNameToSourceFilename(className));
+                    FileUtils.write(testFile, java.toString());
+
+                    // import junit.framework.TestCase;
+                    // import
+                    // hu.bme.mit.sette.snippets._1_basic.B2_conditionals.B2a_IfElse;
+                    //
+                    // public final class B2a_IfElse_oneParamInt_Test extends
+                    // TestCase {
+                    // public void test_1() {
+                    // B2a_IfElse.oneParamInt(1);
+                    // }
+                    //
+                    // public void test_2() {
+                    // B2a_IfElse.oneParamInt(0);
+                    // }
+                    //
+                    // public void test_3() {
+                    // B2a_IfElse.oneParamInt(-1);
+                    // }
+                    //
+                    // public void test_4() {
+                    // B2a_IfElse.oneParamInt(12345);
+                    // }
+                    // }
                 }
-
-                java.append("}\n");
-
-                File testFile = new File(testDir,
-                        JavaFileUtils.classNameToSourceFilename(className));
-                FileUtils.write(testFile, java.toString());
-
-                // import junit.framework.TestCase;
-                // import
-                // hu.bme.mit.sette.snippets._1_basic.B2_conditionals.B2a_IfElse;
-                //
-                // public final class B2a_IfElse_oneParamInt_Test extends
-                // TestCase {
-                // public void test_1() {
-                // B2a_IfElse.oneParamInt(1);
-                // }
-                //
-                // public void test_2() {
-                // B2a_IfElse.oneParamInt(0);
-                // }
-                //
-                // public void test_3() {
-                // B2a_IfElse.oneParamInt(-1);
-                // }
-                //
-                // public void test_4() {
-                // B2a_IfElse.oneParamInt(12345);
-                // }
-                // }
-
             }
         }
 
+        //
+        // Generate ant build file and copy junit.jar
+        //
+        // FIXME
+        File antBuiltTestFile = new File(getRunnerProjectSettings().getBaseDirectory(),
+                ANT_BUILD_TEST_FILENAME);
+        File jUnitJar = new File(getRunnerProjectSettings().getBaseDirectory(), "junit.jar");
+        if (antBuiltTestFile.exists()) {
+            // NOTE better ex type
+            Validate.isTrue(antBuiltTestFile.delete());
+        }
+        if (jUnitJar.exists()) {
+            // NOTE better ex type
+            Validate.isTrue(jUnitJar.delete());
+        }
+
+        FileUtils.write(antBuiltTestFile, ANT_BUILD_TEST_DATA);
+
+        try (InputStream is = getSetteJUnitJarInputStream()) {
+            try (OutputStream os = new FileOutputStream(jUnitJar)) {
+                IOUtils.copy(is, os);
+            } catch (IOException ex) {
+                // NOTE better ex
+                throw new RuntimeException(ex);
+            }
+        } catch (IOException ex) {
+            // NOTE better ex
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static CharSequence generateTestCaseMethod(Snippet snippet, int i,
+            InputElement inputElement) {
+        Class<?> javaClass = snippet.getContainer().getJavaClass();
+        Method method = snippet.getMethod();
+        StringBuilder methodCode = new StringBuilder();
+
+        Class<?>[] snippetParameterTypes = snippet.getMethod().getParameterTypes();
+        Class<?> snippetReturnType = snippet.getMethod().getReturnType();
+
+        for (int j = 0; j < snippetParameterTypes.length; j++) {
+            Class<?> spt = ClassUtils.primitiveToWrapper(snippetParameterTypes[j]);
+
+            // NOTE array parameter element is not handled since it is not used now
+            ParameterElement ipt = (ParameterElement) inputElement.getParameters().get(j);
+
+            if (ipt.getType() != ParameterType.EXPRESSION) {
+                Class<?> generated = ClassUtils.primitiveToWrapper(ipt.getType().getJavaClass());
+                if (spt != generated && !spt.isAssignableFrom(generated)) {
+                    System.err.println("Incompatible generated parameter type");
+                    System.err.println("Snippet: " + method.getName());
+                    System.err.println("Expected: " + spt.getName());
+                    System.err.println("Generated: " + generated.getName());
+                    System.err.println("Skipping test case " + i);
+                    return null;
+                }
+            } else {
+                // NOTE spf generates int for strings
+                if (spt.equals(String.class) && ipt.getType() == ParameterType.EXPRESSION) {
+                    try {
+                        Long.parseLong(ipt.getValue());
+                        // NOTE parsed as number, however, if it is String it should start with "
+                        // (like "mystring") (or it van be variable which must not start with
+                        // number)
+
+                        System.err.println("Number cannot be Stirng");
+                        System.err.println("Snippet: " + method.getName());
+                        System.err.println("Expected: " + spt.getName());
+                        System.err.println("Generated Java expression: " + ipt.getValue());
+                        System.err.println("Skipping test case " + i);
+                        return null;
+                    } catch (NumberFormatException ex) {
+                        // NOTE not long, assume it is ok
+                    }
+                }
+            }
+        }
+
+        // throws if required to prevent compile errors
+        methodCode.append("    public void test_").append(i).append("() throws Exception {\n");
+
+        // heap
+        if (StringUtils.isNotBlank(inputElement.getHeap())) {
+            for (String heapLine : inputElement.getHeap().split("\\r?\\n")) {
+                methodCode.append("        ").append(heapLine).append('\n');
+            }
+
+            methodCode.append("        \n");
+        }
+        methodCode.append("        \n");
+
+        // try-catch for exception if any expected
+        if (inputElement.getExpected() != null) {
+            methodCode.append("        try {\n");
+            methodCode.append("            ")
+                    .append(createMethodCallString(javaClass, method, inputElement)).append(";\n");
+            methodCode.append("            fail();\n");
+            methodCode.append("        } catch (").append(inputElement.getExpected())
+                    .append(" ex) {\n");
+            // empty catch
+            methodCode.append("        }\n");
+        } else {
+            // append method call and assert
+            List<AbstractParameterElement> params = inputElement.getParameters();
+            Object[] methodParams = new Object[params.size()];
+
+            try {
+                int ii = 0;
+                for (AbstractParameterElement ape : params) {
+                    methodParams[ii] = ape.getValueAsObject();
+                    ii++;
+                }
+
+                Object returnValue;
+                if (snippet.getMethod().getName().startsWith("infinite")) {
+                    // infinite method, do not call
+                    returnValue = RunResultParser.getDefaultParameterValue(snippetReturnType);
+                } else {
+                    returnValue = snippet.getMethod().invoke(null, methodParams);
+                }
+
+                if (snippetReturnType == Void.class || (returnValue != null
+                        && returnValue.toString().startsWith(snippetReturnType.getName() + "@"))) {
+                    // no return value or object return type written as tostring()
+                    // NOTE fix in the future
+                    // no assert, only method call
+                    methodCode.append("        ")
+                            .append(createMethodCallString(javaClass, method, inputElement))
+                            .append(";\n");
+                } else {
+                    String returnValueStr;
+                    if (returnValue == null) {
+                        returnValueStr = "null";
+                    } else {
+                        returnValueStr = getParamValueAsString(snippetReturnType,
+                                returnValue.toString());
+                    }
+
+                    // add cast if primitive value and boxed return type
+                    if (!snippetReturnType.isPrimitive()) {
+                        Class<?> asPrimitive = ClassUtils.wrapperToPrimitive(snippetReturnType);
+                        if (asPrimitive != null) {
+                            // boxed type
+                            returnValueStr = String.format("(%s) (%s)",
+                                    snippetReturnType.getSimpleName(), returnValueStr);
+                        }
+                    }
+
+                    // NOTE this code casts both ret and call to primitive, if not
+                    // casted -> revise
+                    //
+                    // String castRet = "";
+                    // String castCall = "";
+                    // if (snippet.getMethod().getReturnType().isPrimitive()) {
+                    // String tn = snippet.getMethod().getReturnType().getName();
+                    // String cast = String.format("(%s)", tn);
+                    //
+                    // if (returnValueStr.trim().startsWith(cast)) {
+                    // // only if not casted yet
+                    // castRet = cast;
+                    // }
+                    // castCall = cast;
+                    // } else if (returnValue.get) {
+                    //
+                    // }
+
+                    // append line
+                    methodCode
+                            .append(String.format("        assertEquals(%s, %s);", returnValueStr,
+                                    createMethodCallString(javaClass, method, inputElement)))
+                            .append("\n");
+                }
+            } catch (Exception ex) {
+                // the test might fail, the tool has not recorded the exception
+                // (or just heap)
+                methodCode.append("        ")
+                        .append(createMethodCallString(javaClass, method, inputElement))
+                        .append(";\n");
+            }
+        }
+
+        methodCode.append("        \n");
+        methodCode.append("    }\n\n");
+
+        return methodCode;
     }
 
     // public final void generate() throws Exception {
@@ -415,5 +561,35 @@ public final class TestSuiteGenerator extends SetteTask<Tool> {
         }
 
         return ret;
+    }
+
+    // NOTE should move somewhere else
+    public static InputStream getSetteJUnitJarInputStream() {
+        // search with the classloader
+        URL url = TestSuiteGenerator.class.getClassLoader().getResource("junit.jar.res");
+
+        if (url == null) {
+            // search on classpath
+            for (URL u : ((URLClassLoader) (Thread.currentThread().getContextClassLoader()))
+                    .getURLs()) {
+                // search for a valid JUnit jar
+                // examples: junit.jar, junit-junit.jar, junit-4.12.jar
+                if (u.toString().replace('\\', '/').matches("^.*junit[0-9.-]*[.]jar$")) {
+                    url = u;
+                }
+            }
+        }
+
+        if (url == null) {
+            // NOTE make it better
+            throw new RuntimeException("JUnit was not found");
+        } else {
+            try {
+                return url.openStream();
+            } catch (IOException ex) {
+                // NOTE make it better
+                throw new RuntimeException(ex);
+            }
+        }
     }
 }

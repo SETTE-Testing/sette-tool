@@ -24,21 +24,27 @@
 package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
@@ -57,6 +63,12 @@ import org.simpleframework.xml.stream.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+
 import hu.bme.mit.sette.common.Tool;
 import hu.bme.mit.sette.common.exceptions.TestSuiteRunnerException;
 import hu.bme.mit.sette.common.model.parserxml.FileCoverageElement;
@@ -64,11 +76,17 @@ import hu.bme.mit.sette.common.model.parserxml.SnippetCoverageXml;
 import hu.bme.mit.sette.common.model.parserxml.SnippetElement;
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.parserxml.SnippetProjectElement;
+import hu.bme.mit.sette.common.model.parserxml.SnippetResultXml;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
+import hu.bme.mit.sette.common.util.process.ProcessRunner;
+import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
+import hu.bme.mit.sette.common.validator.FileType;
+import hu.bme.mit.sette.common.validator.FileValidator;
+import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
@@ -92,6 +110,67 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
             throw new TestSuiteRunnerException("test dir does not exist", this);
         }
 
+        // call ant build
+        // ant build
+        ProcessRunner pr = new ProcessRunner();
+        pr.setPollIntervalInMs(1000);
+        if (SystemUtils.IS_OS_WINDOWS) {
+            pr.setCommand(new String[] { "cmd.exe", "/c",
+                    "ant -buildfile " + TestSuiteGenerator.ANT_BUILD_TEST_FILENAME });
+        } else {
+            pr.setCommand(new String[] { "/bin/bash", "-c",
+                    "ant -buildfile " + TestSuiteGenerator.ANT_BUILD_TEST_FILENAME });
+        }
+        pr.setWorkingDirectory(getRunnerProjectSettings().getBaseDirectory());
+        pr.addListener(new ProcessRunnerListener() {
+            @Override
+            public void onTick(ProcessRunner processRunner, long elapsedTimeInMs) {
+                System.out.println("ant build tick: " + elapsedTimeInMs);
+            }
+
+            @Override
+            public void onIOException(ProcessRunner processRunner, IOException ex) {
+                // TODO handle error
+                ex.printStackTrace();
+            }
+
+            @Override
+            public void onComplete(ProcessRunner processRunner) {
+                if (processRunner.getStdout().length() > 0) {
+                    System.out.println("Ant build output:");
+                    System.out.println("========================================");
+                    System.out.println(processRunner.getStdout().toString());
+                    System.out.println("========================================");
+                }
+
+                if (processRunner.getStderr().length() > 0) {
+                    System.out.println("Ant build error output:");
+                    System.out.println("========================================");
+                    System.out.println(processRunner.getStderr().toString());
+                    System.out.println("========================================");
+                    System.out.println("Terminating");
+                }
+            }
+
+            @Override
+            public void onStdoutRead(ProcessRunner processRunner, int charactersRead) {
+                // not needed
+            }
+
+            @Override
+            public void onStderrRead(ProcessRunner processRunner, int charactersRead) {
+                // not needed
+            }
+        });
+
+        pr.execute();
+
+        if (pr.getStderr().length() > 0) {
+            // TODO enchance error handling
+            throw new RuntimeException("ant build has failed");
+        }
+
+        //
         Serializer serializer = new Persister(new AnnotationStrategy());
 
         // binary directories for the JaCoCoClassLoader
@@ -102,51 +181,84 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
 
         // foreach containers
         for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
-            // skip container with higher java version than supported
-            if (container.getRequiredJavaVersion()
-                    .compareTo(getTool().getSupportedJavaVersion()) > 0) {
-                // TODO error handling
-                System.err.println("Skipping container: " + container.getJavaClass().getName()
-                        + " (required Java version: " + container.getRequiredJavaVersion() + ")");
-                continue;
-            }
-
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
                 File inputsXmlFile = RunnerProjectUtils
                         .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
                 if (!inputsXmlFile.exists()) {
-                    System.err.println("Missing: " + inputsXmlFile);
+                    throw new RuntimeException("Missing inputsXML: " + inputsXmlFile);
+                }
+
+                // it is now tricky, classloader hell
+                SnippetInputsXml inputsXml;
+                {
+                    // save current class loader
+                    ClassLoader originalClassLoader = Thread.currentThread()
+                            .getContextClassLoader();
+
+                    // set snippet project class loader
+                    Thread.currentThread()
+                            .setContextClassLoader(getSnippetProject().getClassLoader());
+
+                    // read data
+                    inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
+
+                    // set back the original class loader
+                    Thread.currentThread().setContextClassLoader(originalClassLoader);
+                }
+
+                // skip N/A, EX, T/M
+                if (inputsXml.getResultType() != ResultType.S) {
+                    if (inputsXml.getResultType() == ResultType.NC
+                            || inputsXml.getResultType() == ResultType.C) {
+                        // NOTE avoid spamming
+                        // System.err.println("Skipping " + inputsXml.getResultType() + " file: "
+                        // + inputsXmlFile.getName());
+                    }
+
+                    // create results xml
+                    SnippetResultXml resultXml = SnippetResultXml.createForWithResult(inputsXml,
+                            inputsXml.getResultType(), snippet.getRequiredStatementCoverage());
+                    resultXml.validate();
+
+                    // TODO needs more documentation
+                    File resultFile = RunnerProjectUtils
+                            .getSnippetResultFile(getRunnerProjectSettings(), snippet);
+
+                    Serializer serializerWrite = new Persister(new AnnotationStrategy(),
+                            new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
+
+                    serializerWrite.write(resultXml, resultFile);
+
                     continue;
                 }
 
-                // save current class loader
-                ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
-
-                // set snippet project class loader
-                Thread.currentThread().setContextClassLoader(getSnippetProject().getClassLoader());
-
-                // read data
-                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
-
-                // set back the original class loader
-                Thread.currentThread().setContextClassLoader(originalClassLoader);
-
-                if (inputsXml.getResultType() != ResultType.S
-                        && inputsXml.getResultType() != ResultType.C
-                        && inputsXml.getResultType() != ResultType.NC) {
-                    // skip!
-                    continue;
+                if (inputsXml.getGeneratedInputCount() == 0) {
+                    // throw new RuntimeException("No inputs: " + inputsXmlFile);
                 }
 
-                if (inputsXml.getGeneratedInputs().size() == 0) {
-                    System.err.println("No inputs: " + inputsXmlFile);
-                }
-
-                // toto remove try-catch
+                // NOTE remove try-catch
                 try {
-                    analyzeOne(snippet, binaryDirectories);
+                    // analyze
+                    SnippetCoverageXml coverageXml = analyzeOne(snippet, binaryDirectories);
+
+                    // create results xml
+                    SnippetResultXml resultXml = SnippetResultXml.createForWithResult(inputsXml,
+                            coverageXml.getResultType(), coverageXml.getAchievedCoverage());
+                    resultXml.validate();
+
+                    // TODO needs more documentation
+                    File resultFile = RunnerProjectUtils
+                            .getSnippetResultFile(getRunnerProjectSettings(), snippet);
+
+                    Serializer serializerWrite = new Persister(new AnnotationStrategy(),
+                            new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
+
+                    serializerWrite.write(resultXml, resultFile);
+                } catch (ValidatorException ex) {
+                    System.err.println(ex.getFullMessage());
+                    throw new RuntimeException("Validation failed");
                 } catch (Exception ex) {
                     // now dump and go on
                     ex.printStackTrace();
@@ -154,11 +266,27 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
             }
         }
 
+        // NOTE check whether all inputs and info files are created
+        // foreach containers
+        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
+            // foreach snippets
+            for (Snippet snippet : container.getSnippets().values()) {
+                File resultXmlFile = RunnerProjectUtils
+                        .getSnippetResultFile(getRunnerProjectSettings(), snippet);
+
+                new FileValidator(resultXmlFile).type(FileType.REGULAR_FILE).validate();
+            }
+        }
+
         // TODO remove debug
         System.err.println("=> ANALYZE ENDED");
     }
 
-    private void analyzeOne(Snippet snippet, File[] binaryDirectories) throws Exception {
+    private SnippetCoverageXml analyzeOne(Snippet snippet, File[] binaryDirectories)
+            throws Exception {
+        //
+        // Initialize
+        //
         String snippetClassName = snippet.getContainer().getJavaClass().getName();
         String snippetMethodName = snippet.getMethod().getName();
         String testClassName = snippet.getContainer().getJavaClass().getName() + "_"
@@ -176,16 +304,20 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
         runtime.startup(data);
 
         // create class loader
-        JaCoCoClassLoader classLoader = new JaCoCoClassLoader(binaryDirectories, instrumenter,
+        JaCoCoClassLoader testClassLoader = new JaCoCoClassLoader(binaryDirectories, instrumenter,
                 getSnippetProject().getClassLoader());
 
         // load test class
         // snippet class and other dependencies will be loaded and instrumented
         // on the fly
-        List<Class<?>> testClasses = loadTestClasses(classLoader, testClassName);
+        List<Class<?>> testClasses = loadTestClasses(testClassLoader, testClassName);
 
-        // invoke test methods in each test class
+        //
+        // Invoke test methods in each test class
+        //
         for (Class<?> testClass : testClasses) {
+            System.err.println("Test runner: Test class: " + testClass.getName());
+
             TestCase testClassInstance = (TestCase) testClass.newInstance();
             // TODO separate collect and invoke
             for (Method m : testClass.getDeclaredMethods()) {
@@ -195,9 +327,16 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                 }
 
                 if (m.getName().startsWith("test")) {
-                    logger.trace("Invoking: " + m.getName());
                     try {
-                        m.invoke(testClassInstance);
+                        // NOTE skip infinite, consider using timeout
+                        if (!snippet.getMethod().getName().contains("infinite")) {
+                            logger.trace("Invoking: " + m.getName());
+                            // NOTE maybe thread and kill it thread if takes too much time?
+                            m.invoke(testClassInstance);
+                        } else {
+                            System.err.println("Not Invoking: " + m.getName());
+                            logger.trace("Not invoking: " + m.getName());
+                        }
                     } catch (InvocationTargetException ex) {
                         Throwable cause = ex.getCause();
 
@@ -218,7 +357,9 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
             }
         }
 
-        // collect data
+        //
+        // Collect data
+        //
         ExecutionDataStore executionData = new ExecutionDataStore();
         SessionInfoStore sessionInfos = new SessionInfoStore();
         data.collect(executionData, sessionInfos, false);
@@ -247,7 +388,7 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
             while (true) {
                 // guess anonymous classes, like ClassName$1, ClassName$2 etc.
                 try {
-                    classLoader.loadClass(javaClass + "$" + i);
+                    testClassLoader.loadClass(javaClass + "$" + i);
                     toAdd.add(javaClass + "$" + i);
                     i++;
                 } catch (ClassNotFoundException ex) {
@@ -264,7 +405,7 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
 
         for (String javaClassName : javaClasses) {
             logger.trace("Analysing: {}", javaClassName);
-            analyzer.analyzeClass(classLoader.readBytes(javaClassName), javaClassName);
+            analyzer.analyzeClass(testClassLoader.readBytes(javaClassName), javaClassName);
         }
 
         // TODO remove debug
@@ -313,6 +454,11 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
             }
         }
 
+        // decide result type
+        Pair<ResultType, Double> resultTypeAndCoverage = decideResultType(snippet, coverageInfo);
+        ResultType resultType = resultTypeAndCoverage.getLeft();
+        double coverage = resultTypeAndCoverage.getRight();
+
         // create coverage XML
         SnippetCoverageXml coverageXml = new SnippetCoverageXml();
         coverageXml.setToolName(getTool().getName());
@@ -322,7 +468,8 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
         coverageXml.setSnippetElement(new SnippetElement(
                 snippet.getContainer().getJavaClass().getName(), snippet.getMethod().getName()));
 
-        coverageXml.setResultType(ResultType.S);
+        coverageXml.setResultType(resultType);
+        coverageXml.setAchievedCoverage(coverage);
 
         for (Entry<String, Triple<TreeSet<Integer>, TreeSet<Integer>, TreeSet<Integer>>> entry : coverageInfo
                 .entrySet()) {
@@ -350,110 +497,175 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
 
         serializer.write(coverageXml, coverageFile);
 
-        // TODO move HTML generation to another file/phase
-        File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(getRunnerProjectSettings(), snippet);
+        // generate html
+        new HtmlGenerator().generate(snippet, coverageXml);
 
-        String htmlTitle = getTool().getName() + " - " + snippetClassName + '.' + snippetMethodName
-                + "()";
-        StringBuilder htmlData = new StringBuilder();
-        htmlData.append("<!DOCTYPE html>\n");
-        htmlData.append("<html lang=\"hu\">\n");
-        htmlData.append("<head>\n");
-        htmlData.append("       <meta charset=\"utf-8\" />\n");
-        htmlData.append("       <title>" + htmlTitle + "</title>\n");
-        htmlData.append("       <style type=\"text/css\">\n");
-        htmlData.append("               .code { font-family: 'Consolas', monospace; }\n");
-        htmlData.append(
-                "               .code .line { border-bottom: 1px dotted #aaa; white-space: pre; }\n");
-        htmlData.append("               .code .green { background-color: #CCFFCC; }\n");
-        htmlData.append("               .code .yellow { background-color: #FFFF99; }\n");
-        htmlData.append("               .code .red { background-color: #FFCCCC; }\n");
-        htmlData.append("               .code .line .number {\n");
-        htmlData.append("                       display: inline-block;\n");
-        htmlData.append("                       width:50px;\n");
-        htmlData.append("                       text-align:right;\n");
-        htmlData.append("                       margin-right:5px;\n");
-        htmlData.append("               }\n");
-        htmlData.append("       </style>\n");
-        htmlData.append("</head>\n");
-        htmlData.append("\n");
-        htmlData.append("<body>\n");
-        htmlData.append("       <h1>" + htmlTitle + "</h1>\n");
+        return coverageXml;
+    }
 
-        for (FileCoverageElement fce : coverageXml.getCoverage()) {
-            htmlData.append("       <h2>" + fce.getName() + "</h2>\n");
-            htmlData.append("       \n");
+    private Pair<ResultType, Double> decideResultType(Snippet snippet,
+            Map<String, Triple<TreeSet<Integer>, TreeSet<Integer>, TreeSet<Integer>>> coverageInfo)
+                    throws Exception {
+        int linesToCover = 0;
+        int linesCovered = 0;
 
-            File src = new File(getSnippetProject().getSettings().getSnippetSourceDirectory(),
-                    fce.getName());
-            List<String> srcLines = FileUtils.readLines(src);
+        // iterate through files
+        for (String relJavaFile : coverageInfo.keySet()) {
+            // relJavaFile: hu/bme/mit/sette/snippets/_1_basic/B3_loops/B3c_DoWhile.java
+            File javaFile = new File(getSnippetProjectSettings().getSnippetSourceDirectory(),
+                    relJavaFile);
 
-            SortedSet<Integer> full = linesToSortedSet(fce.getFullyCoveredLines());
-            SortedSet<Integer> partial = linesToSortedSet(fce.getPartiallyCoveredLines());
-            SortedSet<Integer> not = linesToSortedSet(fce.getNotCoveredLines());
+            // parse file
+            CompilationUnit compilationUnit = JavaParser.parse(javaFile);
+            int beginLine = compilationUnit.getBeginLine();
+            int endLine = compilationUnit.getEndLine();
 
-            htmlData.append("       <div class=\"code\">\n");
-            int i = 1;
-            for (String srcLine : srcLines) {
-                String divClass = getLineDivClass(i, full, partial, not);
-                htmlData.append("               <div class=\"" + divClass
-                        + "\"><div class=\"number\">" + i + "</div> " + srcLine + "</div>\n");
-                i++;
+            // get "line colours" to variables
+            int[] full = coverageInfo.get(relJavaFile).getLeft().stream().sorted()
+                    .mapToInt(i -> (int) i).sorted().toArray();
+            int[] partial = coverageInfo.get(relJavaFile).getMiddle().stream().sorted()
+                    .mapToInt(i -> (int) i).sorted().toArray();
+            int[] not = coverageInfo.get(relJavaFile).getRight().stream().sorted()
+                    .mapToInt(i -> (int) i).sorted().toArray();
+
+            // validations
+            Validate.isTrue(beginLine >= 1, relJavaFile + " begin line: " + beginLine);
+            Validate.isTrue(endLine > beginLine, relJavaFile + " end line: " + endLine);
+
+            // lines store, set order is very important!
+            LineStatuses lines = new LineStatuses(beginLine, endLine);
+            lines.setStatus(not, ICounter.NOT_COVERED);
+            lines.setStatus(partial, ICounter.PARTLY_COVERED);
+            lines.setStatus(full, ICounter.FULLY_COVERED);
+
+            // extract method
+            try {
+                // if does not fail, it is the source file corresponding to the snippet
+                MethodDeclaration methodDecl = getCuMethodDecl(compilationUnit,
+                        snippet.getMethod().getName());
+                if (methodDecl == null) {
+                    throw new NoSuchElementException();
+                }
+
+                for (int lineNumber = methodDecl.getBeginLine(); lineNumber <= methodDecl
+                        .getEndLine(); lineNumber++) {
+                    int s = lines.getStatus(lineNumber);
+
+                    if (s != ICounter.EMPTY) {
+                        linesToCover++;
+                        if (s != ICounter.NOT_COVERED) {
+                            linesCovered++;
+                        }
+                    }
+                }
+            } catch (NoSuchElementException ex) {
+                // dependency file
+                if (snippet.getIncludedConstructors().isEmpty()
+                        && snippet.getIncludedMethods().isEmpty()) {
+                    // nothing to do
+                } else {
+                    // handle included coverage
+                    List<BodyDeclaration> inclDecls = new ArrayList<>();
+
+                    // NOTE this might be not working (ctor)
+                    for (Constructor<?> ctor : snippet.getIncludedConstructors()) {
+                        if (!ctor.getDeclaringClass().getSimpleName()
+                                .equals(compilationUnit.getTypes().get(0).getName())) {
+                            continue;
+                        }
+
+                        BodyDeclaration decl = getCuConstructorDecl(compilationUnit,
+                                ctor.getName());
+                        // maybe default ctor not present in source
+                        if (decl != null) {
+                            inclDecls.add(decl);
+                        }
+                    }
+
+                    for (Method method : snippet.getIncludedMethods()) {
+                        if (!method.getDeclaringClass().getSimpleName()
+                                .equals(compilationUnit.getTypes().get(0).getName())) {
+                            continue;
+                        }
+
+                        BodyDeclaration decl = getCuMethodDecl(compilationUnit, method.getName());
+                        // maybe in superclass
+                        if (decl != null) {
+                            inclDecls.add(decl);
+                        }
+                    }
+
+                    for (BodyDeclaration methodDecl : inclDecls) {
+                        for (int lineNumber = methodDecl.getBeginLine(); lineNumber <= methodDecl
+                                .getEndLine(); lineNumber++) {
+                            int s = lines.getStatus(lineNumber);
+
+                            if (s != ICounter.EMPTY) {
+                                linesToCover++;
+                                if (s == ICounter.FULLY_COVERED || s == ICounter.PARTLY_COVERED) {
+                                    linesCovered++;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            htmlData.append("       </div>\n\n");
-
         }
 
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">1</div> package
-        // samplesnippets;</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">2</div> </div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">3</div> import
-        // hu.bme.mit.sette.annotations.SetteIncludeCoverage;</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">4</div> import
-        // hu.bme.mit.sette.annotations.SetteNotSnippet;</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">5</div> import
-        // hu.bme.mit.sette.annotations.SetteRequiredStatementCoverage;</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">6</div> import
-        // hu.bme.mit.sette.annotations.SetteSnippetContainer;</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">7</div> import
-        // samplesnippets.inputs.SampleContainer_Inputs;</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">8</div> </div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">9</div>
-        // @SetteSnippetContainer(category = "X1",</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">10</div> goal = "Sample
-        // snippet container",</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">11</div>
-        // inputFactoryContainer = SampleContainer_Inputs.class)</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">12</div> public final class
-        // SampleContainer {</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">13</div> private
-        // SampleContainer() {</div>\n");
-        // htmlData.append(" <div class=\"line red\"><div class=\"number\">14</div> throw new
-        // UnsupportedOperationException("Static
-        // class");</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">15</div> }</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">16</div> </div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">17</div>
-        // @SetteRequiredStatementCoverage(value = 100)</div>\n");
-        // htmlData.append(" <div class=\"line green\"><div class=\"number\">18</div> public static
-        // boolean snippet(int x) {</div>\n");
-        // htmlData.append(" <div class=\"line yellow\"><div class=\"number\">19</div> if (20 * x +
-        // 2 == 42) {</div>\n");
-        // htmlData.append(" <div class=\"line green\"><div class=\"number\">20</div> return
-        // true;</div>\n");
-        // htmlData.append(" <div class=\"line green\"><div class=\"number\">21</div> } else
-        // {</div>\n");
-        // htmlData.append(" <div class=\"line green\"><div class=\"number\">22</div> return
-        // false;</div>\n");
-        // htmlData.append(" <div class=\"line green\"><div class=\"number\">23</div> }</div>\n");
-        // htmlData.append(" <div class=\"line green\"><div class=\"number\">24</div> }</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">25</div> }</div>\n");
-        // htmlData.append(" <div class=\"line\"><div class=\"number\">26</div> </div>\n");
+        double coverage = (double) 100 * linesCovered / linesToCover;
 
-        htmlData.append("</body>\n");
-        htmlData.append("</html>\n");
+        if (snippet.getRequiredStatementCoverage() <= coverage + 0.1) {
+            return Pair.of(ResultType.C, coverage);
+        } else {
+            // NOTE only for debug
+            // if (snippet.getRequiredStatementCoverage() < 100) {
+            // System.out.println(
+            // "NOT COVERED: " + snippet.getContainer().getJavaClass().getSimpleName()
+            // + " _ " + snippet.getMethod().getName());
+            // System.out.println("Covered: " + linesCovered);
+            // System.out.println("ToCover: " + linesToCover);
+            // System.out.println("Coverage: " + coverage);
+            // System.out.println("ReqCoverage: " + snippet.getRequiredStatementCoverage());
+            // File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(getRunnerProjectSettings(),
+            // snippet);
+            // System.out.println("file:///" + htmlFile.getAbsolutePath().replace('\\', '/'));
+            // System.out.println("=============================================================");
+            // }
 
-        FileUtils.write(htmlFile, htmlData);
+            return Pair.of(ResultType.NC, coverage);
+        }
+    }
+
+    private static MethodDeclaration getCuMethodDecl(CompilationUnit compilationUnit, String name) {
+        try {
+            return compilationUnit.getTypes().get(0).getMembers().stream()
+                    .filter(bd -> bd instanceof MethodDeclaration).map(bd -> (MethodDeclaration) bd)
+                    .filter(md -> md.getName().equals(name)).findAny().get();
+        } catch (NoSuchElementException ex) {
+            // NOTE maybe super class, skip now
+            return null;
+        }
+    }
+
+    private static ConstructorDeclaration getCuConstructorDecl(CompilationUnit compilationUnit,
+            String name) {
+        // maybe default ctor not present in source
+        ConstructorDeclaration[] ctorDecls = compilationUnit.getTypes().get(0).getMembers().stream()
+                .filter(bd -> bd instanceof ConstructorDeclaration)
+                .map(bd -> (ConstructorDeclaration) bd).toArray(ConstructorDeclaration[]::new);
+
+        if (ctorDecls.length == 0) {
+            return null;
+        } else {
+            for (ConstructorDeclaration ctorDecl : ctorDecls) {
+                // FIXME test this part
+                if (ctorDecl.getName().equals(name)) {
+                    return ctorDecl;
+                }
+                throw new RuntimeException("SETTE RUNTIME ERROR");
+            }
+            return null;
+        }
     }
 
     private static List<Class<?>> loadTestClasses(JaCoCoClassLoader classLoader,
@@ -502,39 +714,119 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
         return testClasses;
     }
 
-    // TODO needed anymore?
-    // private void printCounter(PrintStream out, String unit,
-    // ICounter counter) {
-    // final Integer missed = Integer
-    // .valueOf(counter.getMissedCount());
-    // final Integer total = Integer.valueOf(counter.getTotalCount());
-    // out.printf("%s of %s %s missed%n", missed, total, unit);
-    // }
-
-    private static SortedSet<Integer> linesToSortedSet(String lines) {
-        SortedSet<Integer> sortedSet = new TreeSet<>();
-
-        for (String line : lines.split("\\s+")) {
-            if (StringUtils.isBlank(line)) {
-                continue;
-            }
-
-            sortedSet.add(Integer.parseInt(line));
-        }
-
-        return sortedSet;
+    private static int[] linesToArray(String lines) {
+        return Stream.of(lines.split("\\s+")).filter(line -> !StringUtils.isBlank(line))
+                .mapToInt(line -> Integer.parseInt(line)).sorted().toArray();
     }
 
-    private static String getLineDivClass(int i, SortedSet<Integer> full,
-            SortedSet<Integer> partial, SortedSet<Integer> not) {
-        if (full.contains(i)) {
-            return "line green";
-        } else if (partial.contains(i)) {
-            return "line yellow";
-        } else if (not.contains(i)) {
-            return "line red";
-        } else {
-            return "line";
+    private static final class LineStatuses {
+        private final int beginLine;
+        private final int endLine;
+        private final int[] lineStatuses;
+
+        public LineStatuses(int beginLine, int endLine) {
+            this.beginLine = beginLine;
+            this.endLine = endLine;
+
+            lineStatuses = new int[endLine - beginLine + 1];
+            for (int i = 0; i < lineStatuses.length; i++) {
+                lineStatuses[i] = ICounter.EMPTY;
+            }
+        }
+
+        public int getStatus(int lineNumber) {
+            Validate.isTrue(lineNumber >= beginLine);
+            Validate.isTrue(lineNumber <= endLine);
+
+            return lineStatuses[lineNumber - beginLine];
+        }
+
+        public void setStatus(int lineNumber, int status) {
+            Validate.isTrue(lineNumber >= beginLine);
+            Validate.isTrue(lineNumber <= endLine);
+
+            lineStatuses[lineNumber - beginLine] = status;
+        }
+
+        public void setStatus(int[] lineNumbers, int status) {
+            for (int lineNumber : lineNumbers) {
+                setStatus(lineNumber, status);
+            }
+        }
+    }
+
+    private final class HtmlGenerator {
+        public void generate(Snippet snippet, SnippetCoverageXml coverageXml) throws IOException {
+            File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(getRunnerProjectSettings(),
+                    snippet);
+
+            String htmlTitle = getTool().getName() + " - "
+                    + snippet.getContainer().getJavaClass().getName() + '.'
+                    + snippet.getMethod().getName() + "()";
+            StringBuilder htmlData = new StringBuilder();
+            htmlData.append("<!DOCTYPE html>\n");
+            htmlData.append("<html lang=\"hu\">\n");
+            htmlData.append("<head>\n");
+            htmlData.append("       <meta charset=\"utf-8\" />\n");
+            htmlData.append("       <title>" + htmlTitle + "</title>\n");
+            htmlData.append("       <style type=\"text/css\">\n");
+            htmlData.append("               .code { font-family: 'Consolas', monospace; }\n");
+            htmlData.append(
+                    "               .code .line { border-bottom: 1px dotted #aaa; white-space: pre; }\n");
+            htmlData.append("               .code .green { background-color: #CCFFCC; }\n");
+            htmlData.append("               .code .yellow { background-color: #FFFF99; }\n");
+            htmlData.append("               .code .red { background-color: #FFCCCC; }\n");
+            htmlData.append("               .code .line .number {\n");
+            htmlData.append("                       display: inline-block;\n");
+            htmlData.append("                       width:50px;\n");
+            htmlData.append("                       text-align:right;\n");
+            htmlData.append("                       margin-right:5px;\n");
+            htmlData.append("               }\n");
+            htmlData.append("       </style>\n");
+            htmlData.append("</head>\n");
+            htmlData.append("\n");
+            htmlData.append("<body>\n");
+            htmlData.append("       <h1>" + htmlTitle + "</h1>\n");
+
+            for (FileCoverageElement fce : coverageXml.getCoverage()) {
+                htmlData.append("       <h2>" + fce.getName() + "</h2>\n");
+                htmlData.append("       \n");
+
+                File src = new File(getSnippetProject().getSettings().getSnippetSourceDirectory(),
+                        fce.getName());
+                List<String> srcLines = FileUtils.readLines(src);
+
+                int[] full = linesToArray(fce.getFullyCoveredLines());
+                int[] partial = linesToArray(fce.getPartiallyCoveredLines());
+                int[] not = linesToArray(fce.getNotCoveredLines());
+
+                htmlData.append("       <div class=\"code\">\n");
+                int i = 1;
+                for (String srcLine : srcLines) {
+                    String divClass = getLineDivClass(i, full, partial, not);
+                    htmlData.append("               <div class=\"" + divClass
+                            + "\"><div class=\"number\">" + i + "</div> " + srcLine + "</div>\n");
+                    i++;
+                }
+                htmlData.append("       </div>\n\n");
+            }
+
+            htmlData.append("</body>\n");
+            htmlData.append("</html>\n");
+
+            FileUtils.write(htmlFile, htmlData);
+        }
+
+        private String getLineDivClass(int lineNumber, int[] full, int[] partial, int[] not) {
+            if (Arrays.binarySearch(full, lineNumber) >= 0) {
+                return "line green";
+            } else if (Arrays.binarySearch(partial, lineNumber) >= 0) {
+                return "line yellow";
+            } else if (Arrays.binarySearch(not, lineNumber) >= 0) {
+                return "line red";
+            } else {
+                return "line";
+            }
         }
     }
 }

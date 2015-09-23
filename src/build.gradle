@@ -106,7 +106,9 @@ project(':sette-base') {
         compile project(':sette-common')
 
         // Essential for evaluation
-        compile 'junit:junit:4.12' // JUnit is used for evaluation (JUnit 4 is compatible with JUnit 3)
+        // NOTE now stick with JUnit 3 for compatibiltiy reasons and make sure no JUnit 4 code is used runtime
+        compile 'junit:junit:3.8.2'
+        // compile 'junit:junit:4.12' // JUnit is used for evaluation (JUnit 4 is compatible with JUnit 3)
         compile 'org.ow2.asm:asm-debug-all:5.0.4' // to fix JaCoCo dependency
         compile 'org.jacoco:org.jacoco.agent:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.core:' + jacocoVersion

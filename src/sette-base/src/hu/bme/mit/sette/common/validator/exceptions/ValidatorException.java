@@ -23,6 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.common.validator.exceptions;
 
+import java.util.Objects;
+
 import hu.bme.mit.sette.common.exceptions.SetteException;
 import hu.bme.mit.sette.common.validator.AbstractValidator;
 
@@ -43,7 +45,8 @@ public final class ValidatorException extends SetteException {
      *            the validator
      */
     public ValidatorException(AbstractValidator<?> validator) {
-        super(String.format("%d exception(s) occured.", validator.getExceptionCount()));
+        super(String.format("%d exception(s) occured.",
+                Objects.requireNonNull(validator).getExceptionCount()));
         this.validator = validator;
     }
 

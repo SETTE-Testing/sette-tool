@@ -24,25 +24,34 @@
 package hu.bme.mit.sette.common.tasks;
 
 import java.io.File;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.Validate;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.stream.Format;
 
 import hu.bme.mit.sette.common.Tool;
+import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.exceptions.RunResultParserException;
 import hu.bme.mit.sette.common.model.parserxml.InputElement;
+import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
 import hu.bme.mit.sette.common.model.parserxml.SnippetElement;
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.parserxml.SnippetProjectElement;
+import hu.bme.mit.sette.common.model.runner.ParameterType;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
+import hu.bme.mit.sette.common.validator.FileType;
+import hu.bme.mit.sette.common.validator.FileValidator;
 import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
 
 public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
@@ -58,17 +67,46 @@ public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
 
         // foreach containers
         for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
-            // skip container with higher java version than supported
-            if (container.getRequiredJavaVersion()
-                    .compareTo(getTool().getSupportedJavaVersion()) > 0) {
-                // TODO error/warning handling
-                System.err.println("Skipping container: " + container.getJavaClass().getName()
-                        + " (required Java version: " + container.getRequiredJavaVersion() + ")");
-                continue;
-            }
-
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
+                // skip container with higher java version than supported
+                if (container.getRequiredJavaVersion()
+                        .compareTo(getTool().getSupportedJavaVersion()) > 0) {
+                    // TODO error/warning handling
+                    System.err.println("Skipping container: " + container.getJavaClass().getName()
+                            + " (required Java version: " + container.getRequiredJavaVersion()
+                            + ")");
+                    SnippetInputsXml inputsXml = new SnippetInputsXml();
+                    if (getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+                        inputsXml.setGeneratedInputs(new ArrayList<>());
+                    } else {
+                        inputsXml.setGeneratedInputCount(0);
+                    }
+                    inputsXml.setToolName(getTool().getName());
+                    inputsXml.setSnippetProjectElement(new SnippetProjectElement(
+                            getSnippetProjectSettings().getBaseDirectory().getCanonicalPath()));
+
+                    inputsXml.setSnippetElement(
+                            new SnippetElement(snippet.getContainer().getJavaClass().getName(),
+                                    snippet.getMethod().getName()));
+                    inputsXml.setResultType(ResultType.NA);
+                    inputsXml.validate();
+
+                    File inputsXmlFile = RunnerProjectUtils
+                            .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
+
+                    FileUtils.forceMkdir(inputsXmlFile.getParentFile());
+
+                    if (inputsXmlFile.exists()) {
+                        FileUtils.forceDelete(inputsXmlFile);
+                    }
+
+                    Serializer serializer = new Persister(new AnnotationStrategy(),
+                            new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
+                    serializer.write(inputsXml, inputsXmlFile);
+                    continue;
+                }
+
                 SnippetInputsXml inputsXml = parseSnippet(snippet);
                 try {
                     // TODO further validation
@@ -91,11 +129,38 @@ public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
                 }
             }
         }
+
+        afterParse();
+
+        // NOTE check whether all inputs and info files are created
+        // foreach containers
+        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
+            // foreach snippets
+            for (Snippet snippet : container.getSnippets().values()) {
+                File inputsXmlFile = RunnerProjectUtils
+                        .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
+                File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
+                        snippet);
+
+                new FileValidator(inputsXmlFile).type(FileType.REGULAR_FILE).validate();
+                if (!infoFile.exists()) {
+                    SnippetInputsXml inputsXml = new Persister(new AnnotationStrategy())
+                            .read(SnippetInputsXml.class, inputsXmlFile);
+
+                    Validate.isTrue(inputsXml.getResultType() == ResultType.NA,
+                            "If there is no .info file, the result must be N/A: " + inputsXmlFile);
+
+                }
+            }
+        }
     }
 
     private SnippetInputsXml parseSnippet(Snippet snippet) throws Exception {
         // TODO validation?
         SnippetInputsXml inputsXml = new SnippetInputsXml();
+        if (getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+            inputsXml.setGeneratedInputs(new ArrayList<>());
+        }
         inputsXml.setToolName(getTool().getName());
         inputsXml.setSnippetProjectElement(new SnippetProjectElement(
                 getSnippetProjectSettings().getBaseDirectory().getCanonicalPath()));
@@ -124,20 +189,129 @@ public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
         if (inputsXml.getResultType() == null) {
             parseSnippet(snippet, inputsXml);
 
-            if (inputsXml.getGeneratedInputs().isEmpty()
-                    && (inputsXml.getResultType() == ResultType.S
-                            || inputsXml.getResultType() == ResultType.NC
-                            || inputsXml.getResultType() == ResultType.C)) {
-                // no inputs but S, add an empty one
-                inputsXml.getGeneratedInputs().add(new InputElement());
+            if (inputsXml.getResultType() == null) {
+                throw new RuntimeException("Result type must be set at this point");
+            }
+        }
 
-                // NOTE maybe parameters with default values can be added as well
+        if ((inputsXml.getResultType() == ResultType.S || inputsXml.getResultType() == ResultType.NC
+                || inputsXml.getResultType() == ResultType.C)
+                && inputsXml.getGeneratedInputCount() == 0
+                && inputsXml.getGeneratedInputs() != null) {
+            // no inputs but S, add an empty one
+            InputElement ie = new InputElement();
+            inputsXml.getGeneratedInputs().add(ie);
+
+            for (Parameter param : snippet.getMethod().getParameters()) {
+                ie.getParameters().add(new ParameterElement(getParameterType(param.getType()),
+                        getDefaultParameterValueString(param.getType())));
+            }
+            ie.validate();
+        }
+        // NOTE generated parameter count MUST match method parameter count
+        if (inputsXml.getGeneratedInputs() != null) {
+            for (InputElement ie : inputsXml.getGeneratedInputs()) {
+                if (ie.getParameters().size() != snippet.getMethod().getParameterCount()) {
+                    System.err.println("Parameter count mistmatch");
+                    System.err.println("Snippet: " + snippet.getMethod().getName());
+                    System.err.println("Generated cnt: " + ie.getParameters().size());
+                    System.err.println("Expected: " + snippet.getMethod().getParameterCount());
+                    throw new RuntimeException("Parameter count mistmatch");
+                }
             }
         }
 
         return inputsXml;
     }
 
+    // TODO visibility or refactor to other place
+    protected static ParameterType getParameterType(Class<?> javaClass) {
+        if (javaClass.isPrimitive()) {
+            javaClass = ClassUtils.primitiveToWrapper(javaClass);
+        }
+
+        if (javaClass.equals(Byte.class)) {
+            return ParameterType.BYTE;
+        } else if (javaClass.equals(Short.class)) {
+            return ParameterType.SHORT;
+        } else if (javaClass.equals(Integer.class)) {
+            return ParameterType.INT;
+        } else if (javaClass.equals(Long.class)) {
+            return ParameterType.LONG;
+        } else if (javaClass.equals(Float.class)) {
+            return ParameterType.FLOAT;
+        } else if (javaClass.equals(Double.class)) {
+            return ParameterType.DOUBLE;
+        } else if (javaClass.equals(Boolean.class)) {
+            return ParameterType.BOOLEAN;
+        } else if (javaClass.equals(Character.class)) {
+            return ParameterType.CHAR;
+        } else {
+            // string or null
+            return ParameterType.EXPRESSION;
+        }
+    }
+
+    // TODO visibility or refactor to other place
+    protected static Object getDefaultParameterValue(Class<?> javaClass) {
+        if (javaClass.isPrimitive()) {
+            javaClass = ClassUtils.primitiveToWrapper(javaClass);
+        }
+
+        if (javaClass.equals(Byte.class)) {
+            return (byte) 1;
+        } else if (javaClass.equals(Short.class)) {
+            return (short) 1;
+        } else if (javaClass.equals(Integer.class)) {
+            return (int) 1;
+        } else if (javaClass.equals(Long.class)) {
+            return 1L;
+        } else if (javaClass.equals(Float.class)) {
+            return 1.0f;
+        } else if (javaClass.equals(Double.class)) {
+            return 1.0;
+        } else if (javaClass.equals(Boolean.class)) {
+            return false;
+        } else if (javaClass.equals(Character.class)) {
+            return ' ';
+        } else {
+            // string or null
+            return null;
+        }
+    }
+
+    // TODO visibility or refactor to other place
+    protected static String getDefaultParameterValueString(Class<?> javaClass) {
+        if (javaClass.isPrimitive()) {
+            javaClass = ClassUtils.primitiveToWrapper(javaClass);
+        }
+
+        if (javaClass.equals(Byte.class)) {
+            return "1";
+        } else if (javaClass.equals(Short.class)) {
+            return "1";
+        } else if (javaClass.equals(Integer.class)) {
+            return "1";
+        } else if (javaClass.equals(Long.class)) {
+            return "1";
+        } else if (javaClass.equals(Float.class)) {
+            return "1.0";
+        } else if (javaClass.equals(Double.class)) {
+            return "1.0";
+        } else if (javaClass.equals(Boolean.class)) {
+            return "false";
+        } else if (javaClass.equals(Character.class)) {
+            return " ";
+        } else {
+            // string or null
+            return "null";
+        }
+    }
+
     protected abstract void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml)
             throws Exception;
+
+    protected void afterParse() {
+        // can be overridden by the children
+    }
 }
