@@ -23,6 +23,20 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.Validate;
+
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
@@ -30,12 +44,10 @@ import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunResultParser;
 
-import java.io.File;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-
 public class RandoopParser extends RunResultParser<RandoopTool> {
+    private final static Pattern TEST_COUNT_LINE_PATTERN = Pattern
+            .compile("^Writing (\\d+) junit tests$");
+
     public RandoopParser(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);
@@ -43,6 +55,10 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
 
     @Override
     protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        // do not parse inputs
+        inputsXml.setGeneratedInputs(null);
+
+        // files
         File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
                 snippet);
         File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
@@ -61,8 +77,9 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
                     && firstLine.endsWith("_Test/Test.java (No such file or directory)")) {
                 // this means that no input was generated but the generation
                 // was successful
+                inputsXml.setGeneratedInputCount(0);
 
-                if (snippet.getRequiredStatementCoverage() == 0
+                if (snippet.getRequiredStatementCoverage() <= Double.MIN_VALUE
                         || snippet.getMethod().getParameterCount() == 0) {
                     // C only if the required statement coverage is 0% or
                     // the method takes no parameters
@@ -82,10 +99,80 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
         if (inputsXml.getResultType() == null) {
             // always S for Randoop
             inputsXml.setResultType(ResultType.S);
+
+            // get how many tests were generated
+            List<String> outputFileLines = FileUtils.readLines(outputFile);
+            int generatedInputCount = outputFileLines.stream()
+                    .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
+                    .filter(m -> m.matches()).map(m -> Integer.parseInt(m.group(1))).findAny()
+                    .orElse(-1);
+
+            if (generatedInputCount >= 0) {
+                inputsXml.setGeneratedInputCount(generatedInputCount);
+            } else {
+                // NOTE randoop did not write out the result, we have to determine it :(
+                File lookUpDir = new File(getRunnerProjectSettings().getBaseDirectory(),
+                        "test/" + RunnerProjectUtils.getSnippetBaseFilename(snippet) + "_Test");
+
+                if (!lookUpDir.exists()) {
+                    inputsXml.setGeneratedInputCount(0);
+                } else {
+                    System.err.println("Determining test case count: " + lookUpDir);
+
+                    Validate.isTrue(lookUpDir.isDirectory());
+                    File[] testFiles = lookUpDir.listFiles();
+
+                    int cnt = 0;
+                    for (File file : testFiles) {
+                        CompilationUnit cu = JavaParser.parse(file);
+                        ClassOrInterfaceDeclaration cls = (ClassOrInterfaceDeclaration) cu
+                                .getTypes().get(0);
+                        cnt += cls.getMembers().stream()
+                                .filter(bd -> bd instanceof MethodDeclaration).mapToInt(bd -> {
+                                    MethodDeclaration md = (MethodDeclaration) bd;
+                                    if (md.getName().startsWith("test")
+                                            && md.getName().length() >= 5) {
+                                        return 1;
+                                    } else {
+                                        return 0;
+                                    }
+                                }).sum();
+                    }
+
+                    System.err.println("Test case count: " + cnt);
+                    inputsXml.setGeneratedInputCount(cnt);
+                }
+            }
+
+            // create input placeholders
         }
 
-        // do not parse inputs
-        inputsXml.setGeneratedInputs(null);
         inputsXml.validate();
+    }
+
+    @Override
+    protected void afterParse() {
+        // fix compilation error in test suite files
+        try {
+            File testDir = getRunnerProjectSettings().getTestDirectory();
+
+            Iterator<File> it = FileUtils.iterateFiles(testDir, new String[] { "java" }, true);
+            while (it.hasNext()) {
+                File testFile = it.next();
+                if (!testFile.getName().endsWith("Test.java")) {
+                    continue;
+                }
+
+                List<String> lines = FileUtils.readLines(testFile);
+                for (int i = 0; i < lines.size(); i++) {
+                    String line = lines.get(i).replace("public static Test suite() {",
+                            "public static TestSuite suite() {");
+                    lines.set(i, line);
+                }
+                FileUtils.writeLines(testFile, lines);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }
