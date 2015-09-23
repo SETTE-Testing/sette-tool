@@ -29,18 +29,18 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-final class Tag {
-    private final TagType type;
+final class XmlTag {
+    private final XmlTagType type;
     private final boolean isOpening;
 
-    private Tag(TagType type, boolean isOpening) {
+    private XmlTag(XmlTagType type, boolean isOpening) {
         Validate.notNull(type, "The type must not be null");
 
         this.type = type;
         this.isOpening = isOpening;
     }
 
-    public TagType getType() {
+    public XmlTagType getType() {
         return type;
     }
 
@@ -52,20 +52,20 @@ final class Tag {
         return !isOpening;
     }
 
-    public static Tag createOpeningTag(TagType type) {
-        return new Tag(type, true);
+    public static XmlTag createOpeningTag(XmlTagType type) {
+        return new XmlTag(type, true);
     }
 
-    public static Tag createOpeningTag(String type) {
-        return createOpeningTag(TagType.fromString(type));
+    public static XmlTag createOpeningTag(String type) {
+        return createOpeningTag(XmlTagType.fromString(type));
     }
 
-    public static Tag createClosingTag(TagType type) {
-        return new Tag(type, false);
+    public static XmlTag createClosingTag(XmlTagType type) {
+        return new XmlTag(type, false);
     }
 
-    public static Tag createClosingTag(String type) {
-        return createClosingTag(TagType.fromString(type));
+    public static XmlTag createClosingTag(String type) {
+        return createClosingTag(XmlTagType.fromString(type));
     }
 
     @Override
@@ -77,15 +77,15 @@ final class Tag {
         }
     }
 
-    public void validateParentTag(Tag parentTag) {
-        TagType[] validParentTagTypes = type.getValidParentTagTypes();
+    public void validateParentTag(XmlTag parentTag) {
+        XmlTagType[] validParentTagTypes = type.getValidParentTagTypes();
 
         Validate.notEmpty(validParentTagTypes,
                 "The array of valid parent tag types must not be empty or null");
 
         List<String> validParentTagTypesAsString = new ArrayList<>();
 
-        for (TagType validParentTagType : validParentTagTypes) {
+        for (XmlTagType validParentTagType : validParentTagTypes) {
             if (parentTag != null && parentTag.getType() == validParentTagType) {
                 // parent is not ROOT and type OK
                 return;

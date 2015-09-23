@@ -48,8 +48,8 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
     private HeapObjectField heapObjectField = null;
     private String elemNum = null;
 
-    private List<Tag> tagHistory = new ArrayList<>();
-    private Deque<Tag> tagStack = new ArrayDeque<>();
+    private List<XmlTag> xmlTagHistory = new ArrayList<>();
+    private Deque<XmlTag> xmlTagStack = new ArrayDeque<>();
 
     public JPetTestCaseXmlParser() {
     }
@@ -64,8 +64,8 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
         heapObjectField = null;
         elemNum = null;
 
-        tagHistory = new ArrayList<>();
-        tagStack = new ArrayDeque<>();
+        xmlTagHistory = new ArrayList<>();
+        xmlTagStack = new ArrayDeque<>();
     }
 
     public List<TestCase> getTestCases() {
@@ -74,14 +74,14 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) {
-        Tag parentTag = tagStack.peek();
+        XmlTag parentTag = xmlTagStack.peek();
 
-        if (parentTag != null && parentTag.getType() == TagType.TRACE) {
+        if (parentTag != null && parentTag.getType() == XmlTagType.TRACE) {
             // parent tag is <trace> (or child), simply skip
             return;
         }
 
-        Tag tag = Tag.createOpeningTag(qName);
+        XmlTag tag = XmlTag.createOpeningTag(qName);
 
         // validate parent tag
         tag.validateParentTag(parentTag);
@@ -121,23 +121,23 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
                 break;
         }
 
-        tagHistory.add(tag);
-        tagStack.push(tag);
+        xmlTagHistory.add(tag);
+        xmlTagStack.push(tag);
     }
 
     @Override
     public void endElement(String uri, String localName, String qName) {
-        Tag openingTag = tagStack.peek();
+        XmlTag openingTag = xmlTagStack.peek();
 
-        if (openingTag.getType() == TagType.TRACE && !TagType.TRACE.getTagName().equals(qName)) {
+        if (openingTag.getType() == XmlTagType.TRACE && !XmlTagType.TRACE.getTagName().equals(qName)) {
             // parent tag is <trace> (or child) and current tag is not
             // </trace>, simply skip
             return;
         }
 
-        Tag tag = Tag.createClosingTag(qName);
-        tagHistory.add(tag);
-        tagStack.pop();
+        XmlTag tag = XmlTag.createClosingTag(qName);
+        xmlTagHistory.add(tag);
+        xmlTagStack.pop();
 
         if (openingTag.getType() != tag.getType() || openingTag.isClosing()) {
             // TODO error handling
@@ -175,7 +175,7 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
 
     @Override
     public void characters(char ch[], int start, int length) {
-        Tag parentTag = tagStack.peek();
+        XmlTag parentTag = xmlTagStack.peek();
         if (parentTag == null) {
             return;
         }

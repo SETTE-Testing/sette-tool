@@ -108,7 +108,9 @@ public final class JPetTestCasesConverter {
                 if (testCase.heapOut().containsKey(num)) {
                     String jPetClassName = testCase.heapOut().get(num).asHeapObject()
                             .getClassName();
-                    inputElement.setExpected(JPetTypeConverter.toJava(jPetClassName));
+
+                    String javaType = JPetTypeConverter.toJava(jPetClassName);
+                    inputElement.setExpected(javaType);
                 } else {
                     // TODO error handling
                     throw new RuntimeException("Cannot find exception object referenced as '" + num
@@ -148,6 +150,14 @@ public final class JPetTestCasesConverter {
                 HeapArray heapArray = element.asHeapArray();
 
                 String javaType = JPetTypeConverter.toJava(heapArray.getType());
+                if (javaType.length() == 1) {
+                    System.err.println("One character long type: " + javaType + " - "
+                            + snippet.getMethod().getName());
+                    if (javaType.equals("E")) {
+                        System.err.println("    Handled as int");
+                        javaType = "int";
+                    }
+                }
 
                 heap.append(String.format("%s[] heap_%s = new %s[%s];", javaType, num, javaType,
                         heapArray.getNumElems())).append('\n');
@@ -174,7 +184,8 @@ public final class JPetTestCasesConverter {
 
                 String javaType = JPetTypeConverter.toJava(heapObject.getClassName());
 
-                heap.append(String.format("%s heap_%s = new %s();", javaType, num, javaType))
+                // call constructor via reflection, because maybe the class does not have a default ctor
+                heap.append(String.format("%s heap_%s = %s.class.newInstance();", javaType, num, javaType))
                         .append('\n');
 
                 // set fields via reflection
@@ -308,8 +319,8 @@ public final class JPetTestCasesConverter {
             HeapElement heapElement = testCase.heapIn().get(arg.getText());
 
             if (heapElement == null) {
-                System.err.println(
-                        "Missing referenced heap element (" + arg.getText() + "), assuming null");
+                System.err.println("Missing referenced heap element (" + arg.getText()
+                        + "), assuming null - " + snippet.getMethod().getName());
 
                 ParameterElement parameterElement = new ParameterElement();
                 parameterElement.setType(ParameterType.EXPRESSION);

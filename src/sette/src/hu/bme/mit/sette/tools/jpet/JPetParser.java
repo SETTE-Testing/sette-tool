@@ -23,6 +23,16 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
+import java.io.File;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.apache.commons.io.FileUtils;
+
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.common.model.runner.ResultType;
 import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
@@ -33,16 +43,6 @@ import hu.bme.mit.sette.common.validator.FileType;
 import hu.bme.mit.sette.common.validator.FileValidator;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCasesConverter;
-
-import java.io.File;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.apache.commons.io.FileUtils;
 
 public class JPetParser extends RunResultParser<JPetTool> {
     public JPetParser(SnippetProject snippetProject, File outputDirectory, JPetTool tool,
@@ -107,8 +107,6 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 inputsXml.setResultType(ResultType.EX);
                 // throw new RuntimeException(""
             } else {
-                inputsXml.setResultType(ResultType.S);
-
                 // extract coverage
                 if (lines.size() >= 8) {
                     String fullCode = lines.get(lines.size() - 3).trim();
@@ -155,35 +153,28 @@ public class JPetParser extends RunResultParser<JPetTool> {
                         }
                     } else {
                         // TODO error handling
-                        System.err.println("Both should match");
+                        throw new RuntimeException("Both should match");
                     }
+                }
+
+                if (inputsXml.getResultType() == null) {
+                    inputsXml.setResultType(ResultType.S);
                 }
 
                 // extract inputs
                 lines = null;
 
-                getTool();
                 File testCasesFile = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(),
                         snippet);
                 new FileValidator(testCasesFile).type(FileType.REGULAR_FILE).validate();
 
-                if (testCasesFile.length() > 10 * 10e6) {
+                if (testCasesFile.length() / 1000.0 / 1000.0 > 10) {
                     // just to not kill the XML parser with extremely big files
                     // TODO enhance this section
-                    System.err.println(String.format("Filesize is bigger than 10 MB (%2d MB): %s",
-                            testCasesFile.length() / 10e6, 2, testCasesFile));
-                    throw new RuntimeException("Too big file");
+                    System.err.println(String.format("Filesize is bigger than 10 MB (%.2f MB): %s",
+                            testCasesFile.length() / 1000.0 / 1000.0, testCasesFile.getName()));
                 }
-                // TODO it was used to dump the cases where jpet cannot decide
-                // coverage
-                // if (inputsXml.getResultType() == ResultType.S) {
-                // System.out.println("Only S");
-                // }
-
-                // now skip, only 12 cases are S
-
-                System.out.println(snippet.getContainer().getJavaClass().getName() + "."
-                        + snippet.getMethod().getName());
+                // TODO it was used to dump the cases where jpet cannot decide coverage
 
                 SAXParserFactory factory = SAXParserFactory.newInstance();
                 SAXParser saxParser = factory.newSAXParser();
