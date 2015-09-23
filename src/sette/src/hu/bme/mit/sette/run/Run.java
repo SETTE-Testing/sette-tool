@@ -31,13 +31,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,7 +65,6 @@ import hu.bme.mit.sette.GeneratorUI;
 import hu.bme.mit.sette.ParserUI;
 import hu.bme.mit.sette.RunnerUI;
 import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.ToolOutputType;
 import hu.bme.mit.sette.common.ToolRegister;
 import hu.bme.mit.sette.common.exceptions.SetteException;
 import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
@@ -76,6 +75,8 @@ import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.model.snippet.SnippetProjectSettings;
+import hu.bme.mit.sette.common.tasks.CsvBatchGenerator;
+import hu.bme.mit.sette.common.tasks.CsvGenerator;
 import hu.bme.mit.sette.common.tasks.TestSuiteGenerator;
 import hu.bme.mit.sette.common.tasks.TestSuiteRunner;
 import hu.bme.mit.sette.common.validator.FileType;
@@ -102,10 +103,19 @@ public final class Run {
     public static boolean CREATE_BACKUP = false;
 
     private static final String[] TASKS = new String[] { "exit", "generator", "runner", "parser",
-            "test-generator", "test-runner", "snippet-browser", "export-csv" };
+            "test-generator", "test-runner", "snippet-browser", "export-csv", "export-csv-batch" };
 
     public static void main(String[] args) {
         LOG.debug("main() called");
+
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable ex) {
+                System.out.println("== SETTE FAILURE ==");
+                System.out.println("== UNCAUGHT EXCEPTION ==");
+                ex.printStackTrace();
+            }
+        });
 
         //
         // Parse properties and init tools
@@ -228,10 +238,18 @@ public final class Run {
             // TODO stuff
             stuff(args);
         } catch (Exception ex) {
+            System.out.println("== SETTE FAILURE ==");
             System.err.println(ExceptionUtils.getStackTrace(ex));
 
             System.err.println("==========");
-            ValidatorException vex = (ValidatorException) ex;
+            ValidatorException vex;
+            if (ex instanceof ValidatorException) {
+                vex = (ValidatorException) ex;
+            } else {
+                vex = (ValidatorException) ex.getCause();
+            }
+
+            vex.printStackTrace();
 
             for (ValidationException v : vex.getValidator().getAllExceptions()) {
                 v.printStackTrace();
@@ -250,7 +268,13 @@ public final class Run {
                 System.err.println("Details:");
                 System.err.println(((ValidatorException) ex.getCause()).getFullMessage());
             }
+            System.exit(2);
         }
+
+        // finish notification to all channels
+        LOG.info("SETTE Run.main() finished");
+        System.out.println("SETTE Run.main() finished");
+        System.err.println("SETTE Run.main() finished");
     }
 
     private static int parseRunnerTimeout(String runnerTimeout) {
@@ -418,86 +442,96 @@ public final class Run {
         }
 
         SnippetProject snippetProject = Run.createSnippetProject(true);
-
-        Tool tool;
-        if (toolName == null) {
-            tool = Run.readTool(in, out);
+        // NOTE shortcut to batch csv
+        if ("export-csv-batch".equals(task)) {
+            new CsvBatchGenerator(snippetProject, OUTPUT_DIR, toolName, runnerProjectTag)
+                    .generateAll();
         } else {
-            try {
-                tool = Stream.of(ToolRegister.toArray())
-                        .filter(t -> t.getName().equalsIgnoreCase(toolName)).findFirst().get();
-            } catch (NoSuchElementException ex) {
-                // NOTE enhance
-                System.err.println("Invalid tool: " + toolName);
-                System.exit(1);
-                return;
+            Tool tool;
+            if (toolName == null) {
+                tool = Run.readTool(in, out);
+            } else {
+                tool = ToolRegister.get(toolName);
+
+                if (tool == null) {
+                    // NOTE enhance
+                    System.err.println("Invalid tool: " + toolName);
+                    System.exit(1);
+                    return;
+                }
             }
-        }
 
-        while (StringUtils.isBlank(runnerProjectTag)) {
-            out.print("Enter a runner project tag: ");
-            out.flush();
-            runnerProjectTag = in.readLine();
+            while (StringUtils.isBlank(runnerProjectTag)) {
+                out.print("Enter a runner project tag: ");
+                out.flush();
+                runnerProjectTag = in.readLine();
 
-            if (runnerProjectTag == null) {
-                out.println("Exiting...");
-                System.exit(1);
-                return;
+                if (runnerProjectTag == null) {
+                    out.println("Exiting...");
+                    System.exit(1);
+                    return;
+                }
             }
-        }
 
-        runnerProjectTag = runnerProjectTag.trim();
+            runnerProjectTag = runnerProjectTag.trim();
 
-        switch (task) {
-            case "generator":
-                new GeneratorUI(snippetProject, tool, runnerProjectTag).run(in, out);
-                break;
+            switch (task) {
+                case "generator":
+                    new GeneratorUI(snippetProject, tool, runnerProjectTag).run(in, out);
+                    break;
 
-            case "runner":
-                new RunnerUI(snippetProject, tool, runnerProjectTag, RUNNER_TIMEOUT_IN_MS).run(in,
-                        out);
-                break;
+                case "runner":
+                    new RunnerUI(snippetProject, tool, runnerProjectTag, RUNNER_TIMEOUT_IN_MS)
+                            .run(in, out);
+                    break;
 
-            case "parser":
-                new ParserUI(snippetProject, tool, runnerProjectTag).run(in, out);
-                break;
+                case "parser":
+                    new ParserUI(snippetProject, tool, runnerProjectTag).run(in, out);
+                    break;
 
-            case "test-generator":
-                if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
+                case "test-generator":
+                    // NOTE now the generator skips the test suite generation and only generates the
+                    // ant
+                    // build file
+                    // if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
                     new TestSuiteGenerator(snippetProject, OUTPUT_DIR, tool, runnerProjectTag)
                             .generate();
-                } else {
-                    out.println("This tool has already generated a test suite");
-                }
-                break;
+                    // } else {
+                    // out.println("This tool has already generated a test suite");
+                    // }
+                    break;
 
-            case "test-runner":
-                new TestSuiteRunner(snippetProject, OUTPUT_DIR, tool, runnerProjectTag).analyze();
-                break;
+                case "test-runner":
+                    new TestSuiteRunner(snippetProject, OUTPUT_DIR, tool, runnerProjectTag)
+                            .analyze();
+                    break;
 
-            case "snippet-browser":
-                EventQueue.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            SnippetBrowser frame = new SnippetBrowser(snippetProject);
-                            frame.setVisible(true);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
+                case "snippet-browser":
+                    EventQueue.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                SnippetBrowser frame = new SnippetBrowser(snippetProject);
+                                frame.setVisible(true);
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
                         }
-                    }
-                });
-                break;
+                    });
+                    break;
 
-            case "export-csv":
-                out.print("Target file: ");
-                String file = in.readLine();
-                exportCSV(snippetProject, new File(file), runnerProjectTag);
-                break;
+                case "export-csv":
+                    new CsvGenerator(snippetProject, OUTPUT_DIR, tool, runnerProjectTag).generate();
+                    // NOTE old code
+                    // out.print("Target file: ");
+                    // String file = in.readLine();
+                    // exportCsvOld(snippetProject, new File(file), runnerProjectTag);
+                    break;
 
-            default:
-                throw new UnsupportedOperationException(
-                        "Task has not been implemented yet: " + task);
+                default:
+                    throw new UnsupportedOperationException(
+                            "Task has not been implemented yet: " + task);
+            }
         }
     }
 
@@ -615,8 +649,9 @@ public final class Run {
         throw new UnsupportedOperationException("Static class");
     }
 
-    private static void exportCSV(SnippetProject snippetProject, File file, String runnerProjectTag)
-            throws Exception {
+    @SuppressWarnings("unused")
+    private static void exportCsvOld(SnippetProject snippetProject, File file,
+            String runnerProjectTag) throws Exception {
         // TODO enhance this method
         Tool[] tools = ToolRegister.toArray();
 
