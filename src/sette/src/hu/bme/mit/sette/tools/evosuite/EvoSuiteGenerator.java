@@ -44,6 +44,7 @@ import hu.bme.mit.sette.common.model.snippet.Snippet;
 import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.common.util.JavaParserFixStringVisitor;
 
 public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
     public EvoSuiteGenerator(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
@@ -126,6 +127,22 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
                     }
 
                     // save new source code
+
+                    // NOTE JavaParser problem with escape chars???
+                    // newCu.accept(new VoidVisitorAdapter<Void>() {
+                    // @Override
+                    // public void visit(CharLiteralExpr n, Void arg) {
+                    // System.err.println(n);
+                    // }
+                    //
+                    // @Override
+                    // public void visit(StringLiteralExpr n, Void arg) {
+                    // System.err.println(n);
+                    // }
+                    // }, null);
+
+                    // without comment might be buggy???
+                    newCu.accept(new JavaParserFixStringVisitor(), null);
                     FileUtils.write(newSourceFile, newCu.toString());
                 } catch (Exception ex) {
                     throw new RuntimeException("SETTE ERROR", ex);
