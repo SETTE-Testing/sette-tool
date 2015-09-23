@@ -164,7 +164,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                         Class<?> type = snippet.getMethod().getParameterTypes()[i];
                         parameterTypes[i] = getParameterType(type);
                         input.getParameters().add(new ParameterElement(parameterTypes[i],
-                                getDefaultParameterString(type)));
+                                getDefaultParameterValueString(type)));
                     }
                     inputsXml.getGeneratedInputs().add(input);
                 } else {
@@ -335,62 +335,6 @@ public class SpfParser extends RunResultParser<SpfTool> {
             // inputsXml.getGeneratedInputs().add(new InputElement());
             // }
             inputsXml.validate();
-        }
-    }
-
-    // TODO visibility or refactor to other place
-    /* private */static ParameterType getParameterType(Class<?> javaClass) {
-        if (javaClass.isPrimitive()) {
-            javaClass = ClassUtils.primitiveToWrapper(javaClass);
-        }
-
-        if (javaClass.equals(Byte.class)) {
-            return ParameterType.BYTE;
-        } else if (javaClass.equals(Short.class)) {
-            return ParameterType.SHORT;
-        } else if (javaClass.equals(Integer.class)) {
-            return ParameterType.INT;
-        } else if (javaClass.equals(Long.class)) {
-            return ParameterType.LONG;
-        } else if (javaClass.equals(Float.class)) {
-            return ParameterType.FLOAT;
-        } else if (javaClass.equals(Double.class)) {
-            return ParameterType.DOUBLE;
-        } else if (javaClass.equals(Boolean.class)) {
-            return ParameterType.BOOLEAN;
-        } else if (javaClass.equals(Character.class)) {
-            return ParameterType.CHAR;
-        } else {
-            // string or null
-            return ParameterType.EXPRESSION;
-        }
-    }
-
-    // TODO visibility or refactor to other place
-    /* private */static String getDefaultParameterString(Class<?> javaClass) {
-        if (javaClass.isPrimitive()) {
-            javaClass = ClassUtils.primitiveToWrapper(javaClass);
-        }
-
-        if (javaClass.equals(Byte.class)) {
-            return "1";
-        } else if (javaClass.equals(Short.class)) {
-            return "1";
-        } else if (javaClass.equals(Integer.class)) {
-            return "1";
-        } else if (javaClass.equals(Long.class)) {
-            return "1";
-        } else if (javaClass.equals(Float.class)) {
-            return "1.0";
-        } else if (javaClass.equals(Double.class)) {
-            return "1.0";
-        } else if (javaClass.equals(Boolean.class)) {
-            return "false";
-        } else if (javaClass.equals(Character.class)) {
-            return " ";
-        } else {
-            // string or null
-            return "null";
         }
     }
 }
