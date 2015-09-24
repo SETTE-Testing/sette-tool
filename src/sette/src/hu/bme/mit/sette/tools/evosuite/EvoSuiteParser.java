@@ -86,7 +86,11 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                     continue;
                 }
 
-                if (line.contains("[logback-2] ERROR JUnitAnalyzer - 1 test cases failed")) {
+                if (line.contains("java.lang.OutOfMemoryError: Java heap space")) {
+                    // not enough memory
+                    inputsXml.setResultType(ResultType.TM);
+                    break;
+                } else if (line.contains("[logback-2] ERROR JUnitAnalyzer - 1 test cases failed")) {
                     // skip
                 } else if (line.contains("ERROR ExternalProcessHandler - Class")) {
                     // skip (internal timeout, tool stops and dumps what is has)
@@ -96,6 +100,17 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                     // skip (internal timeout, tool stops and dumps what is has)
                 } else if (line.contains("ClientNode: MINIMIZATION")) {
                     // skip (internal timeout, tool stops and dumps what is has)
+                } else if (line.contains("ClientNode: WRITING_TESTS")) {
+                    // skip (internal timeout, tool stops and dumps what is has)
+                } else if (line.contains("ERROR TestCaseExecutor - ExecutionException")) {
+                    System.out.println("==========================================");
+                    // "this is likely a serious error in the framework"
+                    System.out.println(errorFile);
+                    System.out.println(line);
+                    System.out.println("==========================================");
+                    System.out.println(FileUtils.readFileToString(errorFile));
+                    System.out.println("==========================================");
+                    System.out.println("==========================================");
                 } else {
                     System.out.println("==========================================");
                     System.out.println(errorFile);
@@ -109,185 +124,193 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
             }
         }
 
-        List<String> outLines = FileUtils.readLines(outputFile);
-        boolean computationFinished = isComputationFinished(outLines);
+        if (inputsXml.getResultType() == null) {
+            List<String> outLines = FileUtils.readLines(outputFile);
+            boolean computationFinished = isComputationFinished(outLines);
 
-        if (!computationFinished) {
-            throw new RuntimeException("Not finished: " + outputFile.toString());
-        }
-
-        // evo: my/snippet/MySnippet_method_method
-        // normal: my/snippet/MySnippet_method
-        String testFileBasePathEvo = String.format("%s_%s_%s_Test",
-                JavaFileUtils
-                        .packageNameToFilename(snippet.getContainer().getJavaClass().getName()),
-                snippet.getMethod().getName(), snippet.getMethod().getName());
-        String testFileBasePathNormal = String.format("%s_%s_Test",
-                JavaFileUtils
-                        .packageNameToFilename(snippet.getContainer().getJavaClass().getName()),
-                snippet.getMethod().getName());
-        File testCasesFileEvo = new File(testDir, testFileBasePathEvo + ".java");
-        File testScaffoldingFile = new File(testDir, testFileBasePathEvo + "_scaffolding.java");
-        File testCasesFile = new File(testDir, testFileBasePathNormal + ".java");
-
-        // delete scaffolding file
-        if (testScaffoldingFile.exists()) {
-            FileUtils.forceDelete(testScaffoldingFile);
-        }
-
-        if (!testCasesFileEvo.exists() && !testCasesFile.exists()) {
-            // NOTE no test case, but the tool stopped properly
-            inputsXml.setResultType(ResultType.S);
-            inputsXml.setGeneratedInputCount(0);
-        } else {
-            // handle testCases file
-            inputsXml.setResultType(ResultType.S);
-
-            //
-            // rename file if needed
-            //
-            if (testCasesFileEvo.exists() && testCasesFile.exists()) {
-                System.err.println(testCasesFileEvo);
-                System.err.println(testCasesFile);
-                throw new RuntimeException("Both evo and normal files exists");
+            if (!computationFinished) {
+                throw new RuntimeException("Not finished: " + outputFile.toString());
             }
 
-            if (testCasesFileEvo.exists() && !testCasesFile.exists()) {
-                testCasesFileEvo.renameTo(testCasesFile);
+            // evo: my/snippet/MySnippet_method_method
+            // normal: my/snippet/MySnippet_method
+            String testFileBasePathEvo = String.format("%s_%s_%s_Test",
+                    JavaFileUtils
+                            .packageNameToFilename(snippet.getContainer().getJavaClass().getName()),
+                    snippet.getMethod().getName(), snippet.getMethod().getName());
+            String testFileBasePathNormal = String.format("%s_%s_Test",
+                    JavaFileUtils
+                            .packageNameToFilename(snippet.getContainer().getJavaClass().getName()),
+                    snippet.getMethod().getName());
+            File testCasesFileEvo = new File(testDir, testFileBasePathEvo + ".java");
+            File testScaffoldingFile = new File(testDir, testFileBasePathEvo + "_scaffolding.java");
+            File testCasesFile = new File(testDir, testFileBasePathNormal + ".java");
+
+            // delete scaffolding file
+            if (testScaffoldingFile.exists()) {
+                FileUtils.forceDelete(testScaffoldingFile);
             }
 
-            testCasesFileEvo = null;
+            if (!testCasesFileEvo.exists() && !testCasesFile.exists()) {
+                // NOTE no test case, but the tool stopped properly
+                inputsXml.setResultType(ResultType.S);
+                inputsXml.setGeneratedInputCount(0);
+            } else {
+                // handle testCases file
+                inputsXml.setResultType(ResultType.S);
 
-            // last check whether rename was successful
-            if (!testCasesFile.exists()) {
-                System.err.println(testCasesFile);
-                throw new RuntimeException("SETTE RUNTIME ERROR");
-            }
-
-            //
-            // clean file
-            //
-            CompilationUnit compilationUnit = JavaParser.parse(testCasesFile);
-            if (compilationUnit.getImports() == null) {
-                throw new RuntimeException("No imports in: " + testCasesFile);
-            }
-
-            // clean imports
-            for (Iterator<ImportDeclaration> it = compilationUnit.getImports().iterator(); it
-                    .hasNext();) {
-                String id = it.next().toString().trim();
-                Validate.isTrue(id.endsWith(";"));
-
-                id = StringUtils.substring(id, 0, -1);
-                id = id.replaceFirst("import\\s+", "");
-                id = id.replaceFirst("static\\s+", "");
-
-                Validate.isTrue(id.indexOf(' ') < 0);
-
-                // remove EvoSuite and JUnit 4
-                if (id.startsWith("org.evosuite") || id.startsWith("org.junit")) {
-                    it.remove();
+                //
+                // rename file if needed
+                //
+                if (testCasesFileEvo.exists() && testCasesFile.exists()) {
+                    System.err.println(testCasesFileEvo);
+                    System.err.println(testCasesFile);
+                    throw new RuntimeException("Both evo and normal files exists");
                 }
-            }
 
-            // add JUnit 3
-            compilationUnit.getImports().add(
-                    new ImportDeclaration(new NameExpr("junit.framework.TestCase"), false, false));
-
-            // distict imports
-            Map<String, ImportDeclaration> newImports = new HashMap<>();
-            for (ImportDeclaration id : compilationUnit.getImports()) {
-                if (!newImports.containsKey(id.toString())) {
-                    newImports.put(id.toString(), id);
+                if (testCasesFileEvo.exists() && !testCasesFile.exists()) {
+                    testCasesFileEvo.renameTo(testCasesFile);
                 }
-            }
-            compilationUnit.setImports(new ArrayList<>(newImports.values()));
 
-            //
-            // handle class
-            //
-            ClassOrInterfaceDeclaration testClass = (ClassOrInterfaceDeclaration) compilationUnit
-                    .getTypes().get(0);
+                testCasesFileEvo = null;
 
-            // remove annotations from class and members
-            testClass.setAnnotations(new ArrayList<>());
-            testClass.getMembers().forEach(member -> {
-                member.setAnnotations(new ArrayList<>());
-            });
+                // last check whether rename was successful
+                if (!testCasesFile.exists()) {
+                    System.err.println(testCasesFile);
+                    throw new RuntimeException("SETTE RUNTIME ERROR");
+                }
 
-            // rename to appropriate name
-            testClass.setName(FilenameUtils.getBaseName(testCasesFile.getName()));
+                //
+                // clean file
+                //
+                CompilationUnit compilationUnit = JavaParser.parse(testCasesFile);
+                if (compilationUnit.getImports() == null) {
+                    throw new RuntimeException("No imports in: " + testCasesFile);
+                }
 
-            // set appropriate super class
-            testClass.getExtends().clear();
-            testClass.getExtends().add(new ClassOrInterfaceType("TestCase"));
+                // clean imports
+                for (Iterator<ImportDeclaration> it = compilationUnit.getImports().iterator(); it
+                        .hasNext();) {
+                    String id = it.next().toString().trim();
+                    Validate.isTrue(id.endsWith(";"));
 
-            //
-            // handle and count methods
-            //
-            int testMethodCnt = 0;
-            for (BodyDeclaration bd : testClass.getMembers()) {
-                if (bd instanceof MethodDeclaration) {
-                    // method
-                    MethodDeclaration md = (MethodDeclaration) bd;
+                    id = StringUtils.substring(id, 0, -1);
+                    id = id.replaceFirst("import\\s+", "");
+                    id = id.replaceFirst("static\\s+", "");
 
-                    if (md.getName().startsWith("test")) {
-                        testMethodCnt++;
-                        for (int i = 0; i < md.getBody().getStmts().size(); i++) {
-                            Statement stmt = md.getBody().getStmts().get(i);
+                    Validate.isTrue(id.indexOf(' ') < 0);
 
-                            if (stmt.toString().contains("assertArrayEquals")) {
-                                // assertArrayEquals is not present in JUnit 3
-                                //
-                                // convert
-                                // from: assertArrayEquals(new int[] {}, intArray0);
-                                // to: assertTrue(java.util.Arrays.Arrays.equals(new int[] { (-25)
-                                // }, intArray1));
+                    // remove EvoSuite and JUnit 4
+                    if (id.startsWith("org.evosuite") || id.startsWith("org.junit")) {
+                        it.remove();
+                    }
+                }
 
-                                ExpressionStmt exprStmt = (ExpressionStmt) stmt;
-                                MethodCallExpr expr = (MethodCallExpr) exprStmt.getExpression();
-                                expr.setName("java.util.Arrays.equals");
-                                MethodCallExpr newExpr = new MethodCallExpr(null, "assertTrue",
-                                        Arrays.asList(expr));
-                                exprStmt.setExpression(newExpr);
+                // add JUnit 3
+                compilationUnit.getImports().add(new ImportDeclaration(
+                        new NameExpr("junit.framework.TestCase"), false, false));
+
+                // distict imports
+                Map<String, ImportDeclaration> newImports = new HashMap<>();
+                for (ImportDeclaration id : compilationUnit.getImports()) {
+                    if (!newImports.containsKey(id.toString())) {
+                        newImports.put(id.toString(), id);
+                    }
+                }
+                compilationUnit.setImports(new ArrayList<>(newImports.values()));
+
+                //
+                // handle class
+                //
+                ClassOrInterfaceDeclaration testClass = (ClassOrInterfaceDeclaration) compilationUnit
+                        .getTypes().get(0);
+
+                // remove annotations from class and members
+                testClass.setAnnotations(new ArrayList<>());
+                testClass.getMembers().forEach(member -> {
+                    member.setAnnotations(new ArrayList<>());
+                });
+
+                // rename to appropriate name
+                testClass.setName(FilenameUtils.getBaseName(testCasesFile.getName()));
+
+                // set appropriate super class
+                testClass.getExtends().clear();
+                testClass.getExtends().add(new ClassOrInterfaceType("TestCase"));
+
+                //
+                // handle and count methods
+                //
+                int testMethodCnt = 0;
+                for (BodyDeclaration bd : testClass.getMembers()) {
+                    if (bd instanceof MethodDeclaration) {
+                        // method
+                        MethodDeclaration md = (MethodDeclaration) bd;
+
+                        if (md.getName().startsWith("test")) {
+                            testMethodCnt++;
+                            for (int i = 0; i < md.getBody().getStmts().size(); i++) {
+                                Statement stmt = md.getBody().getStmts().get(i);
+
+                                if (stmt.toString().contains("assertArrayEquals")) {
+                                    // assertArrayEquals is not present in JUnit 3
+                                    //
+                                    // convert
+                                    // from: assertArrayEquals(new int[] {}, intArray0);
+                                    // to: assertTrue(java.util.Arrays.Arrays.equals(new int[] {
+                                    // (-25)
+                                    // }, intArray1));
+
+                                    ExpressionStmt exprStmt = (ExpressionStmt) stmt;
+                                    MethodCallExpr expr = (MethodCallExpr) exprStmt.getExpression();
+                                    expr.setName("java.util.Arrays.equals");
+                                    MethodCallExpr newExpr = new MethodCallExpr(null, "assertTrue",
+                                            Arrays.asList(expr));
+                                    exprStmt.setExpression(newExpr);
+                                }
                             }
                         }
                     }
                 }
+
+                //
+                // update test case file
+                //
+                // FIXME
+                // String testCasesFileString = compilationUnit.toStringWithoutComments();
+                compilationUnit.accept(new JavaParserFixStringVisitor(), null);
+                String testCasesFileString = compilationUnit.toString();
+
+                // this can happen in some cases, e.g. infinite
+                testCasesFileString = testCasesFileString.replace(
+                        "fail(\"Expecting exception: TooManyResourcesException\");",
+                        "/* EvoSuite: f a i l(\"Expecting exception: TooManyResourcesException\"); */");
+                testCasesFileString = testCasesFileString.replace(
+                        "} catch (TooManyResourcesException e) {",
+                        "} catch (Throwable e) { throw e;");
+
+                // NOTE one of the most important things, since evosuite has splitted snippets
+                String badCall = String.format("%s_%s.%s",
+                        snippet.getContainer().getJavaClass().getSimpleName(),
+                        snippet.getMethod().getName(), snippet.getMethod().getName());
+                String goodCall = String.format("%s.%s",
+                        snippet.getContainer().getJavaClass().getSimpleName(),
+                        snippet.getMethod().getName());
+
+                testCasesFileString = testCasesFileString.replace(badCall, goodCall);
+
+                // sometimes EvoSuite generates tests with executor
+                testCasesFileString = testCasesFileString.replace(
+                        "Future<?> future = executor.submit(new Runnable() {",
+                        "Future<?> future = java.util.concurrent.Executors.newCachedThreadPool().submit(new Runnable() {");
+
+                // save file
+                FileUtils.write(testCasesFile, testCasesFileString);
+
+                // set gen input count
+                inputsXml.setGeneratedInputCount(testMethodCnt);
             }
-
-            //
-            // update test case file
-            //
-            // FIXME
-            // String testCasesFileString = compilationUnit.toStringWithoutComments();
-            compilationUnit.accept(new JavaParserFixStringVisitor(), null);
-            String testCasesFileString = compilationUnit.toString();
-
-            // this can happen in some cases, e.g. infinite
-            testCasesFileString = testCasesFileString.replace(
-                    "fail(\"Expecting exception: TooManyResourcesException\");",
-                    "/* EvoSuite: f a i l(\"Expecting exception: TooManyResourcesException\"); */");
-            testCasesFileString = testCasesFileString.replace(
-                    "} catch (TooManyResourcesException e) {", "} catch (Throwable e) { throw e;");
-
-            // NOTE one of the most important things, since evosuite has splitted snippets
-            String badCall = String.format("%s_%s.%s",
-                    snippet.getContainer().getJavaClass().getSimpleName(),
-                    snippet.getMethod().getName(), snippet.getMethod().getName());
-            String goodCall = String.format("%s.%s",
-                    snippet.getContainer().getJavaClass().getSimpleName(),
-                    snippet.getMethod().getName());
-
-            testCasesFileString = testCasesFileString.replace(badCall, goodCall);
-
-            // save file
-            FileUtils.write(testCasesFile, testCasesFileString);
-
-            // set gen input count
-            inputsXml.setGeneratedInputCount(testMethodCnt);
         }
-
         //
 
         // if (errorFile.exists()) {

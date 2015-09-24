@@ -259,9 +259,12 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                 } catch (ValidatorException ex) {
                     System.err.println(ex.getFullMessage());
                     throw new RuntimeException("Validation failed");
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     // now dump and go on
+                    System.out.println("========================================================");
                     ex.printStackTrace();
+                    System.out.println("========================================================");
+                    System.out.println("========================================================");
                 }
             }
         }
@@ -283,7 +286,7 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
     }
 
     private SnippetCoverageXml analyzeOne(Snippet snippet, File[] binaryDirectories)
-            throws Exception {
+            throws Throwable {
         //
         // Initialize
         //
@@ -332,7 +335,7 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                         if (!snippet.getMethod().getName().contains("infinite")) {
                             logger.trace("Invoking: " + m.getName());
                             // NOTE maybe thread and kill it thread if takes too much time?
-                            m.invoke(testClassInstance);
+                            invokeMethod(testClassInstance, m);
                         } else {
                             System.err.println("Not Invoking: " + m.getName());
                             logger.trace("Not invoking: " + m.getName());
@@ -501,6 +504,46 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
         new HtmlGenerator().generate(snippet, coverageXml);
 
         return coverageXml;
+    }
+
+    private volatile Throwable invokeException;
+
+    @SuppressWarnings("deprecation")
+    private void invokeMethod(TestCase testClassInstance, Method m) throws Throwable {
+        invokeException = null;
+
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    m.invoke(testClassInstance);
+                } catch (Throwable ex) {
+                    invokeException = ex;
+                }
+            }
+        };
+        t.setName(testClassInstance.getClass().getSimpleName() + "_" + m.getName());
+
+        t.start();
+        // FIXME no more than 30 sec per test case
+        t.join(30 * 1000);
+
+        if (t.isAlive()) {
+            // FIXME find a better way if possible (e.g. daemon thread, separate jvm, etc.)
+            System.err.println("Stopped test: " + m.getName());
+            try {
+                t.stop();
+            } catch (Throwable ex) {
+                System.err.println("Thread Stop...");
+                ex.printStackTrace();
+            }
+        }
+
+        if (invokeException != null) {
+            Throwable ex = invokeException;
+            invokeException = null;
+            throw ex;
+        }
     }
 
     private Pair<ResultType, Double> decideResultType(Snippet snippet,

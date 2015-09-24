@@ -107,13 +107,19 @@ public final class Run {
 
     public static void main(String[] args) {
         LOG.debug("main() called");
+        Thread.currentThread().setName("MAIN");
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable ex) {
-                System.out.println("== SETTE FAILURE ==");
-                System.out.println("== UNCAUGHT EXCEPTION ==");
-                ex.printStackTrace();
+                if (ex instanceof ThreadDeath) {
+                    System.err.println("Thread death: " + Thread.currentThread().getName());
+                } else {
+                    System.out.println("== SETTE FAILURE ==");
+                    System.out.println("== UNCAUGHT EXCEPTION ==");
+                    ex.printStackTrace();
+                    System.exit(1);
+                }
             }
         });
 
