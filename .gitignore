@@ -3,6 +3,7 @@ sette-all.jar
 sette*.log
 sette-log4j2.xml
 sette.properties
+explog/*
 
 src/sette/resources/junit.jar.res
 
