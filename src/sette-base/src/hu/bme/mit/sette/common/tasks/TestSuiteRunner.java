@@ -208,18 +208,22 @@ public final class TestSuiteRunner extends SetteTask<Tool> {
                     Thread.currentThread().setContextClassLoader(originalClassLoader);
                 }
 
-                // skip N/A, EX, T/M
+                // skip N/A, EX, T/M and already done
                 if (inputsXml.getResultType() != ResultType.S) {
-                    if (inputsXml.getResultType() == ResultType.NC
-                            || inputsXml.getResultType() == ResultType.C) {
-                        // NOTE avoid spamming
-                        // System.err.println("Skipping " + inputsXml.getResultType() + " file: "
-                        // + inputsXmlFile.getName());
+                    Double reqCov;
+                    if (inputsXml.getResultType() == ResultType.C) {
+                        reqCov = snippet.getRequiredStatementCoverage();
+                    } else if (inputsXml.getResultType() == ResultType.NC) {
+                        throw new RuntimeException("SETTE error: result is NC before test-runner"
+                                + snippet.getContainer().getJavaClass().getSimpleName() + "_"
+                                + snippet.getMethod().getName());
+                    } else {
+                        reqCov = null;
                     }
 
                     // create results xml
                     SnippetResultXml resultXml = SnippetResultXml.createForWithResult(inputsXml,
-                            inputsXml.getResultType(), snippet.getRequiredStatementCoverage());
+                            inputsXml.getResultType(), reqCov);
                     resultXml.validate();
 
                     // TODO needs more documentation

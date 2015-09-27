@@ -148,7 +148,8 @@ public final class CsvGenerator extends SetteTask<Tool> {
         fields.add(snippetShortName.split("_")[0]); // category
         fields.add(snippetShortName); // snippet
         fields.add(getTool().getName()); // tool
-        fields.add(resultXml.getAchievedCoverage().replace('%', ' ').trim()); // coverage
+        fields.add(StringUtils.defaultIfEmpty(resultXml.getAchievedCoverage(), "").replace('%', ' ')
+                .trim()); // coverage
         fields.add(resultXml.getResultType().toString()); // Status = ResultType
         fields.add(testCaseCount); // Size = TestCaseCount
         fields.add(getRunnerProjectSettings().getTag()); // Run = TAG

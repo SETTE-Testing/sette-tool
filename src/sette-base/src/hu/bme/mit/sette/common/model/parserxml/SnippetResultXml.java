@@ -35,7 +35,7 @@ import hu.bme.mit.sette.common.validator.GeneralValidator;
 @Root(name = "setteSnippetResult")
 public final class SnippetResultXml extends SnippetBaseXml {
     /** The achieved coverage. */
-    @Element(name = "achievedCoverage")
+    @Element(name = "achievedCoverage", required = false)
     private String achievedCoverage;
 
     /**
@@ -56,7 +56,7 @@ public final class SnippetResultXml extends SnippetBaseXml {
     }
 
     public static SnippetResultXml createForWithResult(SnippetInputsXml inputsXml,
-            ResultType resultType, double achievedCoverage) {
+            ResultType resultType, Double achievedCoverage) {
         SnippetResultXml ret = new SnippetResultXml();
         ret.setToolName(inputsXml.getToolName());
         ret.setSnippetProjectElement(inputsXml.getSnippetProjectElement());
@@ -77,8 +77,12 @@ public final class SnippetResultXml extends SnippetBaseXml {
     /**
      * E.g.: 50.623453 -> 50.62%
      */
-    public void setAchievedCoverage(double achievedCoverage) {
-        this.achievedCoverage = String.format("%.2f%%", achievedCoverage);
+    public void setAchievedCoverage(Double achievedCoverage) {
+        if (achievedCoverage != null) {
+            this.achievedCoverage = String.format("%.2f%%", achievedCoverage);
+        } else {
+            this.achievedCoverage = null;
+        }
     }
 
     @Override
@@ -87,8 +91,16 @@ public final class SnippetResultXml extends SnippetBaseXml {
             v.addException("The result type must not be S");
         }
 
-        if (achievedCoverage == null) {
-            v.addException("The achieved coverage of an execution must be set!");
+        if (getResultType() == ResultType.NC || getResultType() == ResultType.C) {
+            if (achievedCoverage == null) {
+                v.addException(
+                        "The achieved coverage of an execution must be set if it is NC or C!");
+            }
+        } else {
+            if (achievedCoverage != null) {
+                v.addException(
+                        "The achieved coverage of an execution must not be set if it is neither NC nor N");
+            }
         }
     }
 }

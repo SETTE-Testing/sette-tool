@@ -11,11 +11,25 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 public class JavaParserFixStringVisitor extends VoidVisitorAdapter<Void> {
     @Override
     public void visit(CharLiteralExpr n, Void arg) {
-        n.setValue(StringEscapeUtils.escapeJava(n.getValue()));
+        handle(n);
     }
 
     @Override
     public void visit(StringLiteralExpr n, Void arg) {
-        n.setValue(StringEscapeUtils.escapeJava(n.getValue()));
+        handle(n);
+    }
+
+    // FIXME
+    // private static final CharSequenceTranslator MAPPING = new LookupTranslator(
+    // new String[][] { { "\\\\", "\\" },
+    // // { "\\\"", "\"" },
+    // // { "\\'", "'" },
+    // // { "\\", "" }
+    // });
+
+    private static void handle(StringLiteralExpr n) {
+        String v = StringEscapeUtils.escapeJava(n.getValue());
+        // v = MAPPING.translate(v); // do not revert back \\u0342 etc...
+        n.setValue(v);
     }
 }

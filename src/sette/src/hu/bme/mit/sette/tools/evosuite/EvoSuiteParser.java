@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -81,45 +82,51 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         }
 
         if (errorFile.exists()) {
-            for (String line : FileUtils.readLines(errorFile)) {
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
+            List<String> errLines = FileUtils.readLines(errorFile);
+            if (errLines.stream().anyMatch(
+                    line -> line.contains("java.lang.OutOfMemoryError: Java heap space"))) {
+                // not enough memory
+                inputsXml.setResultType(ResultType.TM);
+            } else {
+                for (String line : errLines) {
+                    if (line.trim().isEmpty()) {
+                        continue;
+                    }
 
-                if (line.contains("java.lang.OutOfMemoryError: Java heap space")) {
-                    // not enough memory
-                    inputsXml.setResultType(ResultType.TM);
-                    break;
-                } else if (line.contains("[logback-2] ERROR JUnitAnalyzer - 1 test cases failed")) {
-                    // skip
-                } else if (line.contains("ERROR ExternalProcessHandler - Class")) {
-                    // skip (internal timeout, tool stops and dumps what is has)
-                } else if (line.contains("ERROR SearchStatistics")) {
-                    // skip (internal timeout, tool stops and dumps what is has)
-                } else if (line.contains("ERROR TestGeneration - failed to write statistics")) {
-                    // skip (internal timeout, tool stops and dumps what is has)
-                } else if (line.contains("ClientNode: MINIMIZATION")) {
-                    // skip (internal timeout, tool stops and dumps what is has)
-                } else if (line.contains("ClientNode: WRITING_TESTS")) {
-                    // skip (internal timeout, tool stops and dumps what is has)
-                } else if (line.contains("ERROR TestCaseExecutor - ExecutionException")) {
-                    System.out.println("==========================================");
-                    // "this is likely a serious error in the framework"
-                    System.out.println(errorFile);
-                    System.out.println(line);
-                    System.out.println("==========================================");
-                    System.out.println(FileUtils.readFileToString(errorFile));
-                    System.out.println("==========================================");
-                    System.out.println("==========================================");
-                } else {
-                    System.out.println("==========================================");
-                    System.out.println(errorFile);
-                    System.out.println(line);
-                    System.out.println("==========================================");
-                    System.out.println(FileUtils.readFileToString(errorFile));
-                    System.out.println("==========================================");
-                    System.out.println("==========================================");
-                    throw new RuntimeException("Problematic line: " + line);
+                    if (line.contains("ClientNode")) {
+                        // skip
+                    } else if (line
+                            .contains("[logback-2] ERROR JUnitAnalyzer - 1 test cases failed")) {
+                        // skip
+                    } else if (line.contains("ERROR ExternalProcessHandler - Class")) {
+                        // skip (internal timeout, tool stops and dumps what is has)
+                    } else if (line.contains("ERROR SearchStatistics")) {
+                        // skip (internal timeout, tool stops and dumps what is has)
+                    } else if (line.contains("ERROR TestGeneration - failed to write statistics")) {
+                        // skip (internal timeout, tool stops and dumps what is has)
+                    } else if (line.contains("ClientNode: MINIMIZATION")) {
+                        // skip (internal timeout, tool stops and dumps what is has)
+                    } else if (line.contains("ClientNode: WRITING_TESTS")) {
+                        // skip (internal timeout, tool stops and dumps what is has)
+                    } else if (line.contains("ERROR TestCaseExecutor - ExecutionException")) {
+                        System.out.println("==========================================");
+                        // "this is likely a serious error in the framework"
+                        System.out.println(errorFile);
+                        System.out.println(line);
+                        System.out.println("==========================================");
+                        System.out.println(FileUtils.readFileToString(errorFile));
+                        System.out.println("==========================================");
+                        System.out.println("==========================================");
+                    } else {
+                        System.out.println("==========================================");
+                        System.out.println(errorFile);
+                        System.out.println(line);
+                        System.out.println("==========================================");
+                        System.out.println(FileUtils.readFileToString(errorFile));
+                        System.out.println("==========================================");
+                        System.out.println("==========================================");
+                        throw new RuntimeException("Problematic line: " + line);
+                    }
                 }
             }
         }
@@ -183,7 +190,13 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 //
                 // clean file
                 //
-                CompilationUnit compilationUnit = JavaParser.parse(testCasesFile);
+                CompilationUnit compilationUnit;
+                try {
+                    compilationUnit = JavaParser.parse(testCasesFile);
+                } catch (Throwable t) {
+                    throw new RuntimeException("Cannot parse: " + testCasesFile, t);
+                }
+
                 if (compilationUnit.getImports() == null) {
                     throw new RuntimeException("No imports in: " + testCasesFile);
                 }
@@ -249,8 +262,9 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
 
                         if (md.getName().startsWith("test")) {
                             testMethodCnt++;
-                            for (int i = 0; i < md.getBody().getStmts().size(); i++) {
-                                Statement stmt = md.getBody().getStmts().get(i);
+                            List<Statement> stmts = ListUtils.emptyIfNull(md.getBody().getStmts());
+                            for (int i = 0; i < stmts.size(); i++) {
+                                Statement stmt = stmts.get(i);
 
                                 if (stmt.toString().contains("assertArrayEquals")) {
                                     // assertArrayEquals is not present in JUnit 3

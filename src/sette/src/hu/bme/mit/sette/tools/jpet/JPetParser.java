@@ -130,7 +130,9 @@ public class JPetParser extends RunResultParser<JPetTool> {
                             if (top >= snippet.getRequiredStatementCoverage()) {
                                 inputsXml.setResultType(ResultType.C);
                             } else {
-                                inputsXml.setResultType(ResultType.NC);
+                                // FIXME
+                                // inputsXml.setResultType(ResultType.NC);
+
                                 // System.err.println(snippet.getMethod()
                                 // .getName());
                                 // System.err

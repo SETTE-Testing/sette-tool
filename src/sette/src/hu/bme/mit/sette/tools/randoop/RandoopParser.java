@@ -66,7 +66,19 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
 
         if (!outputFile.exists()) {
             // TODO
-            throw new RuntimeException("TODO parser problem");
+            // throw new RuntimeException("output file missing: " + outputFile);
+            // FIXME
+            // extremely odd, but randoop stopped
+            File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
+                    snippet);
+            String info = FileUtils.readFileToString(infoFile);
+            if (info.contains("Exit value: 137")) {
+                // N/A
+                inputsXml.setResultType(ResultType.NA);
+            } else {
+                throw new RuntimeException(
+                        "output file missing and not 137 exit value: " + outputFile);
+            }
         }
 
         if (errorFile.exists()) {
