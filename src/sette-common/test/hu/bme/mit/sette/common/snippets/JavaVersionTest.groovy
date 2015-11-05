@@ -22,9 +22,9 @@
  */
 package hu.bme.mit.sette.common.snippets
 
-import groovy.transform.TypeChecked
-
 import org.junit.Test
+
+import groovy.transform.TypeChecked
 
 /**
  * Test class for {@link JavaVersion} to verify the enum values.
@@ -32,13 +32,9 @@ import org.junit.Test
 @TypeChecked
 class JavaVersionTest {
     @Test
-    public final void test() {
+    void testEnumValues() {
         JavaVersion.with {
-            assert [JAVA_6, JAVA_7, JAVA_8] as Set == values() as Set
-
-            values().each { JavaVersion v ->
-                assert v == valueOf(v as String)
-            }
+            assert values() as Set == [JAVA_6, JAVA_7, JAVA_8] as Set
         }
     }
 }

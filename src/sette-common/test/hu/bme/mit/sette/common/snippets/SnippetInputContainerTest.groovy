@@ -22,18 +22,18 @@
  */
 package hu.bme.mit.sette.common.snippets
 
-import groovy.transform.TypeChecked
-
 import org.junit.Test
+
+import groovy.transform.TypeChecked
 
 /**
  * Tests for {@link SnippetInputContainer}. The {@link TestWithValidData} class contains
  * parameterized tests with valid data for the class.
  */
 @TypeChecked
-public class SnippetInputContainerTest {
+class SnippetInputContainerTest {
     @Test
-    public void testConstructor() {
+    void testConstructor() {
         def sic = new SnippetInputContainer(2)
         assert 2 == sic.parameterCount
         assert 0 == sic.size()
@@ -41,12 +41,12 @@ public class SnippetInputContainerTest {
     }
 
     @Test(expected = IllegalArgumentException)
-    public void testConstructorThrowsExceptionIfParameterCountNegative() {
+    void testConstructorThrowsExceptionIfParameterCountNegative() {
         new SnippetInputContainer(-1)
     }
 
     @Test
-    public void testGetAndAdd() {
+    void testGetAndAdd() {
         def sic = new SnippetInputContainer(3)
 
         sic.add(new SnippetInput(null, 1, 2, 'a'))
@@ -65,31 +65,31 @@ public class SnippetInputContainerTest {
     }
 
     @Test(expected = IndexOutOfBoundsException)
-    public void testGetThrowsExceptionIfIndexIsTooSmall() {
+    void testGetThrowsExceptionIfIndexIsTooSmall() {
         def sic = new SnippetInputContainer(2)
         sic.addByParameters(1, 2).addByParameters(3, 4)
         sic.get(-1)
     }
 
     @Test(expected = IndexOutOfBoundsException)
-    public void testGetThrowsExceptionIfIndexIsTooBig() {
+    void testGetThrowsExceptionIfIndexIsTooBig() {
         def sic = new SnippetInputContainer(2)
         sic.addByParameters(1, 2).addByParameters(3, 4)
         sic.get(3)
     }
 
     @Test(expected = IllegalArgumentException)
-    public void testAddThrowsExceptionIfInputIsNull() {
+    void testAddThrowsExceptionIfInputIsNull() {
         new SnippetInputContainer(1).add(null)
     }
 
     @Test(expected = IllegalArgumentException)
-    public void testAddThrowsExceptionIfInputParameterCountIsLess() {
+    void testAddThrowsExceptionIfInputParameterCountIsLess() {
         new SnippetInputContainer(1).addByParameters()
     }
 
     @Test(expected = IllegalArgumentException)
-    public void testAddThrowsExceptionIfInputParameterCountIsMore() {
+    void testAddThrowsExceptionIfInputParameterCountIsMore() {
         new SnippetInputContainer(1).addByParameters(1, 2)
     }
 }

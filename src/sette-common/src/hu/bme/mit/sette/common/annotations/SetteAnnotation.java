@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 
-package hu.bme.mit.sette.annotations;
+package hu.bme.mit.sette.common.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

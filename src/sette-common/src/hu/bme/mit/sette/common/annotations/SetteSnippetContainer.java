@@ -21,22 +21,23 @@
  * limitations under the License.
  */
 
-package hu.bme.mit.sette.annotations;
-
-import hu.bme.mit.sette.common.snippets.JavaVersion;
+package hu.bme.mit.sette.common.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import hu.bme.mit.sette.common.snippets.JavaVersion;
+import hu.bme.mit.sette.common.snippets.SnippetInputContainer;
+
 /**
  * Indicates that the class is a code snippet container. The class must be "public final" and it
  * must have exactly one private constructor taking no parameters and throwing an
- * UnsupportedOperationException with the message "Static class". The class can only contain static
- * methods. Public methods are considered code snippets unless the @SetteNotSnippet annotation is
- * applied on them. Code snippet method must have unique name, i.e. using the same method name with
- * different parameter lists is not allowed.
+ * {@link UnsupportedOperationException} with the message "Static class". The class can only contain
+ * static methods. Public methods are considered code snippets unless the {@link SetteNotSnippet}
+ * annotation is applied on them. Code snippet method must have unique name, i.e. using the same
+ * method name with different parameter lists is not allowed.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -53,15 +54,15 @@ public @interface SetteSnippetContainer {
     String goal();
 
     /**
-     * Class of the input factory container or NullType.class. The input factory container must be a
-     * "public final" class and it must have exactly one private constructor taking no parameters
-     * and throwing an UnsupportedOperationException with the message "Static class". It should have
-     * exactly one method for one code snippet with the same name. Input factory methods take no
-     * parameters and return a SnippetInput container containing the inputs for the code snippet.
-     * With the inputs returned by the input factory, the specified required coverage should be
-     * achieved.
+     * Class of the input factory container or {@code Void.class}. The input factory container must
+     * be a "public final" class and it must have exactly one private constructor taking no
+     * parameters and throwing an {@link UnsupportedOperationException} with the message
+     * "Static class". It should have exactly one method for one code snippet with the same name.
+     * Input factory methods take no parameters and return a {@link SnippetInputContainer}
+     * containing the inputs for the code snippet. With the inputs returned by the input factory,
+     * the specified required coverage should be achieved.
      */
-    Class<?>inputFactoryContainer();
+    Class<?>inputFactoryContainer() default Void.class;
 
     /**
      * The required Java version for all the snippets in the container. The default requirement is

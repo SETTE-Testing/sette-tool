@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 
-package hu.bme.mit.sette.annotations;
+package hu.bme.mit.sette.common.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -29,12 +29,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a public method of the snippet container is not a code snippet. For example, it is
- * a function called by other code snippets.
+ * Indicates that the type is used by code snippets as a dependency. Required because all SETTE
+ * classes has to be marked either as a {@link SetteSnippetContainer} or as a
+ * {@link SetteDependency} (unmarked classes will result in a SETTE failure).
  */
-@Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @SetteAnnotation
-public @interface SetteNotSnippet {
+public @interface SetteDependency {
     // marker annotation
 }

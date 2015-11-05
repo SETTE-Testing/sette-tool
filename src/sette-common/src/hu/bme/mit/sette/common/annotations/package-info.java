@@ -1,4 +1,4 @@
 /**
  * Provides annotations for code snippets.
  */
-package hu.bme.mit.sette.annotations;
+package hu.bme.mit.sette.common.annotations;

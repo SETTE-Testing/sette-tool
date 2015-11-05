@@ -27,6 +27,7 @@ import groovy.transform.TypeChecked
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 
 /**
@@ -34,9 +35,9 @@ import org.junit.runners.Parameterized.Parameters
  * with valid data for the class.
  */
 @TypeChecked
-public class SnippetInputTest {
+class SnippetInputTest {
     @Test
-    public void testConstructorNullObjectArrayAsParameters() {
+    void testConstructorNullObjectArrayAsParameters() {
         def si = new SnippetInput(null, (Object[]) null)
 
         assert 0 == si.parameterCount
@@ -45,29 +46,27 @@ public class SnippetInputTest {
     }
 
     @Test(expected = IndexOutOfBoundsException)
-    public void testGetParameterThrowsExceptionIfIndexIsTooSmall() {
+    void testGetParameterThrowsExceptionIfIndexIsTooSmall() {
         def si = new SnippetInput(null, 1, '1', false)
         si.getParameter(-1)
     }
 
     @Test(expected = IndexOutOfBoundsException)
-    public void testGetParameterThrowsExceptionIfIndexIsTooBig() {
+    void testGetParameterThrowsExceptionIfIndexIsTooBig() {
         def si = new SnippetInput(null, 1, '1', false)
         si.getParameter(3)
     }
 
     @RunWith(Parameterized)
-    public static class TestWithValidData {
-        private Class<? extends Throwable> expected
-        private Object[] parameters
+    static class TestObject {
+        @Parameter(0)
+        public Class<? extends Throwable> expected
 
-        public TestWithValidData(Class<? extends Throwable> expected, Object[] parameters) {
-            this.expected = expected
-            this.parameters = parameters
-        }
+        @Parameter(1)
+        public Object[] parameters
 
         @Test
-        public void test() {
+        void test() {
             def si = new SnippetInput(expected, parameters)
 
             assert parameters.length == si.parameterCount
@@ -80,7 +79,7 @@ public class SnippetInputTest {
         }
 
         @Parameters
-        public static def data() {
+        static def data() {
             List<List<?>> values = []
             values << [null, []]
             values << [null, [1]]
