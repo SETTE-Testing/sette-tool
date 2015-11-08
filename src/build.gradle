@@ -14,14 +14,22 @@ allprojects {
 // Set up projects
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'groovy' // Groovy is only used for tests
+    apply plugin: 'groovy'
+    apply plugin: 'jacoco'
     apply plugin: 'eclipse'
+    apply plugin: 'idea'
 
     project.archivesBaseName = project.name
     project.sourceCompatibility = 1.8
     project.targetCompatibility = 1.8
 
+    dependencies {
+        testCompile 'org.codehaus.groovy:groovy-all:2.4.5'
+        testCompile 'junit:junit:4.12'
+    }
+
     tasks.eclipse.dependsOn tasks.cleanEclipse
+    tasks.idea.dependsOn tasks.cleanIdea
 
     sourceSets {
         main {
@@ -41,8 +49,9 @@ project(':sette') {
     File deployTarget = new File(project.projectDir, '../..').canonicalFile
 
     dependencies {
-        compile project(':sette-base')
-        compile 'commons-cli:commons-cli:1.3.1'
+        compile project(':sette-core')
+        compile 'args4j:args4j:2.32'
+        compile 'commons-cli:commons-cli:1.3.1' // FIXME remove
     }
 
     afterEvaluate {
@@ -96,19 +105,24 @@ project(':sette') {
 }
 
 //
-// Project sette-base
+// Project sette-core
 //
-project(':sette-base') {
+project(':sette-core') {
     def jacocoVersion = '0.7.5.201505241946'
     def log4jVersion = '2.3'
 
+    configurations {
+        provided
+        compile.extendsFrom provided
+    }
+
     dependencies {
+        provided 'org.projectlombok:lombok:1.16.6'
+
         compile project(':sette-common')
 
         // Essential for evaluation
-        // NOTE now stick with JUnit 3 for compatibiltiy reasons and make sure no JUnit 4 code is used runtime
-        compile 'junit:junit:3.8.2'
-        // compile 'junit:junit:4.12' // JUnit is used for evaluation (JUnit 4 is compatible with JUnit 3)
+        compile 'junit:junit:4.12' // JUnit is used for evaluation (JUnit 4 is compatible with JUnit 3)
         compile 'org.ow2.asm:asm-debug-all:5.0.4' // to fix JaCoCo dependency
         compile 'org.jacoco:org.jacoco.agent:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.core:' + jacocoVersion
@@ -116,8 +130,8 @@ project(':sette-base') {
         compile 'com.github.javaparser:javaparser-core:2.2.2'
 
         // Utilities
-        compile 'commons-io:commons-io:2.4'
-        compile 'org.apache.commons:commons-collections4:4.0'
+        compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
+        compile 'com.google.guava:guava:18.0'
         compile 'org.apache.commons:commons-lang3:3.4'
         compile 'org.simpleframework:simple-xml:2.7.1'
 
@@ -127,6 +141,14 @@ project(':sette-base') {
         compile 'org.apache.logging.log4j:log4j-core:' + log4jVersion
         compile 'org.apache.logging.log4j:log4j-slf4j-impl:' + log4jVersion
     }
+
+    // FIXME
+    //    task delombok {
+    //        description 'Delomboks the source code'
+    //        ant.taskdef(classname: 'lombok.delombok.ant.Tasks$Delombok', classpath: configurations.compile.asPath, name: 'delombok')
+    //        ant.mkdir(dir: 'build/src-delomboked')
+    //        ant.delombok(verbose: 'true', encoding: 'UTF-8', to: 'build/src-delomboked', from: 'src/')
+    //    }
 }
 
 //
@@ -136,11 +158,6 @@ project(':sette-common') {
     // Maximaze compatibility for the common project
     project.sourceCompatibility = 1.6
     project.targetCompatibility = 1.6
-
-    dependencies {
-        testCompile 'org.codehaus.groovy:groovy-all:2.4.4'
-        testCompile 'junit:junit:4.12' // JUnit 4 is used for testing SETTE
-    }
 }
 
 //
