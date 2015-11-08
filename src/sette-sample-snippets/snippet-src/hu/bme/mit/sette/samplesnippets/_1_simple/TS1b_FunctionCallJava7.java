@@ -21,38 +21,45 @@
  * limitations under the License.
  */
 // TODO revise this file
-// TODO revise this file
-package samplesnippets;
+package hu.bme.mit.sette.samplesnippets._1_simple;
 
-import hu.bme.mit.sette.annotations.SetteRequiredStatementCoverage;
-import hu.bme.mit.sette.annotations.SetteSnippetContainer;
-import samplesnippets.inputs.SampleContainerX_Inputs;
+import hu.bme.mit.sette.common.annotations.SetteIncludeCoverage;
+import hu.bme.mit.sette.common.annotations.SetteNotSnippet;
+import hu.bme.mit.sette.common.annotations.SetteRequiredStatementCoverage;
+import hu.bme.mit.sette.common.annotations.SetteSnippetContainer;
+import hu.bme.mit.sette.common.snippets.JavaVersion;
 
-@SetteSnippetContainer(category = "X2",
-        goal = "Sample snippet container 1",
-        inputFactoryContainer = SampleContainerX_Inputs.class)
-public final class SampleContainerX {
-    private SampleContainerX() {
+/**
+ * Sample snippet container with Java 7 restriction and with snippets having included coverage, but
+ * no inputs.
+ */
+@SetteSnippetContainer(category = "TS2", goal = "Snippets with function call",
+        inputFactoryContainer = Void.class, requiredJavaVersion = JavaVersion.JAVA_7)
+public final class TS1b_FunctionCallJava7 {
+    private TS1b_FunctionCallJava7() {
         throw new UnsupportedOperationException("Static class");
     }
 
     @SetteRequiredStatementCoverage(value = 100)
-    public static int snippet1(int x) {
-        if (x == 12345) {
-            return 2;
-        }
+    @SetteIncludeCoverage(classes = { TS1b_FunctionCallJava7.class },
+            methods = { "notSnippet(int, int)" })
+    public static int simpleCall(int x, int y) {
+        return notSnippet(x, y);
+    }
 
-        if (x > 0) {
-            return 1;
-        } else if (x < 0) {
-            return -1;
+    @SetteRequiredStatementCoverage(value = 100)
+    @SetteIncludeCoverage(classes = { TS1b_FunctionCallJava7.class },
+            methods = { "notSnippet(int, int)" })
+    public static int ifElseCall(int x, int y, boolean b) {
+        if (b) {
+            return notSnippet(x, y);
         } else {
-            return 0;
+            return -1;
         }
     }
 
-    @SetteRequiredStatementCoverage(value = 8.0 / 12.0 * 100)
-    public static int snippet2(int x, int y) {
+    @SetteNotSnippet
+    public static int notSnippet(int x, int y) {
         if (x > 0 && y > 0) {
             return 1;
         } else if (x < 0 && y > 0) {
@@ -61,15 +68,8 @@ public final class SampleContainerX {
             return 3;
         } else if (x > 0 && y < 0) {
             return 4;
-        } else if (x > 0 && y < 0) {
-            // impossible branch (the previous is the same)
-            return -1;
-        } else if (x == 0 || y == 0) {
-            return 0;
         } else {
-            // impossible branch
-            return -2;
+            return -1;
         }
     }
-
 }

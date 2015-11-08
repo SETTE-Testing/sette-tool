@@ -21,13 +21,12 @@
  * limitations under the License.
  */
 // TODO revise this file
-// TODO revise this file
 package samplesnippets;
 
-import hu.bme.mit.sette.annotations.SetteIncludeCoverage;
-import hu.bme.mit.sette.annotations.SetteNotSnippet;
-import hu.bme.mit.sette.annotations.SetteRequiredStatementCoverage;
-import hu.bme.mit.sette.annotations.SetteSnippetContainer;
+import hu.bme.mit.sette.common.annotations.SetteIncludeCoverage;
+import hu.bme.mit.sette.common.annotations.SetteNotSnippet;
+import hu.bme.mit.sette.common.annotations.SetteRequiredStatementCoverage;
+import hu.bme.mit.sette.common.annotations.SetteSnippetContainer;
 import samplesnippets.inputs.SampleContainer_Inputs;
 
 @SetteSnippetContainer(category = "X1", goal = "Sample snippet container",
@@ -88,6 +87,13 @@ public final class SampleContainer {
     @SetteRequiredStatementCoverage(value = 100)
     public static void timeout(int x) {
         while (true) {
+            if (x < 0) {
+                x = 0;
+            }
+            
+            if (x < 0) {
+                return;
+            }
         }
     }
 

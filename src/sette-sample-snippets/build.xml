@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="sette-sample-snippets" default="compile">
+  <target name="clean">
+    <delete dir="build" />
+  </target>
+
+  <target name="compile" depends="clean">
+    <mkdir dir="build" />
+    <javac destdir="build" includeantruntime="no" source="1.8" target="1.8">
+      <classpath>
+        <fileset dir="../sette-common/build/libs/" includes="sette-common*.jar" />
+        <fileset dir="snippet-libs" includes="**/*.jar" erroronmissingdir="false" />
+      </classpath>
+      <src path="snippet-src" />
+      <src path="snippet-input-src" />
+    </javac>
+  </target>
+
+  <target name="cleanEclipse">
+    <delete file=".project" />
+    <delete file=".classpath" />
+    <delete dir=".settings" />
+  </target>
+
+  <target name="eclipse" depends="cleanEclipse">
+    <echoxml file=".project">
+      <projectDescription>
+        <name>${ant.project.name}</name>
+        <comment />
+        <projects />
+        <natures>
+          <nature>org.eclipse.jdt.core.javanature</nature>
+        </natures>
+        <buildSpec>
+          <buildCommand>
+            <name>org.eclipse.jdt.core.javabuilder</name>
+            <arguments />
+          </buildCommand>
+        </buildSpec>
+      </projectDescription>
+    </echoxml>
+
+    <echoxml file=".classpath">
+      <classpath>
+        <classpathentry kind="output" path="bin" />
+        <classpathentry kind="src" path="snippet-src" />
+        <classpathentry kind="src" path="snippet-input-src" />
+        <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" />
+        <classpathentry kind="src" path="/sette-common" />
+        <classpathentry kind="lib" path="snippet-libs/commons-lang3-3.4.jar" />
+      </classpath>
+    </echoxml>
+  </target>
+</project>

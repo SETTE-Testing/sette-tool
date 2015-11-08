@@ -24,7 +24,7 @@
 // TODO revise this file
 package samplesnippets;
 
-import hu.bme.mit.sette.annotations.SetteDependency;
+import hu.bme.mit.sette.common.annotations.SetteDependency;
 
 @SetteDependency
 public final class CoordinateStructure {

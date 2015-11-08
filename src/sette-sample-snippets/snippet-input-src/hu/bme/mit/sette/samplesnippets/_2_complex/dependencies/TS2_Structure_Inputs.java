@@ -20,36 +20,13 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// TODO revise this file
-// TODO revise this file
-package samplesnippets.inputs;
+package hu.bme.mit.sette.samplesnippets._2_complex.dependencies;
 
 import hu.bme.mit.sette.common.snippets.SnippetInputContainer;
 import samplesnippets.CoordinateStructure;
 
-public final class SampleContainer_Inputs {
-    private SampleContainer_Inputs() {
-        throw new UnsupportedOperationException("Static class");
-    }
-
-    public static SnippetInputContainer snippet1() {
-        SnippetInputContainer inputs = new SnippetInputContainer(1);
-
-        inputs.addByParameters(2);
-        inputs.addByParameters(0);
-
-        return inputs;
-    }
-
-    public static SnippetInputContainer snippet2() {
-        SnippetInputContainer inputs = new SnippetInputContainer(1);
-
-        inputs.addByParameters(0);
-
-        return inputs;
-    }
-
-    public static SnippetInputContainer snippet3() {
+public class TS2_Structure_Inputs {
+    public static SnippetInputContainer guessParams() {
         SnippetInputContainer inputs = new SnippetInputContainer(2);
 
         inputs.addByParameters(1, 1);
@@ -61,46 +38,7 @@ public final class SampleContainer_Inputs {
         return inputs;
     }
 
-    public static SnippetInputContainer snippet4() {
-        SnippetInputContainer inputs = new SnippetInputContainer(2);
-
-        inputs.addByExpectedAndParameters(IndexOutOfBoundsException.class, -1);
-        inputs.addByParameters(1);
-
-        return inputs;
-    }
-
-    public static SnippetInputContainer timeout() {
-        SnippetInputContainer inputs = new SnippetInputContainer(1);
-
-        inputs.addByParameters(0);
-
-        return inputs;
-    }
-
-    public static SnippetInputContainer array() {
-        SnippetInputContainer inputs = new SnippetInputContainer(1);
-
-        inputs.addByParameters((Object) null);
-        inputs.addByParameters(new int[] { 1 });
-        inputs.addByParameters(new int[] { 0 });
-
-        return inputs;
-    }
-
-    public static SnippetInputContainer oneStructureParams() {
-        SnippetInputContainer inputs = new SnippetInputContainer(2);
-
-        inputs.addByParameters(1, 1);
-        inputs.addByParameters(-1, 1);
-        inputs.addByParameters(1, -1);
-        inputs.addByParameters(-1, -1);
-        inputs.addByParameters(0, 0);
-
-        return inputs;
-    }
-
-    public static SnippetInputContainer oneStructure() {
+    public static SnippetInputContainer guess() {
         SnippetInputContainer inputs = new SnippetInputContainer(1);
 
         inputs.addByParameters((Object) null);
