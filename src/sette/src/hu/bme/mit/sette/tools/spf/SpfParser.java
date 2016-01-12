@@ -23,27 +23,28 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import hu.bme.mit.sette.common.model.parserxml.InputElement;
-import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.common.model.runner.ParameterType;
-import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
-
-import java.io.File;
+  import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.primitives.Primitives;
+
+import hu.bme.mit.sette.core.model.parserxml.InputElement;
+import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
+import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.runner.ParameterType;
+import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 public class SpfParser extends RunResultParser<SpfTool> {
     public SpfParser(SnippetProject snippetProject, File outputDirectory, SpfTool tool,
@@ -62,7 +63,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
 
             // TODO make this section simple and clear
 
-            List<String> lines = FileUtils.readLines(errorFile);
+            List<String> lines = Files.readAllLines(errorFile.toPath());
 
             String firstLine = lines.get(0);
 
@@ -116,7 +117,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
             // // no inputs for constant tests, just call them once
             // inputsXml.getGeneratedInputs().add(new InputElement());
             // } else {
-            LineIterator lines = FileUtils.lineIterator(outputFile);
+            Iterator<String> lines = Files.readAllLines(outputFile.toPath()).iterator();
 
             // find input lines
 
@@ -139,9 +140,6 @@ public class SpfParser extends RunResultParser<SpfTool> {
                     }
                 }
             }
-
-            // close iterator
-            lines.close();
 
             // remove duplicates
             inputLines = new ArrayList<>(new LinkedHashSet<>(inputLines));
@@ -174,7 +172,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
 
                     for (int i = 0; i < parameterStrings.length; i++) {
                         String parameterString = parameterStrings[i];
-                        Class<?> pjc = ClassUtils.primitiveToWrapper(paramsJavaClass[i]);
+                        Class<?> pjc = Primitives.wrap(paramsJavaClass[i]);
 
                         if (parameterString.endsWith("SYMINT")) {
                             if (pjc == Boolean.class) {

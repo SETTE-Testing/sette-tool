@@ -23,105 +23,49 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
-import hu.bme.mit.sette.common.util.JavaFileUtils;
-import hu.bme.mit.sette.common.util.process.ProcessRunner;
-import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
-import hu.bme.mit.sette.common.util.process.ProcessUtils;
-import hu.bme.mit.sette.common.validator.FileType;
-import hu.bme.mit.sette.common.validator.FileValidator;
-import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-
-import java.io.File;
+  import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+
+import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.AntExecutor;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.util.process.ProcessUtils;
+import hu.bme.mit.sette.core.validator.PathType;
+import hu.bme.mit.sette.core.validator.PathValidator;
+import hu.bme.mit.sette.core.validator.ValidationException;
 
 public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
     private static final int TRIAL_COUNT = 100;
 
-    public CatgRunner(SnippetProject snippetProject, File outputDirectory, CatgTool tool, String runnerProjectTag) {
+    public CatgRunner(SnippetProject snippetProject, File outputDirectory, CatgTool tool,
+            String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
     protected void afterPrepare() {
-        // TODO make simpler and better
-        // TODO extract ant builder to sette-base as a class
         // ant build
-        ProcessRunner pr = new ProcessRunner();
-        pr.setPollIntervalInMs(1000);
-        pr.setCommand(new String[] { "/bin/bash", "-c", "ant" });
-        pr.setWorkingDirectory(getRunnerProjectSettings().getBaseDirectory());
-
-        pr.addListener(new ProcessRunnerListener() {
-            @Override
-            public void onTick(ProcessRunner processRunner, long elapsedTimeInMs) {
-                System.out.println("ant build tick: " + elapsedTimeInMs);
-            }
-
-            @Override
-            public void onIOException(ProcessRunner processRunner, IOException ex) {
-                // TODO handle error
-                ex.printStackTrace();
-            }
-
-            @Override
-            public void onComplete(ProcessRunner processRunner) {
-                if (processRunner.getStdout().length() > 0) {
-                    System.out.println("Ant build output:");
-                    System.out.println("========================================");
-                    System.out.println(processRunner.getStdout().toString());
-                    System.out.println("========================================");
-                }
-
-                if (processRunner.getStderr().length() > 0) {
-                    System.out.println("Ant build error output:");
-                    System.out.println("========================================");
-                    System.out.println(processRunner.getStderr().toString());
-                    System.out.println("========================================");
-                    System.out.println("Terminating");
-                }
-            }
-
-            @Override
-            public void onStdoutRead(ProcessRunner processRunner, int charactersRead) {
-                // not needed
-            }
-
-            @Override
-            public void onStderrRead(ProcessRunner processRunner, int charactersRead) {
-                // not needed
-            }
-        });
-
-        pr.execute();
-
-        if (pr.getStderr().length() > 0) {
-            // TODO enchance error handling
-            // throw new SetteGeneralException("CATG ant build has failed");
-            throw new RuntimeException("CATG ant build has failed");
-        }
+        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
     }
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, ValidatorException {
+            throws IOException, ValidationException {
         // TODO make better
-        File concolic = new File(getRunnerProjectSettings().getBaseDirectory(), "concolic")
+        File concolic = new File(getRunnerProjectSettings().getBaseDir(), "concolic")
                 .getCanonicalFile();
         concolic.setExecutable(true);
 
-        new FileValidator(concolic).type(FileType.REGULAR_FILE).executable(true).validate();
+        new PathValidator(concolic.toPath()).type(PathType.REGULAR_FILE).executable(true)
+                .validate();
 
         String methodName = snippet.getContainer().getJavaClass().getName() + "_"
                 + snippet.getMethod().getName();
 
-        String filename = JavaFileUtils
-                .packageNameToFilename(snippet.getContainer().getJavaClass().getName()) + "_"
-                + snippet.getMethod().getName() + JavaFileUtils.FILE_EXTENSION_SEPARATOR
-                + JavaFileUtils.JAVA_SOURCE_EXTENSION;
+        String filename = methodName.replace('.', '/') + ".java";
 
         File file = new File(getRunnerProjectSettings().getGeneratedDirectory(), filename)
                 .getCanonicalFile();
@@ -147,31 +91,14 @@ public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
         System.out.println("  command: " + cmd.toString());
 
         // run process
-        ProcessRunner pr = new ProcessRunner();
-        pr.setCommand(cmd.toString().split("\\s+"));
-
-        pr.setWorkingDirectory(getRunnerProjectSettings().getBaseDirectory());
-        pr.setTimeoutInMs(getTimeoutInMs());
-        pr.setPollIntervalInMs(RunnerProjectRunner.POLL_INTERVAL);
-
-        OutputWriter l = new OutputWriter(cmd.toString(), infoFile, outputFile, errorFile);
-        pr.addListener(l);
-        pr.execute();
+        executeToolProcess(Arrays.asList(cmd.toString().split("\\s+")), infoFile, outputFile,
+                errorFile);
     }
 
     @Override
     public void cleanUp() throws IOException, SetteException {
         // TODO better search expression!
-        for (Integer pid : ProcessUtils.searchProcess("Djanala.conf")) {
-            System.err.println("  Terminating stuck process (PID: " + pid + ")");
-            try {
-                ProcessUtils.terminateProcess(pid);
-            } catch (Exception ex) {
-                System.err.println("  Exception");
-                ex.printStackTrace();
-            }
-        }
-
+        ProcessUtils.searchAndTerminateProcesses("Djanala.conf");
         System.gc();
     }
 }

@@ -23,61 +23,36 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.ToolOutputType;
-import hu.bme.mit.sette.common.exceptions.ConfigurationException;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectSettings;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.common.util.JavaFileUtils;
-import hu.bme.mit.sette.common.validator.FileType;
-import hu.bme.mit.sette.common.validator.FileValidator;
-import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import hu.bme.mit.sette.common.snippets.JavaVersion;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectSettings;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.tool.ToolOutputType;
+import hu.bme.mit.sette.core.validator.PathValidator;
+import hu.bme.mit.sette.core.validator.ValidationException;
+import lombok.Getter;
 
 public final class JPetTool extends Tool {
     public static final String TESTCASES_DIRNAME = "pet-testcases";
-    private final File petExecutable;
-    private final File defaultBuildXml;
+    @Getter
+    private final Path petExecutable;
+    @Getter
+    private final Path defaultBuildXml;
 
-    public JPetTool(File petExecutable, File defaultBuildXml, String version)
-            throws ConfigurationException {
-        super("jPET", null, version);
-        this.petExecutable = petExecutable;
-        this.defaultBuildXml = defaultBuildXml;
+    public JPetTool(String name, Path dir) throws IOException, ValidationException {
+        super(name, dir);
 
-        // validate
-        getPetExecutable();
-        getDefaultBuildXml();
-    }
+        petExecutable = dir.resolve("pet");
+        defaultBuildXml = dir.resolve("sette-build.xml.default");
 
-    public File getPetExecutable() throws ConfigurationException {
-        try {
-            FileValidator v = new FileValidator(petExecutable);
-            v.type(FileType.REGULAR_FILE).readable(true).executable(true);
-            v.validate();
-        } catch (ValidatorException ex) {
-            throw new ConfigurationException("The jPET executable is invalid: " + petExecutable,
-                    ex);
-        }
-
-        return petExecutable;
-    }
-
-    public File getDefaultBuildXml() throws ConfigurationException {
-        try {
-            FileValidator v = new FileValidator(defaultBuildXml);
-            v.type(FileType.REGULAR_FILE).readable(true);
-            v.validate();
-        } catch (ValidatorException ex) {
-            throw new ConfigurationException("The jPET build.xml is invalid: " + defaultBuildXml,
-                    ex);
-        }
-
-        return defaultBuildXml;
+        PathValidator.forRegularFile(petExecutable, true, null, null, null);
+        PathValidator.forRegularFile(defaultBuildXml, true, null, null, "default");
     }
 
     @Override
@@ -104,14 +79,13 @@ public final class JPetTool extends Tool {
 
     public static File getTestCasesDirectory(
             RunnerProjectSettings<JPetTool> runnerProjectSettings) {
-        return new File(runnerProjectSettings.getBaseDirectory(), TESTCASES_DIRNAME);
+        return new File(runnerProjectSettings.getBaseDir(), TESTCASES_DIRNAME);
     }
 
     public static File getTestCaseXmlFile(RunnerProjectSettings<JPetTool> runnerProjectSettings,
             Snippet snippet) {
         return new File(getTestCasesDirectory(runnerProjectSettings),
-                RunnerProjectUtils.getSnippetBaseFilename(snippet)
-                        + JavaFileUtils.FILE_EXTENSION_SEPARATOR + "xml");
+                RunnerProjectUtils.getSnippetBaseFilename(snippet) + ".xml");
     }
 
     @Override
@@ -119,5 +93,4 @@ public final class JPetTool extends Tool {
             String runnerProjectTag) {
         return new JPetParser(snippetProject, outputDirectory, this, runnerProjectTag);
     }
-
 }

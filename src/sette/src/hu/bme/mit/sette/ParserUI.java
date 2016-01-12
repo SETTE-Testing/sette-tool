@@ -25,17 +25,17 @@
 // NOTE revise this file
 package hu.bme.mit.sette;
 
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
-import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-import hu.bme.mit.sette.run.Run;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.PrintStream;
 
 import org.apache.commons.lang3.Validate;
+
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.validator.ValidationException;
+import hu.bme.mit.sette.run.Run;
 
 public final class ParserUI implements BaseUI {
     private final RunResultParser<?> parser;
@@ -49,8 +49,8 @@ public final class ParserUI implements BaseUI {
     @Override
     public void run(BufferedReader in, PrintStream out) throws Exception {
         // directories
-        File snippetProjectDir = parser.getSnippetProjectSettings().getBaseDirectory();
-        File runnerProjectDir = parser.getRunnerProjectSettings().getBaseDirectory();
+        File snippetProjectDir = parser.getSnippetProject().getBaseDir().toFile();
+        File runnerProjectDir = parser.getRunnerProjectSettings().getBaseDir();
 
         out.println("Snippet project: " + snippetProjectDir);
         out.println("Runner project: " + runnerProjectDir);
@@ -61,8 +61,8 @@ public final class ParserUI implements BaseUI {
         } catch (Exception ex) {
             out.println("Parse failed: " + ex.getMessage());
 
-            if (ex instanceof ValidatorException) {
-                throw (ValidatorException) ex;
+            if (ex instanceof ValidationException) {
+                throw (ValidationException) ex;
             } else {
                 ex.printStackTrace();
             }

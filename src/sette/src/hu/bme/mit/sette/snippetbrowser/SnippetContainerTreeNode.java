@@ -23,11 +23,11 @@
 // NOTE revise this file
 package hu.bme.mit.sette.snippetbrowser;
 
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 
 public final class SnippetContainerTreeNode
         extends TreeNodeBase<SnippetProjectTreeNode, SnippetTreeNode> {

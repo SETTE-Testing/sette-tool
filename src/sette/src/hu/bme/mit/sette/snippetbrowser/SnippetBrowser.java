@@ -23,10 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.snippetbrowser;
 
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-
 import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
@@ -41,6 +37,10 @@ import javax.swing.tree.TreePath;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+
+import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 
 // TODO remove suppresswarnigns and general serial version uid one when it is in
 // final package
@@ -61,8 +61,6 @@ public final class SnippetBrowser extends JFrame {
      */
     public SnippetBrowser(SnippetProject snippetProject) throws SetteException {
         Validate.notNull(snippetProject, "Snippet project must not be null");
-        Validate.isTrue(snippetProject.getState().equals(SnippetProject.State.PARSED),
-                "Snippet project must not be parsed");
 
         this.snippetProject = snippetProject;
 
@@ -111,9 +109,9 @@ public final class SnippetBrowser extends JFrame {
                     int projectContainerCnt = 0;
                     int projectSnippetCnt = 0;
 
-                    projectContainerCnt = snippetProject.getModel().getContainers().size();
+                    projectContainerCnt = snippetProject.getSnippetContainers().size();
 
-                    for (SnippetContainer container : snippetProject.getModel().getContainers()) {
+                    for (SnippetContainer container : snippetProject.getSnippetContainers()) {
                         projectSnippetCnt += container.getSnippets().size();
                     }
 

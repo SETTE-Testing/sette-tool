@@ -23,32 +23,34 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.descriptors.java.JavaFileWithMainBuilder;
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
-import hu.bme.mit.sette.common.util.JavaFileUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
+import com.google.common.primitives.Primitives;
+
+import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
+import hu.bme.mit.sette.core.descriptors.java.JavaFileWithMainBuilder;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+
 public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
-    public SpfGenerator(SnippetProject snippetProject, File outputDirectory, SpfTool tool, String runnerProjectTag) {
+    public SpfGenerator(SnippetProject snippetProject, File outputDirectory, SpfTool tool,
+            String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);
     }
 
     @Override
     protected void afterPrepareRunnerProject(EclipseProject eclipseProject) {
-        addGeneratedDirectoryToProject();
+        addGeneratedDirToProject();
     }
 
     @Override
@@ -56,13 +58,13 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
             throws IOException, SetteException {
         createGeneratedFiles();
 
-        File buildXml = new File(getRunnerProjectSettings().getBaseDirectory(), "build.xml");
-        FileUtils.copyFile(getTool().getDefaultBuildXml(), buildXml);
+        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
+        Files.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }
 
     private void createGeneratedFiles() throws IOException {
         // generate main() for each snippet
-        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
+        for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // skip container with higher java version than supported
             if (container.getRequiredJavaVersion()
                     .compareTo(getTool().getSupportedJavaVersion()) > 0) {
@@ -88,22 +90,22 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
 
                 jpfConfig.classpath = "build" + SystemUtils.FILE_SEPARATOR;
 
-                for (File libraryFile : getSnippetProject().getFiles().getLibraryFiles()) {
+                for (Path libraryFile : getSnippetProject().getLibFiles()) {
                     jpfConfig.classpath += ','
-                            + getSnippetProjectSettings().getLibraryDirectoryPath()
-                            + SystemUtils.FILE_SEPARATOR + libraryFile.getName();
+                            + getSnippetProject().getLibDir().toString()
+                            + SystemUtils.FILE_SEPARATOR + libraryFile.toFile().getName();
                 }
 
                 jpfConfig.listener = JPFConfig.SYMBOLIC_LISTENER;
-                jpfConfig.symbolicDebug = JPFConfig.ON;
+                jpfConfig.symbolicDebug = "on";
 
-                jpfConfig.searchMultipleErrors = JPFConfig.TRUE;
+                jpfConfig.searchMultipleErrors = "true";
                 jpfConfig.decisionProcedure = JPFConfig.DP_CORAL;
 
                 // generate main()
                 JavaFileWithMainBuilder main = new JavaFileWithMainBuilder();
-                main.setPackageName(javaClass.getPackage().getName());
-                main.setClassName(javaClass.getSimpleName() + '_' + method.getName());
+                main.packageName(javaClass.getPackage().getName());
+                main.className(javaClass.getSimpleName() + '_' + method.getName());
 
                 main.imports().add(javaClass.getName());
 
@@ -119,28 +121,26 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
                         + StringUtils.join(parameterLiterals, ", ") + ");");
 
                 // save files
-                String relativePath = JavaFileUtils.packageNameToFilename(main.getFullClassName());
-                String relativePathJPF = relativePath + '.' + JPFConfig.JPF_CONFIG_EXTENSION;
-                String relativePathMain = relativePath + '.' + JavaFileUtils.JAVA_SOURCE_EXTENSION;
+                String relativePath = main.getFullClassName().replace('.', '/');
+                String relativePathJPF = relativePath + ".jpf";
+                String relativePathMain = relativePath + ".java";
 
                 File targetJPFFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
                         relativePathJPF);
-                FileUtils.forceMkdir(targetJPFFile.getParentFile());
-                FileUtils.write(targetJPFFile, jpfConfig.generate().toString());
+                Files.createDirectories(targetJPFFile.getParentFile().toPath());
+                Files.write(targetJPFFile.toPath(), jpfConfig.generate().toString().getBytes());
 
                 File targetMainFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
                         relativePathMain);
-                FileUtils.forceMkdir(targetMainFile.getParentFile());
-                FileUtils.writeLines(targetMainFile, main.build());
+                Files.createDirectories(targetMainFile.getParentFile().toPath());
+                Files.write(targetMainFile.toPath(), main.build());
             }
         }
     }
 
     // TODO enhance visibility or refactor to other place
     /* private */static String getParameterLiteral(Class<?> javaClass) {
-        if (javaClass.isPrimitive()) {
-            javaClass = ClassUtils.primitiveToWrapper(javaClass);
-        }
+        javaClass = Primitives.wrap(javaClass);
 
         if (javaClass.equals(Byte.class)) {
             return "(byte) 1";

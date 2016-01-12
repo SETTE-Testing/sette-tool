@@ -1,0 +1,33 @@
+{
+  "baseDirs":["~/sette", "D:/SETTE"],
+  "outputDir":"sette-results",
+  "runnerTimeoutInMs":30000,
+  "snippetProjectDirs":["sette-snippets/sette-snippets"],
+  "tools":[
+    {
+      "className":"hu.bme.mit.sette.catg.CatgTool",
+      "name":"CATG",
+      "toolDir":"sette-tool/test-generator-tools/catg"
+    },
+    {
+      "className":"hu.bme.mit.sette.evosuite.EvoSuiteTool",
+      "name":"EvoSuite",
+      "toolDir":"sette-tool/test-generator-tools/evosuite"
+    },
+    {
+      "className":"hu.bme.mit.sette.jpet.JPetTool",
+      "name":"jPET",
+      "toolDir":"sette-tool/test-generator-tools/jpet"
+    },
+    {
+      "className":"hu.bme.mit.sette.randoop.RandoopTool",
+      "name":"Randoop",
+      "toolDir":"sette-tool/test-generator-tools/randoop"
+    },
+    {
+      "className":"hu.bme.mit.sette.spf.SpfTool",
+      "name":"SPF",
+      "toolDir":"sette-tool/test-generator-tools/spf"
+    }
+  ]
+}

@@ -23,14 +23,14 @@
 // NOTE revise this file
 package hu.bme.mit.sette.snippetbrowser;
 
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.common.model.snippet.SnippetDependency;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.tree.TreeNode;
+
+import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.core.model.snippet.SnippetDependency;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 
 public final class SnippetProjectTreeNode extends TreeNodeBase<TreeNode, SnippetContainerTreeNode> {
     private final SnippetProject project;
@@ -41,7 +41,7 @@ public final class SnippetProjectTreeNode extends TreeNodeBase<TreeNode, Snippet
 
         List<SnippetContainerTreeNode> ret = new ArrayList<>();
 
-        for (SnippetContainer container : project.getModel().getContainers()) {
+        for (SnippetContainer container : project.getSnippetContainers()) {
             ret.add(new SnippetContainerTreeNode(this, container));
         }
 
@@ -54,7 +54,7 @@ public final class SnippetProjectTreeNode extends TreeNodeBase<TreeNode, Snippet
 
     @Override
     public String getTitle() {
-        return project.getSettings().getBaseDirectory().getName();
+        return project.getBaseDir().getFileName().toString();
     }
 
     @Override
@@ -62,13 +62,13 @@ public final class SnippetProjectTreeNode extends TreeNodeBase<TreeNode, Snippet
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("Base dir: ")
-                    .append(project.getSettings().getBaseDirectory().getCanonicalPath())
+                    .append(project.getBaseDir())
                     .append('\n').append('\n');
 
-            sb.append("Dependency count: " + project.getModel().getDependencies().size())
+            sb.append("Dependency count: " + project.getSnippetDependencies().size())
                     .append('\n');
 
-            for (SnippetDependency dep : project.getModel().getDependencies()) {
+            for (SnippetDependency dep : project.getSnippetDependencies()) {
                 sb.append("  " + dep.getJavaClass().getName()).append('\n');
             }
 

@@ -23,11 +23,15 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 
 public final class JPetTypeConverter {
     /**
@@ -37,19 +41,20 @@ public final class JPetTypeConverter {
         throw new UnsupportedOperationException("Static class");
     }
 
-    private static final BidiMap<String, String> javaPrimitivesToJPetMapping;
+    private static final BiMap<String, String> javaPrimitivesToJPetMapping;
 
     static {
-        javaPrimitivesToJPetMapping = new DualHashBidiMap<>();
-        javaPrimitivesToJPetMapping.put("byte", "B");
-        javaPrimitivesToJPetMapping.put("short", "S");
-        javaPrimitivesToJPetMapping.put("int", "I");
-        javaPrimitivesToJPetMapping.put("long", "J");
-        javaPrimitivesToJPetMapping.put("float", "F");
-        javaPrimitivesToJPetMapping.put("double", "D");
-        javaPrimitivesToJPetMapping.put("boolean", "Z");
-        javaPrimitivesToJPetMapping.put("char", "C");
-        javaPrimitivesToJPetMapping.put("void", "V");
+        Map<String, String> mappingData = new HashMap<>();
+        mappingData.put("byte", "B");
+        mappingData.put("short", "S");
+        mappingData.put("int", "I");
+        mappingData.put("long", "J");
+        mappingData.put("float", "F");
+        mappingData.put("double", "D");
+        mappingData.put("boolean", "Z");
+        mappingData.put("char", "C");
+        mappingData.put("void", "V");
+        javaPrimitivesToJPetMapping = ImmutableBiMap.copyOf(mappingData);
     }
 
     public static String fromJava(String javaType) {
@@ -135,7 +140,7 @@ public final class JPetTypeConverter {
         } else if (javaPrimitivesToJPetMapping.containsValue(jPetType)) {
             // primitive type
             // e.g.: I -> int
-            return javaPrimitivesToJPetMapping.getKey(jPetType);
+            return javaPrimitivesToJPetMapping.inverse().get(jPetType);
         } else if (jPetType.startsWith("L") && jPetType.endsWith(";")) {
             // e.g.: Ljava/lang/Object; => java.lang.Object
             return StringUtils.substring(jPetType, 1, -1).replace('/', '.');

@@ -24,6 +24,7 @@
 package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,9 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -49,14 +47,13 @@ import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
-import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
-import hu.bme.mit.sette.common.util.JavaFileUtils;
-import hu.bme.mit.sette.common.util.JavaParserFixStringVisitor;
+import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
+import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
     public EvoSuiteParser(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
@@ -82,7 +79,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         }
 
         if (errorFile.exists()) {
-            List<String> errLines = FileUtils.readLines(errorFile);
+            List<String> errLines = Files.readAllLines(errorFile.toPath());
             if (errLines.stream().anyMatch(
                     line -> line.contains("java.lang.OutOfMemoryError: Java heap space"))) {
                 // not enough memory
@@ -114,7 +111,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                         System.out.println(errorFile);
                         System.out.println(line);
                         System.out.println("==========================================");
-                        System.out.println(FileUtils.readFileToString(errorFile));
+                        System.out.println(new String(Files.readAllBytes(errorFile.toPath())));
                         System.out.println("==========================================");
                         System.out.println("==========================================");
                     } else {
@@ -122,7 +119,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                         System.out.println(errorFile);
                         System.out.println(line);
                         System.out.println("==========================================");
-                        System.out.println(FileUtils.readFileToString(errorFile));
+                        System.out.println(new String(Files.readAllBytes(errorFile.toPath())));
                         System.out.println("==========================================");
                         System.out.println("==========================================");
                         throw new RuntimeException("Problematic line: " + line);
@@ -132,7 +129,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         }
 
         if (inputsXml.getResultType() == null) {
-            List<String> outLines = FileUtils.readLines(outputFile);
+            List<String> outLines = Files.readAllLines(outputFile.toPath());
             boolean computationFinished = isComputationFinished(outLines);
 
             if (!computationFinished) {
@@ -142,12 +139,10 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
             // evo: my/snippet/MySnippet_method_method
             // normal: my/snippet/MySnippet_method
             String testFileBasePathEvo = String.format("%s_%s_%s_Test",
-                    JavaFileUtils
-                            .packageNameToFilename(snippet.getContainer().getJavaClass().getName()),
+                    snippet.getContainer().getJavaClass().getName().replace('.', '/'),
                     snippet.getMethod().getName(), snippet.getMethod().getName());
             String testFileBasePathNormal = String.format("%s_%s_Test",
-                    JavaFileUtils
-                            .packageNameToFilename(snippet.getContainer().getJavaClass().getName()),
+                    snippet.getContainer().getJavaClass().getName().replace('.', '/'),
                     snippet.getMethod().getName());
             File testCasesFileEvo = new File(testDir, testFileBasePathEvo + ".java");
             File testScaffoldingFile = new File(testDir, testFileBasePathEvo + "_scaffolding.java");
@@ -155,7 +150,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
 
             // delete scaffolding file
             if (testScaffoldingFile.exists()) {
-                FileUtils.forceDelete(testScaffoldingFile);
+                Files.delete(testScaffoldingFile.toPath());
             }
 
             if (!testCasesFileEvo.exists() && !testCasesFile.exists()) {
@@ -245,7 +240,8 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 });
 
                 // rename to appropriate name
-                testClass.setName(FilenameUtils.getBaseName(testCasesFile.getName()));
+                String nm = testCasesFile.getName();
+                testClass.setName(nm.substring(0, nm.lastIndexOf('.')));
 
                 // set appropriate super class
                 testClass.getExtends().clear();
@@ -262,7 +258,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
 
                         if (md.getName().startsWith("test")) {
                             testMethodCnt++;
-                            List<Statement> stmts = ListUtils.emptyIfNull(md.getBody().getStmts());
+                            List<Statement> stmts = md.getBody().getStmts();
                             for (int i = 0; i < stmts.size(); i++) {
                                 Statement stmt = stmts.get(i);
 
@@ -319,7 +315,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                         "Future<?> future = java.util.concurrent.Executors.newCachedThreadPool().submit(new Runnable() {");
 
                 // save file
-                FileUtils.write(testCasesFile, testCasesFileString);
+                Files.write(testCasesFile.toPath(), testCasesFileString.getBytes());
 
                 // set gen input count
                 inputsXml.setGeneratedInputCount(testMethodCnt);
@@ -328,7 +324,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         //
 
         // if (errorFile.exists()) {
-        // List<String> lines = FileUtils.readLines(errorFile);
+        // List<String> lines = Files.readAllLines(errorFile);
         // String firstLine = lines.get(0);
         //
         // if (firstLine.startsWith("java.io.FileNotFoundException:")
@@ -359,7 +355,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         // inputsXml.setResultType(ResultType.S);
         //
         // // get how many tests were generated
-        // List<String> outputFileLines = FileUtils.readLines(outputFile);
+        // List<String> outputFileLines = Files.readAllLines(outputFile);
         // int generatedInputCount = outputFileLines.stream()
         // .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
         // .filter(m -> m.matches()).map(m -> Integer.parseInt(m.group(1))).findAny()

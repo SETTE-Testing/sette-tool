@@ -29,12 +29,6 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 public final class JPFConfig {
-    public static final String JPF_CONFIG_EXTENSION = "jpf";
-
-    public static final String ON = "on";
-    public static final String OFF = "off";
-    public static final String TRUE = "true";
-    public static final String FALSE = "false";
     public static final String SYMBOLIC_LISTENER = "gov.nasa.jpf.symbc.SymbolicListener";
     public static final String SYMBOLIC_SEQUENCE_LISTENER = "gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener";
     public static final String DP_CHOCO = "choco";

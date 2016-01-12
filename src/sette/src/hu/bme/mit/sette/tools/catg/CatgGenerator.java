@@ -24,46 +24,45 @@
 package hu.bme.mit.sette.tools.catg;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry;
-import hu.bme.mit.sette.common.descriptors.eclipse.EclipseClasspathEntry.Kind;
-import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.descriptors.java.JavaFileWithMainBuilder;
-import hu.bme.mit.sette.common.exceptions.ConfigurationException;
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
-import hu.bme.mit.sette.common.util.JavaFileUtils;
+import com.google.common.primitives.Primitives;
+
+import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+import hu.bme.mit.sette.core.descriptors.eclipse.EclipseClasspathEntry;
+import hu.bme.mit.sette.core.descriptors.eclipse.EclipseClasspathEntryKind;
+import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
+import hu.bme.mit.sette.core.descriptors.java.JavaFileWithMainBuilder;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 
 public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
-    public CatgGenerator(SnippetProject snippetProject, File outputDirectory, CatgTool tool,
+    public CatgGenerator(SnippetProject snippetProject, File outputDir, CatgTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override
     protected void afterPrepareRunnerProject(EclipseProject eclipseProject) {
-        addGeneratedDirectoryToProject();
+        addGeneratedDirToProject();
 
-        eclipseProject.getClasspathDescriptor().addEntry(Kind.SOURCE, "src");
-        eclipseProject.getClasspathDescriptor().addEntry(Kind.LIBRARY, "lib/asm-all-3.3.1.jar");
-        eclipseProject.getClasspathDescriptor().addEntry(Kind.LIBRARY,
+        eclipseProject.getClasspathDescriptor().addEntry(EclipseClasspathEntryKind.SOURCE, "src");
+        eclipseProject.getClasspathDescriptor().addEntry(EclipseClasspathEntryKind.LIBRARY,
+                "lib/asm-all-3.3.1.jar");
+        eclipseProject.getClasspathDescriptor().addEntry(EclipseClasspathEntryKind.LIBRARY,
                 "lib/choco-solver-2.1.4.jar");
-        eclipseProject.getClasspathDescriptor().addEntry(Kind.LIBRARY, "lib/trove-3.0.3.jar");
+        eclipseProject.getClasspathDescriptor().addEntry(EclipseClasspathEntryKind.LIBRARY,
+                "lib/trove-3.0.3.jar");
     }
 
     @Override
@@ -75,7 +74,7 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
 
     private void createGeneratedFiles() throws IOException {
         // generate main() for each snippet
-        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
+        for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             if (container.getRequiredJavaVersion()
                     .compareTo(getTool().getSupportedJavaVersion()) > 0) {
                 // TODO enhance message
@@ -91,8 +90,8 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
 
                 // generate main()
                 JavaFileWithMainBuilder main = new JavaFileWithMainBuilder();
-                main.setPackageName(javaClass.getPackage().getName());
-                main.setClassName(javaClass.getSimpleName() + '_' + method.getName());
+                main.packageName(javaClass.getPackage().getName());
+                main.className(javaClass.getSimpleName() + '_' + method.getName());
 
                 main.imports().add(javaClass.getName());
 
@@ -148,83 +147,71 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
                 }
 
                 // save files
-                String relativePath = JavaFileUtils.packageNameToFilename(main.getFullClassName());
-                String relativePathMain = relativePath + '.' + JavaFileUtils.JAVA_SOURCE_EXTENSION;
+                String relativePath = main.getFullClassName().replace('.', '/');
+                String relativePathMain = relativePath.replace('.', '/') + ".java";
 
                 File targetMainFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
                         relativePathMain);
-                FileUtils.forceMkdir(targetMainFile.getParentFile());
-                FileUtils.writeLines(targetMainFile, main.build());
+                Files.createDirectories(targetMainFile.getParentFile().toPath());
+                Files.write(targetMainFile.toPath(), main.build());
             }
         }
     }
 
     private void copyTool(EclipseProject eclipseProject)
-            throws IOException, ConfigurationException {
-        FileUtils.copyDirectory(getTool().getToolDirectory(),
-                getRunnerProjectSettings().getBaseDirectory());
+            throws IOException, SetteConfigurationException {
+        Files.copy(getTool().getToolDir(),
+                getRunnerProjectSettings().getBaseDir().toPath());
 
         // edit build.xml
         // TODO make better
 
-        File buildXml = new File(getRunnerProjectSettings().getBaseDirectory(), "build.xml");
+        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
         List<String> newLines = new ArrayList<>();
 
-        InputStream fis = null;
-        try {
-            fis = new FileInputStream(buildXml);
-            List<String> lines = IOUtils.readLines(fis);
+        List<String> lines = Files.readAllLines(buildXml.toPath());
 
-            for (String line : lines) {
-                if (line.contains("[SETTE]")) {
-                    String indent = "";
+        for (String line : lines) {
+            if (line.contains("[SETTE]")) {
+                String indent = "";
 
-                    for (int i = 0; i < line.length(); i++) {
-                        char ch = line.charAt(i);
+                for (int i = 0; i < line.length(); i++) {
+                    char ch = line.charAt(i);
 
-                        if (ch == ' ' || ch == '\t') {
-                            indent += ch;
-                        } else {
-                            break;
+                    if (ch == ' ' || ch == '\t') {
+                        indent += ch;
+                    } else {
+                        break;
+                    }
+                }
+
+                line = line.trim();
+                if (line.equals("<!-- [SETTE][Libraries] -->")) {
+                    for (EclipseClasspathEntry entry : eclipseProject.getClasspathDescriptor()
+                            .getClasspathEntries()) {
+                        if (entry.getKind().equals(EclipseClasspathEntryKind.LIBRARY)) {
+                            newLines.add(String.format("%s<pathelement location=\"%s\"/>", indent,
+                                    entry.getPath()));
                         }
                     }
-
-                    line = line.trim();
-                    if (line.equals("<!-- [SETTE][Libraries] -->")) {
-                        for (EclipseClasspathEntry entry : eclipseProject.getClasspathDescriptor()
-                                .classpathEntries()) {
-                            if (entry.getKind().equals(Kind.LIBRARY)) {
-                                newLines.add(String.format("%s<pathelement location=\"%s\"/>",
-                                        indent, entry.getPath()));
-                            }
+                } else if (line.equals("<!-- [SETTE][Sources] -->")) {
+                    for (EclipseClasspathEntry entry : eclipseProject.getClasspathDescriptor()
+                            .getClasspathEntries()) {
+                        if (entry.getKind().equals(EclipseClasspathEntryKind.SOURCE)) {
+                            newLines.add(
+                                    String.format("%s<src path=\"%s\"/>", indent, entry.getPath()));
                         }
-                    } else if (line.equals("<!-- [SETTE][Sources] -->")) {
-                        for (EclipseClasspathEntry entry : eclipseProject.getClasspathDescriptor()
-                                .classpathEntries()) {
-                            if (entry.getKind().equals(Kind.SOURCE)) {
-                                newLines.add(String.format("%s<src path=\"%s\"/>", indent,
-                                        entry.getPath()));
-                            }
-                        }
-                    } else {
-                        throw new ConfigurationException(
-                                "Invalid SETTE command (XML comment) in CATG build.xml: " + line);
                     }
                 } else {
-                    newLines.add(line);
+                    throw new SetteConfigurationException(
+                            "Invalid SETTE command (XML comment) in CATG build.xml: " + line);
                 }
+            } else {
+                newLines.add(line);
             }
-        } finally {
-            IOUtils.closeQuietly(fis);
         }
 
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(buildXml);
-            IOUtils.writeLines(newLines, null, fos);
-        } finally {
-            IOUtils.closeQuietly(fos);
-        }
+        Files.write(buildXml.toPath(), newLines);
     }
 
     private static String getTypeString(Class<?> javaClass) {
@@ -252,9 +239,7 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
     }
 
     private static String createCatgRead(Class<?> javaClass) {
-        if (javaClass.isPrimitive()) {
-            javaClass = ClassUtils.primitiveToWrapper(javaClass);
-        }
+        javaClass = Primitives.wrap(javaClass);
 
         if (javaClass.equals(Byte.class)) {
             return "catg.CATG.readByte((byte) 1)";

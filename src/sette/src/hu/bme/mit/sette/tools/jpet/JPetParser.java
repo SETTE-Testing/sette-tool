@@ -23,7 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-import java.io.File;
+  import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,16 +32,14 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.commons.io.FileUtils;
-
-import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
-import hu.bme.mit.sette.common.validator.FileType;
-import hu.bme.mit.sette.common.validator.FileValidator;
+import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.validator.PathType;
+import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCasesConverter;
 
@@ -64,7 +63,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
 
         if (errorFile.exists()) {
             // TODO enhance this section and make it clear
-            List<String> lines = FileUtils.readLines(errorFile);
+            List<String> lines = Files.readAllLines(errorFile.toPath());
 
             String firstLine = lines.get(0);
 
@@ -98,8 +97,8 @@ public class JPetParser extends RunResultParser<JPetTool> {
         } else {
             // TODO enhance
 
-            // LineIterator lines = FileUtils.lineIterator(outputFile);
-            List<String> lines = FileUtils.readLines(outputFile);
+            // LineIterator lines = Files.lineIterator(outputFile);
+            List<String> lines = Files.readAllLines(outputFile.toPath());
 
             if (lines.get(lines.size() - 1).startsWith("Error loading bytecode program")) {
                 // System.err.println(snippet.getMethod().getName());
@@ -168,7 +167,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
 
                 File testCasesFile = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(),
                         snippet);
-                new FileValidator(testCasesFile).type(FileType.REGULAR_FILE).validate();
+                new PathValidator(testCasesFile.toPath()).type(PathType.REGULAR_FILE).validate();
 
                 if (testCasesFile.length() / 1000.0 / 1000.0 > 10) {
                     // just to not kill the XML parser with extremely big files

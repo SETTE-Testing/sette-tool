@@ -33,9 +33,9 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.run.Run;
 
 public final class RunnerUI implements BaseUI {
@@ -57,8 +57,8 @@ public final class RunnerUI implements BaseUI {
     @Override
     public void run(BufferedReader in, PrintStream out) throws Exception {
         // directories
-        File snippetProjectDir = runner.getSnippetProjectSettings().getBaseDirectory();
-        File runnerProjectDir = runner.getRunnerProjectSettings().getBaseDirectory();
+        File snippetProjectDir = runner.getSnippetProject().getBaseDir().toFile();
+        File runnerProjectDir = runner.getRunnerProjectSettings().getBaseDir();
 
         out.println("Snippet project: " + snippetProjectDir);
         out.println("Runner project: " + runnerProjectDir);

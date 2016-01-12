@@ -23,7 +23,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet.xmlparser;
 
-import org.apache.commons.lang3.Validate;
+import com.google.common.base.Preconditions;
 
 /**
  * Denotes a &lt;data&gt; or a &lt;ref&gt; element. Please note that &lt;arg&gt; elements have the
@@ -58,12 +58,12 @@ abstract class DataOrRef {
     }
 
     public final Data asData() {
-        Validate.isTrue(isData(), "This object must be a data");
+        Preconditions.checkState(isData(), "This object must be a data");
         return (Data) this;
     }
 
     public final Ref asRef() {
-        Validate.isTrue(isRef(), "This object must be a ref");
+        Preconditions.checkState(isRef(), "This object must be a ref");
         return (Ref) this;
     }
 

@@ -23,7 +23,10 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import java.io.File;
+  import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -33,16 +36,15 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
-import hu.bme.mit.sette.common.model.parserxml.InputElement;
-import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.common.model.runner.ParameterType;
-import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
-import hu.bme.mit.sette.common.util.FileUtilsEx;
+import hu.bme.mit.sette.core.model.parserxml.InputElement;
+import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
+import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.runner.ParameterType;
+import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 public class CatgParser extends RunResultParser<CatgTool> {
     private static final Pattern EXCEPTION_LINE_PATTERN;
@@ -66,13 +68,15 @@ public class CatgParser extends RunResultParser<CatgTool> {
 
     @Override
     protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
-                snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
-                snippet);
+        Path outputFile = RunnerProjectUtils
+                .getSnippetOutputFile(getRunnerProjectSettings(), snippet).toPath();
+        Path errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(), snippet)
+                .toPath();
 
-        List<String> outputLines = FileUtilsEx.readLinesIfExists(outputFile);
-        List<String> errorLines = FileUtilsEx.readLinesIfExists(errorFile);
+        List<String> outputLines = Files.exists(outputFile) ? Files.readAllLines(outputFile)
+                : new ArrayList<>();
+        List<String> errorLines = Files.exists(errorFile) ? Files.readAllLines(errorFile)
+                : new ArrayList<>();
 
         if (!errorLines.isEmpty()) {
             // error / warning from CATG

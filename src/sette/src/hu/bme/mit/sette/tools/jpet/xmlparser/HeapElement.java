@@ -28,6 +28,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.Validate;
 
+  
+
 abstract class HeapElement {
     private String num;
 

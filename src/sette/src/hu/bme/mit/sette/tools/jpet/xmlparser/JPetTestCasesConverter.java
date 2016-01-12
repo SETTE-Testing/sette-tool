@@ -23,18 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet.xmlparser;
 
-import hu.bme.mit.sette.common.model.parserxml.AbstractParameterElement;
-import hu.bme.mit.sette.common.model.parserxml.InputElement;
-import hu.bme.mit.sette.common.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.common.model.runner.ParameterType;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-import hu.bme.mit.sette.tools.jpet.JPetTypeConverter;
-import hu.bme.mit.sette.tools.jpet.xmlparser.HeapElement.HeapArray;
-import hu.bme.mit.sette.tools.jpet.xmlparser.HeapElement.HeapObject;
-import hu.bme.mit.sette.tools.jpet.xmlparser.HeapElement.HeapObject.HeapObjectField;
-
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -42,11 +30,23 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import hu.bme.mit.sette.core.model.parserxml.AbstractParameterElement;
+import hu.bme.mit.sette.core.model.parserxml.InputElement;
+import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
+import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.runner.ParameterType;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.validator.ValidationException;
+import hu.bme.mit.sette.tools.jpet.JPetTypeConverter;
+import hu.bme.mit.sette.tools.jpet.xmlparser.HeapElement.HeapArray;
+import hu.bme.mit.sette.tools.jpet.xmlparser.HeapElement.HeapObject;
+import hu.bme.mit.sette.tools.jpet.xmlparser.HeapElement.HeapObject.HeapObjectField;
+
 public final class JPetTestCasesConverter {
     private static final Pattern exceptionFlagPattern = Pattern.compile("exception\\((.*)\\)");
 
     public static void convert(Snippet snippet, List<TestCase> testCases,
-            SnippetInputsXml inputsXml) throws ValidatorException {
+            SnippetInputsXml inputsXml) throws ValidationException {
         // TODO Auto-generated method stub
 
         for (TestCase testCase : testCases) {
@@ -63,7 +63,7 @@ public final class JPetTestCasesConverter {
     }
 
     private static InputElement createInputElement(Snippet snippet, TestCase testCase)
-            throws ValidatorException {
+            throws ValidationException {
         InputElement inputElement = new InputElement();
 
         // heap
@@ -282,7 +282,7 @@ public final class JPetTestCasesConverter {
     }
 
     private static AbstractParameterElement createParameterElement(Snippet snippet,
-            TestCase testCase, DataOrRef arg, int paramIndex) throws ValidatorException {
+            TestCase testCase, DataOrRef arg, int paramIndex) throws ValidationException {
         if (arg.isData()) {
             ParameterElement parameterElement = new ParameterElement();
 
@@ -296,6 +296,8 @@ public final class JPetTestCasesConverter {
 
                     int intVal = Integer.parseInt(arg.getText());
 
+                    
+                    
                     parameterElement
                             .setType(ParameterType.primitiveFromJavaClass(paramTypes[paramIndex]));
 

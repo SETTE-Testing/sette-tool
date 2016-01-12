@@ -29,15 +29,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.run.Run;
 
 public final class GeneratorUI implements BaseUI {
@@ -53,8 +53,8 @@ public final class GeneratorUI implements BaseUI {
     @Override
     public void run(BufferedReader in, PrintStream out) throws Exception {
         // directories
-        File snippetProjectDir = generator.getSnippetProjectSettings().getBaseDirectory();
-        File runnerProjectDir = generator.getRunnerProjectSettings().getBaseDirectory();
+        File snippetProjectDir = generator.getSnippetProject().getBaseDir().toFile();
+        File runnerProjectDir = generator.getSnippetProject().getBaseDir().toFile();
 
         out.println("Snippet project: " + snippetProjectDir);
         out.println("Runner project: " + runnerProjectDir);
@@ -87,7 +87,7 @@ public final class GeneratorUI implements BaseUI {
         try {
             // generate runner project
             out.println("Starting generation");
-            FileUtils.deleteDirectory(runnerProjectDir);
+            Files.deleteIfExists(runnerProjectDir.toPath());
             generator.generate();
             out.println("Generation successful");
         } catch (Exception ex) {

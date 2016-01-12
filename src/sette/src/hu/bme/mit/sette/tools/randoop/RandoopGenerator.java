@@ -23,15 +23,14 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
-import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
-
-import java.io.File;
+  import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
-import org.apache.commons.io.FileUtils;
+import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 
 public class RandoopGenerator extends RunnerProjectGenerator<RandoopTool> {
     public RandoopGenerator(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
@@ -42,7 +41,7 @@ public class RandoopGenerator extends RunnerProjectGenerator<RandoopTool> {
     @Override
     protected void afterWriteRunnerProject(EclipseProject eclipseProject)
             throws IOException, SetteException {
-        File buildXml = new File(getRunnerProjectSettings().getBaseDirectory(), "build.xml");
-        FileUtils.copyFile(getTool().getDefaultBuildXml(), buildXml);
+        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
+        Files.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }
 }

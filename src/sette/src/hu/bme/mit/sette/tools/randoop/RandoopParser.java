@@ -23,13 +23,15 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
-import java.io.File;
+  import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.github.javaparser.JavaParser;
@@ -37,12 +39,12 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
-import hu.bme.mit.sette.common.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.common.model.runner.ResultType;
-import hu.bme.mit.sette.common.model.runner.RunnerProjectUtils;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunResultParser;
+import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 public class RandoopParser extends RunResultParser<RandoopTool> {
     private final static Pattern TEST_COUNT_LINE_PATTERN = Pattern
@@ -71,7 +73,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             // extremely odd, but randoop stopped
             File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
                     snippet);
-            String info = FileUtils.readFileToString(infoFile);
+            String info = new String(Files.readAllBytes(infoFile.toPath()));
             if (info.contains("Exit value: 137")) {
                 // N/A
                 inputsXml.setResultType(ResultType.NA);
@@ -82,7 +84,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
         }
 
         if (errorFile.exists()) {
-            List<String> lines = FileUtils.readLines(errorFile);
+            List<String> lines = Files.readAllLines(errorFile.toPath());
             String firstLine = lines.get(0);
 
             if (firstLine.startsWith("java.io.FileNotFoundException:")
@@ -113,7 +115,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             inputsXml.setResultType(ResultType.S);
 
             // get how many tests were generated
-            List<String> outputFileLines = FileUtils.readLines(outputFile);
+            List<String> outputFileLines = Files.readAllLines(outputFile.toPath());
             int generatedInputCount = outputFileLines.stream()
                     .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
                     .filter(m -> m.matches()).map(m -> Integer.parseInt(m.group(1))).findAny()
@@ -123,7 +125,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
                 inputsXml.setGeneratedInputCount(generatedInputCount);
             } else {
                 // NOTE randoop did not write out the result, we have to determine it :(
-                File lookUpDir = new File(getRunnerProjectSettings().getBaseDirectory(),
+                File lookUpDir = new File(getRunnerProjectSettings().getBaseDir(),
                         "test/" + RunnerProjectUtils.getSnippetBaseFilename(snippet) + "_Test");
 
                 if (!lookUpDir.exists()) {
@@ -168,20 +170,23 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
         try {
             File testDir = getRunnerProjectSettings().getTestDirectory();
 
-            Iterator<File> it = FileUtils.iterateFiles(testDir, new String[] { "java" }, true);
+            Iterator<File> it = Files.walk(testDir.toPath()).filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java")).map(Path::toFile).sorted()
+                    .collect(Collectors.toList()).iterator();
+
             while (it.hasNext()) {
                 File testFile = it.next();
                 if (!testFile.getName().endsWith("Test.java")) {
                     continue;
                 }
 
-                List<String> lines = FileUtils.readLines(testFile);
+                List<String> lines = Files.readAllLines(testFile.toPath());
                 for (int i = 0; i < lines.size(); i++) {
                     String line = lines.get(i).replace("public static Test suite() {",
                             "public static TestSuite suite() {");
                     lines.set(i, line);
                 }
-                FileUtils.writeLines(testFile, lines);
+                Files.write(testFile.toPath(), lines);
             }
         } catch (IOException ex) {
             throw new RuntimeException(ex);

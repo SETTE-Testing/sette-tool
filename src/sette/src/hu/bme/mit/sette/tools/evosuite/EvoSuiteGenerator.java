@@ -23,12 +23,11 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
-import java.io.File;
+  import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -38,13 +37,13 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
-import hu.bme.mit.sette.common.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.common.exceptions.SetteException;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectGenerator;
-import hu.bme.mit.sette.common.util.JavaParserFixStringVisitor;
+import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 
 public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
     public EvoSuiteGenerator(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
@@ -57,8 +56,8 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
             throws IOException, SetteException {
         createSpecialSnippetFiles();
 
-        File buildXml = new File(getRunnerProjectSettings().getBaseDirectory(), "build.xml");
-        FileUtils.copyFile(getTool().getDefaultBuildXml(), buildXml);
+        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
+        Files.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }
 
     private void createSpecialSnippetFiles() {
@@ -66,7 +65,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
         // generation is based on the runner project snippet source files (which does not have
         // annotations, only Java code)
         // NOTE this iteration is repeated at a lot of places, maybe visitor?
-        for (SnippetContainer container : getSnippetProject().getModel().getContainers()) {
+        for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             String javaPackageName = container.getJavaClass().getPackage().getName();
             String javaClassName = container.getJavaClass().getSimpleName();
             Set<String> snippetMethodNames = container.getSnippets().keySet();
@@ -143,7 +142,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
 
                     // without comment might be buggy???
                     newCu.accept(new JavaParserFixStringVisitor(), null);
-                    FileUtils.write(newSourceFile, newCu.toString());
+                    Files.write(newSourceFile.toPath(), newCu.toString().getBytes());
                 } catch (Exception ex) {
                     throw new RuntimeException("SETTE ERROR", ex);
                 }

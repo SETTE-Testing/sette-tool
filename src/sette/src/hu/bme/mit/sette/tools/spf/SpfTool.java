@@ -23,55 +23,32 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.ToolOutputType;
-import hu.bme.mit.sette.common.exceptions.ConfigurationException;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.common.validator.FileType;
-import hu.bme.mit.sette.common.validator.FileValidator;
-import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
-
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import hu.bme.mit.sette.common.snippets.JavaVersion;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.tool.ToolOutputType;
+import hu.bme.mit.sette.core.validator.PathValidator;
+import hu.bme.mit.sette.core.validator.ValidationException;
+import lombok.Getter;
 
 public final class SpfTool extends Tool {
-    private final File toolJAR;
-    private final File defaultBuildXml;
+    @Getter
+    private final Path toolJar;
+    @Getter
+    private final Path defaultBuildXml;
 
-    public SpfTool(File toolJAR, File defaultBuildXml, String version)
-            throws ConfigurationException {
-        super("SPF", "Symbolic Pathfinder", version);
-        this.toolJAR = toolJAR;
-        this.defaultBuildXml = defaultBuildXml;
+    public SpfTool(String name, Path dir) throws IOException, ValidationException {
+        super(name, dir);
 
-        // validate
-        getToolJAR();
-        getDefaultBuildXml();
-    }
+        toolJar = dir.resolve("jpf-core/build/RunJPF.jar");
+        defaultBuildXml = dir.resolve("sette-build.xml.default");
 
-    public File getToolJAR() throws ConfigurationException {
-        try {
-            FileValidator v = new FileValidator(toolJAR);
-            v.type(FileType.REGULAR_FILE).readable(true);
-            v.validate();
-        } catch (ValidatorException ex) {
-            throw new ConfigurationException("The SPF JAR is invalid: " + toolJAR, ex);
-        }
-
-        return toolJAR;
-    }
-
-    public File getDefaultBuildXml() throws ConfigurationException {
-        try {
-            FileValidator v = new FileValidator(defaultBuildXml);
-            v.type(FileType.REGULAR_FILE).readable(true);
-            v.validate();
-        } catch (ValidatorException ex) {
-            throw new ConfigurationException(
-                    "The default SPF build.xml is invalid: " + defaultBuildXml, ex);
-        }
-
-        return defaultBuildXml;
+        PathValidator.forRegularFile(toolJar, true, null, null, "jar");
+        PathValidator.forRegularFile(defaultBuildXml, true, null, null, "default");
     }
 
     @Override

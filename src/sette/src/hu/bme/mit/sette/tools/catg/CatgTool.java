@@ -24,38 +24,18 @@
 package hu.bme.mit.sette.tools.catg;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
-import hu.bme.mit.sette.common.Tool;
-import hu.bme.mit.sette.common.ToolOutputType;
-import hu.bme.mit.sette.common.exceptions.ConfigurationException;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.common.validator.FileType;
-import hu.bme.mit.sette.common.validator.FileValidator;
-import hu.bme.mit.sette.common.validator.exceptions.ValidatorException;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.tool.ToolOutputType;
+import hu.bme.mit.sette.core.validator.ValidationException;
 
 public final class CatgTool extends Tool {
-    public final File toolDirectory;
-
-    public CatgTool(File toolDirectory, String version) throws ConfigurationException {
-        super("CATG", null, version);
-        this.toolDirectory = toolDirectory;
-
-        // validate
-        getToolDirectory();
-    }
-
-    public File getToolDirectory() throws ConfigurationException {
-        try {
-            FileValidator v = new FileValidator(toolDirectory);
-            v.type(FileType.DIRECTORY).readable(true).executable(true);
-            v.validate();
-        } catch (ValidatorException ex) {
-            throw new ConfigurationException("The CATG tool directory is invalid: " + toolDirectory,
-                    ex);
-        }
-
-        return toolDirectory;
+    public CatgTool(String name, Path dir) throws IOException, ValidationException {
+        super(name, dir);
     }
 
     @Override
@@ -75,8 +55,8 @@ public final class CatgTool extends Tool {
     }
 
     @Override
-    public CatgRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
+    public CatgRunner createRunnerProjectRunner(SnippetProject snippetProject, File outputDirectory,
+            String runnerProjectTag) {
         return new CatgRunner(snippetProject, outputDirectory, this, runnerProjectTag);
     }
 

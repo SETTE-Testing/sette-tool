@@ -26,23 +26,24 @@ package hu.bme.mit.sette.tools.randoop;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import hu.bme.mit.sette.common.exceptions.ConfigurationException;
-import hu.bme.mit.sette.common.model.snippet.Snippet;
-import hu.bme.mit.sette.common.model.snippet.SnippetProject;
-import hu.bme.mit.sette.common.tasks.RunnerProjectRunner;
-import hu.bme.mit.sette.common.util.process.ProcessRunner;
-import hu.bme.mit.sette.common.util.process.ProcessRunnerListener;
-import hu.bme.mit.sette.common.util.process.ProcessUtils;
+import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.tasks.AntExecutor;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
     private final Random seedGenerator;
@@ -55,71 +56,13 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
 
     @Override
     protected void afterPrepare() throws IOException {
-        // TODO make simpler and better
-
         // ant build
-        ProcessRunner pr = new ProcessRunner();
-        pr.setPollIntervalInMs(1000);
-        pr.setCommand(new String[] { "/bin/bash", "-c", "ant" });
-        pr.setWorkingDirectory(getRunnerProjectSettings().getBaseDirectory());
-
-        pr.addListener(new ProcessRunnerListener() {
-            @Override
-            public void onTick(ProcessRunner processRunner, long elapsedTimeInMs) {
-                System.out.println("ant build tick: " + elapsedTimeInMs);
-            }
-
-            @Override
-            public void onIOException(ProcessRunner processRunner, IOException ex) {
-                // TODO error handling
-                ex.printStackTrace();
-            }
-
-            @Override
-            public void onComplete(ProcessRunner processRunner) {
-                if (processRunner.getStdout().length() > 0) {
-                    System.out.println("Ant build output:");
-                    System.out.println("========================================");
-                    System.out.println(processRunner.getStdout().toString());
-                    System.out.println("========================================");
-                }
-
-                if (processRunner.getStderr().length() > 0) {
-                    System.out.println("Ant build error output:");
-                    System.out.println("========================================");
-                    System.out.println(processRunner.getStderr().toString());
-                    System.out.println("========================================");
-                    System.out.println("Terminating");
-                }
-            }
-
-            @Override
-            public void onStdoutRead(ProcessRunner processRunner, int charactersRead) {
-                // not needed
-            }
-
-            @Override
-            public void onStderrRead(ProcessRunner processRunner, int charactersRead) {
-                // not needed
-            }
-        });
-
-        pr.execute();
-
-        if (pr.getStderr().length() > 0) {
-            // TODO error handling
-            // throw new SetteGeneralException("Randoop ant build has failed");
-            throw new RuntimeException("Randoop ant build has failed");
-        }
-
-        // FIXME
-        // System.out.println("Ant build done, press enter to continue");
-        // new BufferedReader(new InputStreamReader(System.in)).readLine();
+        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
     }
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, ConfigurationException {
+            throws IOException, SetteConfigurationException {
         // TODO make better
         /*
          * e.g.:
@@ -136,10 +79,10 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
          * sette.snippets._3_objects.dependencies.SimpleObject)
          */
 
-        File randoopJar = getTool().getToolJAR();
+        File randoopJar = getTool().getToolJar().toFile();
 
         // TODO ???
-        // String filenameBase = JavaFileUtils
+        // String filenameBase = JavaFileUtil
         // .packageNameToFilename(snippet.getContainer()
         // .getJavaClass().getName())
         // + "_" + snippet.getMethod().getName();
@@ -147,10 +90,10 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         // create command
         String classpath = randoopJar.getCanonicalPath() + SystemUtils.PATH_SEPARATOR + "build";
 
-        for (File libraryFile : getSnippetProject().getFiles().getLibraryFiles()) {
+        for (Path libraryFile : getSnippetProject().getLibFiles()) {
             classpath += SystemUtils.PATH_SEPARATOR
-                    + getSnippetProjectSettings().getLibraryDirectoryPath()
-                    + SystemUtils.FILE_SEPARATOR + libraryFile.getName();
+                    + getSnippetProject().getLibDir().toString()
+                    + SystemUtils.FILE_SEPARATOR + libraryFile.toFile().getName();
         }
 
         int timelimit = (getTimeoutInMs() + 500) / 1000; // ceil
@@ -158,10 +101,11 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
                 + snippet.getMethod().getName() + "_Test";
 
         // create method list file
-        File methodList = new File(getRunnerProjectSettings().getBaseDirectory(),
+        File methodList = new File(getRunnerProjectSettings().getBaseDir(),
                 "methodlist_" + junitPackageName + ".tmp"); // TODO better file name
-        FileUtils.write(methodList,
-                "method : " + getMethodNameAndParameterTypesString(snippet.getMethod()) + "\n");
+        Files.write(methodList.toPath(),
+                ("method : " + getMethodNameAndParameterTypesString(snippet.getMethod()) + "\n")
+                        .getBytes());
 
         // create command
         // String cmdFormat =
@@ -195,36 +139,25 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         System.out.println("  command: " + StringUtils.join(cmd, ' '));
 
         // run process
-        ProcessRunner pr = new ProcessRunner();
-        pr.setCommand(cmd);
-
-        pr.setWorkingDirectory(getRunnerProjectSettings().getBaseDirectory());
         // Randoop will stop generation at the given time limit (however, it
         // needs extra time for dumping test cases)
-        pr.setTimeoutInMs(0);
-        pr.setPollIntervalInMs(RunnerProjectRunner.POLL_INTERVAL);
-
-        OutputWriter l = new OutputWriter(cmd.toString(), infoFile, outputFile, errorFile);
-        pr.addListener(l);
-        pr.execute();
+        executeToolProcess(Arrays.asList(cmd.toString().split("\\s+")), infoFile, outputFile,
+                errorFile);
 
         // delete method list file
-        FileUtils.deleteQuietly(methodList);
+        Files.deleteIfExists(methodList.toPath());
+    }
+
+    @Override
+    public int getTimeoutInMs() {
+        // FIXME randoop
+        return 0;
     }
 
     @Override
     public void cleanUp() throws IOException {
         // TODO better search
-        for (Integer pid : ProcessUtils.searchProcess("randoop.main.Main")) {
-            System.err.println("  Terminating stuck process (PID: " + pid + ")");
-            try {
-                ProcessUtils.terminateProcess(pid);
-            } catch (Exception ex) {
-                System.err.println("  Exception");
-                ex.printStackTrace();
-            }
-        }
-
+        ProcessUtils.searchAndTerminateProcesses("randoop.main.Main");
         System.gc();
     }
 
