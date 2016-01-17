@@ -24,6 +24,7 @@
 package hu.bme.mit.sette.core.model.runner;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import com.google.common.base.Preconditions;
 
@@ -93,14 +94,14 @@ public final class RunnerProjectSettings<T extends Tool> {
      *
      * @param snippetProject
      *            The snippet project.
-     * @param parentDirectory
-     *            the parent directory
+     * @param outputDir
+     *            the output directory
      * @param tool
      *            The tool.
      * @param tag
      */
     public RunnerProjectSettings(@NonNull SnippetProject snippetProject,
-            @NonNull File parentDirectory, @NonNull T tool, @NonNull String tag) {
+            @NonNull Path outputDir, @NonNull T tool, @NonNull String tag) {
         Preconditions.checkArgument(!tag.trim().isEmpty(), "The tag must not be blank");
         Preconditions.checkArgument(!tag.contains("___"),
                 "The tag must not contain the '___' substring");
@@ -111,7 +112,7 @@ public final class RunnerProjectSettings<T extends Tool> {
 
         String projectName = String.format("%s___%s___%s", snippetProject.getName(),
                 tool.getName(), tag).toLowerCase();
-        this.baseDir = new File(parentDirectory, projectName);
+        this.baseDir = new File(outputDir.toFile(), projectName);
     }
 
     /**

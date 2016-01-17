@@ -25,6 +25,7 @@ package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,9 +57,9 @@ import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
-    public EvoSuiteParser(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
+    public EvoSuiteParser(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

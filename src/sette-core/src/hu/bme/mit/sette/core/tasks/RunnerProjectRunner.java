@@ -33,8 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.Validate;
-
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.exceptions.RunnerProjectRunnerException;
@@ -56,7 +54,7 @@ import hu.bme.mit.sette.core.util.process.ProcessExecutorListener;
  * @param <T>
  *            the type of the tool
  */
-public abstract class RunnerProjectRunner<T extends Tool> extends SetteEvaluationTask<T> {
+public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask<T> {
     /** The poll interval for {@link ProcessExecutor} objects. */
     public static final int POLL_INTERVAL = 100;
 
@@ -71,14 +69,14 @@ public abstract class RunnerProjectRunner<T extends Tool> extends SetteEvaluatio
      *
      * @param snippetProject
      *            the snippet project
-     * @param outputDirectory
+     * @param outputDir
      *            the output directory
      * @param tool
      *            the tool
      */
-    public RunnerProjectRunner(SnippetProject snippetProject, File outputDirectory, T tool,
+    public RunnerProjectRunner(SnippetProject snippetProject, Path outputDir, T tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
         this.timeoutInMs = RunnerProjectRunner.DEFAULT_TIMEOUT;
     }
 

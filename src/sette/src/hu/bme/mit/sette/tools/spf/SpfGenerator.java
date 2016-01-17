@@ -43,9 +43,9 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 
 public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
-    public SpfGenerator(SnippetProject snippetProject, File outputDirectory, SpfTool tool,
+    public SpfGenerator(SnippetProject snippetProject, Path outputDir, SpfTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

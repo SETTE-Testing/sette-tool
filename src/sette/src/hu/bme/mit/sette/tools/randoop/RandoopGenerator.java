@@ -23,9 +23,10 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
@@ -33,9 +34,9 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 
 public class RandoopGenerator extends RunnerProjectGenerator<RandoopTool> {
-    public RandoopGenerator(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
+    public RandoopGenerator(SnippetProject snippetProject, Path outputDir, RandoopTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

@@ -38,8 +38,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.Validate;
-
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
@@ -48,8 +46,6 @@ import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
 import hu.bme.mit.sette.core.SetteException;
@@ -72,7 +68,7 @@ import hu.bme.mit.sette.core.tool.Tool;
  * @param <T>
  *            the type of the tool
  */
-public abstract class RunnerProjectGenerator<T extends Tool> extends SetteEvaluationTask<T> {
+public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationTask<T> {
     /** The Eclipse project. */
     private EclipseProject eclipseProject;
 
@@ -88,7 +84,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends SetteEvalua
      * @param runnerProjectTag
      *            the tag of the runner project
      */
-    public RunnerProjectGenerator(SnippetProject snippetProject, File outputDir, T tool,
+    public RunnerProjectGenerator(SnippetProject snippetProject, Path outputDir, T tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
     }

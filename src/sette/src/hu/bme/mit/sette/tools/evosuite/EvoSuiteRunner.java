@@ -39,9 +39,9 @@ import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
 
 public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
-    public EvoSuiteRunner(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
+    public EvoSuiteRunner(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

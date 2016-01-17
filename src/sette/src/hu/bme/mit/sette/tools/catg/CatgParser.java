@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-  import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -61,9 +60,9 @@ public class CatgParser extends RunResultParser<CatgTool> {
                 .toArray(Pattern[]::new);
     }
 
-    public CatgParser(SnippetProject snippetProject, File outputDirectory, CatgTool tool,
+    public CatgParser(SnippetProject snippetProject, Path outputDir, CatgTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

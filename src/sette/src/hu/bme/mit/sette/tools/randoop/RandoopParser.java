@@ -23,7 +23,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,9 +50,9 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
     private final static Pattern TEST_COUNT_LINE_PATTERN = Pattern
             .compile("^Writing (\\d+) junit tests$");
 
-    public RandoopParser(SnippetProject snippetProject, File outputDirectory, RandoopTool tool,
+    public RandoopParser(SnippetProject snippetProject, Path outputDir, RandoopTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

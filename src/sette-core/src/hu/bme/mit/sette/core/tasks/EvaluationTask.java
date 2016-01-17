@@ -23,7 +23,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ import lombok.NonNull;
  * @param <T>
  *            the type of the tool
  */
-abstract class SetteEvaluationTask<T extends Tool> {
+abstract class EvaluationTask<T extends Tool> {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     /** The snippet project. */
@@ -56,20 +56,20 @@ abstract class SetteEvaluationTask<T extends Tool> {
      *
      * @param snippetProject
      *            the snippet project
-     * @param outputDirectory
+     * @param outputDir
      *            the output directory
      * @param tool
      *            the tool
      * @param runnerProjectTag
      *            tag for the runner project
      */
-    public SetteEvaluationTask(@NonNull SnippetProject snippetProject,
-            @NonNull File outputDirectory,
+    public EvaluationTask(@NonNull SnippetProject snippetProject,
+            @NonNull Path outputDir,
             @NonNull T tool,
             @NonNull String runnerProjectTag) {
         this.snippetProject = snippetProject;
         this.runnerProjectSettings = new RunnerProjectSettings<>(snippetProject,
-                outputDirectory, tool, runnerProjectTag);
+                outputDir, tool, runnerProjectTag);
     }
 
     /**

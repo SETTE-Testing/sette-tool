@@ -26,6 +26,7 @@ package hu.bme.mit.sette.core.tasks;
 import java.io.File;
 import java.lang.reflect.Parameter;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,10 +56,10 @@ import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
-public abstract class RunResultParser<T extends Tool> extends SetteEvaluationTask<T> {
-    public RunResultParser(SnippetProject snippetProject, File outputDirectory, T tool,
+public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> {
+    public RunResultParser(SnippetProject snippetProject, Path outputDir, T tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     public final void parse() throws Exception {

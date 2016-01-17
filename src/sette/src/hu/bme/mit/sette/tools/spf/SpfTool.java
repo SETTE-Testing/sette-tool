@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -63,19 +62,19 @@ public final class SpfTool extends Tool {
 
     @Override
     public SpfGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
-        return new SpfGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
+            Path outputDir, String runnerProjectTag) {
+        return new SpfGenerator(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
-    public SpfRunner createRunnerProjectRunner(SnippetProject snippetProject, File outputDirectory,
+    public SpfRunner createRunnerProjectRunner(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new SpfRunner(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new SpfRunner(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
-    public SpfParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+    public SpfParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new SpfParser(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new SpfParser(snippetProject, outputDir, this, runnerProjectTag);
     }
 }

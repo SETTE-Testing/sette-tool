@@ -24,7 +24,6 @@ package hu.bme.mit.sette.core.tool;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -127,7 +126,7 @@ public abstract class Tool implements Comparable<Tool> {
             throws IOException, ValidationException {
         try {
             Class<?> toolClass = Class.forName(toolConfiguration.getClassName());
-            Constructor<?> ctor = toolClass.getConstructor(Path.class, String.class, String.class);
+            Constructor<?> ctor = toolClass.getConstructor(String.class, Path.class);
             return (Tool) ctor.newInstance(toolConfiguration.getName(),
                     toolConfiguration.getToolDir());
         } catch (Exception ex) {
@@ -145,15 +144,6 @@ public abstract class Tool implements Comparable<Tool> {
             // wrap other exceptions
             throw new RuntimeException("Cannot instatiate tool: " + toolConfiguration, ex);
         }
-    }
-
-    /**
-     * Adds the tool to the {@link ToolRegister}.
-     */
-    // FIXME remove
-    @Deprecated
-    public void register() {
-        ToolRegister.register(this);
     }
 
     /**
@@ -186,38 +176,38 @@ public abstract class Tool implements Comparable<Tool> {
      *
      * @param snippetProject
      *            the snippet project
-     * @param outputDirectory
+     * @param outputDir
      *            the output directory
      * @return the runner project generator
      */
     public abstract RunnerProjectGenerator<?> createRunnerProjectGenerator(
-            SnippetProject snippetProject, File outputDirectory, String runnerProjectTag);
+            SnippetProject snippetProject, Path outputDir, String runnerProjectTag);
 
     /**
      * Creates a runner project runner.
      *
      * @param snippetProject
      *            the snippet project
-     * @param outputDirectory
+     * @param outputDir
      *            the output directory
      * @return the runner project runner
      */
-    public abstract RunnerProjectRunner<?> createRunnerProjectRunner(
-            SnippetProject snippetProject, File outputDirectory, String runnerProjectTag);
+    public abstract RunnerProjectRunner<?> createRunnerProjectRunner(SnippetProject snippetProject,
+            Path outputDir, String runnerProjectTag);
 
     /**
      * Creates a run result parser.
      *
      * @param snippetProject
      *            the snippet project
-     * @param outputDirectory
+     * @param outputDir
      *            the output directory
      * @param runnerProjectTag
      *            the tag of the runner project
      * @return the run result parser
      */
     public abstract RunResultParser<?> createRunResultParser(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag);
+            Path outputDir, String runnerProjectTag);
 
     @Override
     public final int compareTo(@NonNull Tool o) {
@@ -226,7 +216,9 @@ public abstract class Tool implements Comparable<Tool> {
 
     @Override
     public String toString() {
-        return String.format("%s [name=%s, version=%s, dir=%s]", getClass().getName(), name,
-                version, toolDir);
+        return String.format(
+                "%s [name=%s, version=%s, dir=%s, outputType=%s, supportedJavaVersion=%s]",
+                getClass().getName(), name, version, toolDir, getOutputType(),
+                getSupportedJavaVersion());
     }
 }

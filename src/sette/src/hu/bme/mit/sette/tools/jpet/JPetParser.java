@@ -23,8 +23,9 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-  import java.io.File;
+import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,9 +45,9 @@ import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCasesConverter;
 
 public class JPetParser extends RunResultParser<JPetTool> {
-    public JPetParser(SnippetProject snippetProject, File outputDirectory, JPetTool tool,
+    public JPetParser(SnippetProject snippetProject, Path outputDir, JPetTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     private static final Pattern PATTERN_FULL_CODE = Pattern

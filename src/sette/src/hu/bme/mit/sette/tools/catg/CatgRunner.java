@@ -23,8 +23,9 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import hu.bme.mit.sette.core.SetteException;
@@ -40,9 +41,9 @@ import hu.bme.mit.sette.core.validator.ValidationException;
 public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
     private static final int TRIAL_COUNT = 100;
 
-    public CatgRunner(SnippetProject snippetProject, File outputDirectory, CatgTool tool,
+    public CatgRunner(SnippetProject snippetProject, Path outputDir, CatgTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

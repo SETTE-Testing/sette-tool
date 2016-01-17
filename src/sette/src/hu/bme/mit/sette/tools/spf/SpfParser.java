@@ -23,8 +23,9 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-  import java.io.File;
+import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -47,9 +48,9 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 public class SpfParser extends RunResultParser<SpfTool> {
-    public SpfParser(SnippetProject snippetProject, File outputDirectory, SpfTool tool,
+    public SpfParser(SnippetProject snippetProject, Path outputDir, SpfTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

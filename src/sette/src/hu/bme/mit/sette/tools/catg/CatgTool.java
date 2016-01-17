@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -50,19 +49,19 @@ public final class CatgTool extends Tool {
 
     @Override
     public CatgGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
-        return new CatgGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
+            Path outputDir, String runnerProjectTag) {
+        return new CatgGenerator(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
-    public CatgRunner createRunnerProjectRunner(SnippetProject snippetProject, File outputDirectory,
+    public CatgRunner createRunnerProjectRunner(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new CatgRunner(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new CatgRunner(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
-    public CatgParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+    public CatgParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new CatgParser(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new CatgParser(snippetProject, outputDir, this, runnerProjectTag);
     }
 }

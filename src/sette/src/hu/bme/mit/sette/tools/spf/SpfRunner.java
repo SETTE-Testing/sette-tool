@@ -25,6 +25,7 @@ package hu.bme.mit.sette.tools.spf;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
@@ -35,9 +36,9 @@ import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
-    public SpfRunner(SnippetProject snippetProject, File outputDirectory, SpfTool tool,
+    public SpfRunner(SnippetProject snippetProject, Path outputDir, SpfTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

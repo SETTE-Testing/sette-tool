@@ -23,8 +23,9 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-  import java.io.File;
+import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -45,10 +46,10 @@ import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 
-public final class CsvGenerator extends SetteEvaluationTask<Tool> {
+public final class CsvGenerator extends EvaluationTask<Tool> {
     private static final String FIELD_SEP = ",";
 
-    public CsvGenerator(SnippetProject snippetProject, File outputDir, Tool tool,
+    public CsvGenerator(SnippetProject snippetProject, Path outputDir, Tool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
     }

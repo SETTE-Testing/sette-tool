@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -63,19 +62,19 @@ public final class EvoSuiteTool extends Tool {
 
     @Override
     public EvoSuiteGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
-        return new EvoSuiteGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
+            Path outputDir, String runnerProjectTag) {
+        return new EvoSuiteGenerator(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
     public EvoSuiteRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
-        return new EvoSuiteRunner(snippetProject, outputDirectory, this, runnerProjectTag);
+            Path outputDir, String runnerProjectTag) {
+        return new EvoSuiteRunner(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
-    public EvoSuiteParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+    public EvoSuiteParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new EvoSuiteParser(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new EvoSuiteParser(snippetProject, outputDir, this, runnerProjectTag);
     }
 }

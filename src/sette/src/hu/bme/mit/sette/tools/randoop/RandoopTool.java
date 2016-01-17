@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -63,19 +62,19 @@ public final class RandoopTool extends Tool {
 
     @Override
     public RandoopGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
-        return new RandoopGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
+            Path outputDir, String runnerProjectTag) {
+        return new RandoopGenerator(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
     public RandoopRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
-        return new RandoopRunner(snippetProject, outputDirectory, this, runnerProjectTag);
+            Path outputDir, String runnerProjectTag) {
+        return new RandoopRunner(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
-    public RandoopParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+    public RandoopParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new RandoopParser(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new RandoopParser(snippetProject, outputDir, this, runnerProjectTag);
     }
 }

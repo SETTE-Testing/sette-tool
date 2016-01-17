@@ -23,9 +23,10 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +42,9 @@ import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
 
-    public JPetRunner(SnippetProject snippetProject, File outputDirectory, JPetTool tool,
+    public JPetRunner(SnippetProject snippetProject, Path outputDir, JPetTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

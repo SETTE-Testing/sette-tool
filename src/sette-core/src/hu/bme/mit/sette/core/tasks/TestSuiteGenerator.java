@@ -23,13 +23,14 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +58,7 @@ import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.util.io.DeleteFileVisitor;
 
-public final class TestSuiteGenerator extends SetteEvaluationTask<Tool> {
+public final class TestSuiteGenerator extends EvaluationTask<Tool> {
     public static final String ANT_BUILD_TEST_FILENAME;
     private static final String ANT_BUILD_TEST_DATA;
 
@@ -93,9 +94,9 @@ public final class TestSuiteGenerator extends SetteEvaluationTask<Tool> {
         ANT_BUILD_TEST_DATA = String.join("\n", lines);
     }
 
-    public TestSuiteGenerator(SnippetProject snippetProject, File outputDirectory, Tool tool,
+    public TestSuiteGenerator(SnippetProject snippetProject, Path outputDir, Tool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     public void generate() throws Exception {

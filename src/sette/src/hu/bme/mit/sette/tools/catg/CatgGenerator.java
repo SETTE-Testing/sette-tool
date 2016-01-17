@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +48,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 
 public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
-    public CatgGenerator(SnippetProject snippetProject, File outputDir, CatgTool tool,
+    public CatgGenerator(SnippetProject snippetProject, Path outputDir, CatgTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
     }

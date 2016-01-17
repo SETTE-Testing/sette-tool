@@ -23,9 +23,10 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -46,9 +47,9 @@ import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 
 public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
-    public EvoSuiteGenerator(SnippetProject snippetProject, File outputDirectory, EvoSuiteTool tool,
+    public EvoSuiteGenerator(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     @Override

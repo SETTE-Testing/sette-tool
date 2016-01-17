@@ -67,14 +67,14 @@ public final class JPetTool extends Tool {
 
     @Override
     public JPetGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            File outputDirectory, String runnerProjectTag) {
-        return new JPetGenerator(snippetProject, outputDirectory, this, runnerProjectTag);
+            Path outputDir, String runnerProjectTag) {
+        return new JPetGenerator(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     @Override
-    public JPetRunner createRunnerProjectRunner(SnippetProject snippetProject, File outputDirectory,
+    public JPetRunner createRunnerProjectRunner(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new JPetRunner(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new JPetRunner(snippetProject, outputDir, this, runnerProjectTag);
     }
 
     public static File getTestCasesDirectory(
@@ -89,8 +89,8 @@ public final class JPetTool extends Tool {
     }
 
     @Override
-    public JPetParser createRunResultParser(SnippetProject snippetProject, File outputDirectory,
+    public JPetParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
             String runnerProjectTag) {
-        return new JPetParser(snippetProject, outputDirectory, this, runnerProjectTag);
+        return new JPetParser(snippetProject, outputDir, this, runnerProjectTag);
     }
 }

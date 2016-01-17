@@ -25,6 +25,7 @@ package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,10 +41,10 @@ public final class CsvBatchGenerator {
     private final Tool[] tools;
     private final String[] runnerProjectTags;
 
-    public CsvBatchGenerator(SnippetProject snippetProject, File outputDir, String tools,
+    public CsvBatchGenerator(SnippetProject snippetProject, Path outputDir, String tools,
             String runnerProjectTags) {
         this.snippetProject = snippetProject;
-        this.outputDir = outputDir;
+        this.outputDir = outputDir.toFile();
 
         this.tools = Stream.of(tools.split(",")).sorted()
                 .map(toolName -> ToolRegister.get(toolName)).toArray(Tool[]::new);
@@ -58,7 +59,7 @@ public final class CsvBatchGenerator {
         // generate for each
         for (Tool tool : tools) {
             for (String tag : runnerProjectTags) {
-                CsvGenerator gen = new CsvGenerator(snippetProject, outputDir, tool, tag);
+                CsvGenerator gen = new CsvGenerator(snippetProject, outputDir.toPath(), tool, tag);
                 System.err.println("CsvBatchGenerator.generate for: "
                         + gen.getRunnerProjectSettings().getProjectName());
                 gen.generate();

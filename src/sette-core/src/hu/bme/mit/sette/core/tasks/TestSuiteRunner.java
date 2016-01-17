@@ -29,6 +29,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -87,12 +88,12 @@ import hu.bme.mit.sette.core.validator.ValidationException;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
-public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
+public final class TestSuiteRunner extends EvaluationTask<Tool> {
     private final Logger LOG = LoggerFactory.getLogger(TestSuiteRunner.class);
 
-    public TestSuiteRunner(SnippetProject snippetProject, File outputDirectory, Tool tool,
+    public TestSuiteRunner(SnippetProject snippetProject, Path outputDir, Tool tool,
             String runnerProjectTag) {
-        super(snippetProject, outputDirectory, tool, runnerProjectTag);
+        super(snippetProject, outputDir, tool, runnerProjectTag);
     }
 
     public void analyze() throws Exception {
