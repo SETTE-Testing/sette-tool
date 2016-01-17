@@ -20,24 +20,28 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette.run
+package hu.bme.mit.sette.application
 
 import groovy.transform.TypeChecked
+import groovy.transform.TypeChecked.*
 import groovy.util.logging.Slf4j
 import hu.bme.mit.sette.core.configuration.SetteConfiguration
+
+import java.io.ByteArrayOutputStream.*
 
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import org.junit.Before.*
 
 /**
  * Tests for {@link SetteArgumentParser}.
  */
 @Slf4j
 @TypeChecked
-class SetteArgumentParserTest {
+class ArgumentParserTest {
     static SetteConfiguration config
-    SetteArgumentParser argParser
+    ArgumentParser argParser
     ByteArrayOutputStream err
 
     private List<String> getErrorOutputLines() {
@@ -91,7 +95,7 @@ class SetteArgumentParserTest {
     @Before
     void setUp() {
         err = new ByteArrayOutputStream()
-        argParser = new SetteArgumentParser(config, new PrintStream(err))
+        argParser = new ArgumentParser(config, new PrintStream(err))
     }
 
     @Test
@@ -101,11 +105,11 @@ class SetteArgumentParserTest {
 
             assert errorOutputLines.isEmpty()
 
-            assert backup == BackupPolicy.ASK
+            assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
             assert runnerTimeoutInMs == null
             assert snippetProjectDir == null
-            assert task == null
+            assert applicationTask == null
             assert toolConfiguration == null
         }
     }
@@ -136,9 +140,9 @@ Usage:
                                           projects specified in the
                                           configuration
  --task [exit | generator | runner |    : The task to execute
- parser | test-generator | test-runner     
- | snippet-browser | export-csv |          
- export-csv-batch]                         
+ parser | test-generator | test-runner
+ | snippet-browser | export-csv |
+ export-csv-batch]
  --tool [CATG | EvoSuite | Randoop |    : The tool to use
  SPF | jPET]'''.trim().replace('\r\n', '\n').split('\n')*.trim()
 
@@ -153,11 +157,11 @@ Usage:
             '--runner-timeout', '5000ms', '--snippet-project-dir', '../snippet-project',
             '--task', 'test-runner', '--tool', 'spf') : errorOutputLines
 
-            assert backup == BackupPolicy.SKIP
+            assert backupPolicy == BackupPolicy.SKIP
             assert runnerProjectTag == 'my tag'
             assert runnerTimeoutInMs == 5000
             assert snippetProjectDir == '../snippet-project'
-            assert task == SetteApplicationTask.TEST_RUNNER
+            assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration.name == 'SPF'
         }
     }
@@ -167,11 +171,11 @@ Usage:
         argParser.with{
             assert parse('--backup', 'CrEaTe') : errorOutputLines
 
-            assert backup == BackupPolicy.CREATE
+            assert backupPolicy == BackupPolicy.CREATE
             assert runnerProjectTag == null
             assert runnerTimeoutInMs == null
             assert snippetProjectDir == null
-            assert task == null
+            assert applicationTask == null
             assert toolConfiguration == null
         }
     }
@@ -181,11 +185,11 @@ Usage:
         argParser.with{
             assert parse('--task', 'TEST_RUNNER') : errorOutputLines
 
-            assert backup == BackupPolicy.ASK
+            assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
             assert runnerTimeoutInMs == null
             assert snippetProjectDir == null
-            assert task == SetteApplicationTask.TEST_RUNNER
+            assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration == null
         }
     }
@@ -195,11 +199,11 @@ Usage:
         argParser.with{
             assert parse('--task', 'test-runner') : errorOutputLines
 
-            assert backup == BackupPolicy.ASK
+            assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
             assert runnerTimeoutInMs == null
             assert snippetProjectDir == null
-            assert task == SetteApplicationTask.TEST_RUNNER
+            assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration == null
         }
     }
@@ -219,11 +223,11 @@ Usage:
             // case-insensitive
             assert parse('--tool', 'SpF') : errorOutputLines
 
-            assert backup == BackupPolicy.ASK
+            assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
             assert runnerTimeoutInMs == null
             assert snippetProjectDir == null
-            assert task == null
+            assert applicationTask == null
             assert toolConfiguration.name == 'SPF'
         }
     }
@@ -242,11 +246,11 @@ Usage:
         argParser.with{
             assert parse('--runner-timeout', '5s') : errorOutputLines
 
-            assert backup == BackupPolicy.ASK
+            assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
             assert runnerTimeoutInMs == 5000
             assert snippetProjectDir == null
-            assert task == null
+            assert applicationTask == null
             assert toolConfiguration == null
         }
     }
@@ -256,11 +260,11 @@ Usage:
         argParser.with{
             assert parse('--runner-timeout', '5000ms') : errorOutputLines
 
-            assert backup == BackupPolicy.ASK
+            assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
             assert runnerTimeoutInMs == 5000
             assert snippetProjectDir == null
-            assert task == null
+            assert applicationTask == null
             assert toolConfiguration == null
         }
     }

@@ -23,64 +23,53 @@
 // NOTE revise this file
 // NOTE revise this file
 // NOTE revise this file
-package hu.bme.mit.sette;
+package hu.bme.mit.sette.application;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.PrintStream;
 
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
-import hu.bme.mit.sette.core.tool.Tool;
-import hu.bme.mit.sette.run.Run;
 
 public final class RunnerUI implements BaseUI {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final RunnerProjectRunner<?> runner;
-
-    public RunnerUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag,
-            int timeoutInMs) {
-        Validate.notNull(snippetProject, "Snippet project settings must not be null");
-        Validate.notNull(tool, "The tool must not be null");
-
-        runner = tool.createRunnerProjectRunner(snippetProject, Run.OUTPUT_DIR, runnerProjectTag);
-        runner.setTimeoutInMs(timeoutInMs);
-
-        log.info("Created {} for {} @ {} ms timeout", runner.getClass().getSimpleName(),
-                runner.getRunnerProjectSettings().getProjectName(), runner.getTimeoutInMs());
-    }
 
     @Override
-    public void run(BufferedReader in, PrintStream out) throws Exception {
+    public void execute(ExecutionContext context) throws Exception {
+        RunnerProjectRunner<?> runner = context.getTool().createRunnerProjectRunner(
+                context.getSnippetProject(), context.getOutputDir(),
+                context.getRunnerProjectTag());
+        runner.setTimeoutInMs(context.getRunnerTimeoutInMs());
+        log.info("Created {} for {} @ {} ms timeout", runner.getClass().getSimpleName(),
+                runner.getRunnerProjectSettings().getProjectName(), runner.getTimeoutInMs());
+
         // directories
         File snippetProjectDir = runner.getSnippetProject().getBaseDir().toFile();
         File runnerProjectDir = runner.getRunnerProjectSettings().getBaseDir();
 
-        out.println("Snippet project: " + snippetProjectDir);
-        out.println("Runner project: " + runnerProjectDir);
+        context.getOutput().println("Snippet project: " + snippetProjectDir);
+        context.getOutput().println("Runner project: " + runnerProjectDir);
 
         try {
             // run tool on code snippets
-            out.println("Clean up");
+            context.getOutput().println("Clean up");
             runner.cleanUp();
 
             // TODO fixme
             // out.println("Press [Enter] to start execution");
             // in.readLine();
 
-            out.println("Clean up");
+            context.getOutput().println("Clean up");
             runner.cleanUp();
 
-            out.println("Starting run");
-            runner.run(out);
-            out.println("Run successful");
+            context.getOutput().println("Starting run");
+            runner.run(context.getOutput());
+            context.getOutput().println("Run successful");
         } catch (Exception ex) {
-            out.println("Run failed: " + ex.getMessage());
+            context.getOutput().println("Run failed: " + ex.getMessage());
             ex.printStackTrace();
         }
+
     }
 }

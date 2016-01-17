@@ -45,7 +45,7 @@ subprojects {
 //
 project(':sette') {
     apply plugin: 'com.github.johnrengelman.shadow'
-    String mainClass = 'hu.bme.mit.sette.run.Run'
+    String mainClass = 'hu.bme.mit.sette.application.SetteApplicationMain'
     File deployTarget = new File(project.projectDir, '../..').canonicalFile
 
     dependencies {

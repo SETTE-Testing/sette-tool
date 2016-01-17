@@ -20,17 +20,40 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette.run;
+package hu.bme.mit.sette.application;
 
 /**
- * The policy whether create a backup of the runner project during generation when it already
- * exists.
+ * Tasks (commands) for the SETTE.
  */
-public enum BackupPolicy {
-    /** Ask the user whether to create a backup or not. */
-    ASK,
-    /** Automatically create a backup. */
-    CREATE,
-    /** Automatically skip backup. */
-    SKIP;
+public enum ApplicationTask {
+    EXIT(false, false),
+    GENERATOR(true, true),
+    RUNNER(true, true),
+    PARSER(true, true),
+    TEST_GENERATOR(true, true),
+    TEST_RUNNER(true, true),
+    SNIPPET_BROWSER(false, false),
+    EXPORT_CSV(true, true),
+    EXPORT_CSV_BATCH(false, false);
+
+    private final boolean requiresTool;
+    private final boolean requiresRunnerProjectTag;
+
+    private ApplicationTask(boolean requiresTool, boolean requiresRunnerProjectTag) {
+        this.requiresTool = requiresTool;
+        this.requiresRunnerProjectTag = requiresRunnerProjectTag;
+    }
+
+    public boolean requiresTool() {
+        return requiresTool;
+    }
+
+    public boolean requiresRunnerProjectTag() {
+        return requiresRunnerProjectTag;
+    }
+
+    @Override
+    public String toString() {
+        return name().replace('_', '-').toLowerCase();
+    }
 }

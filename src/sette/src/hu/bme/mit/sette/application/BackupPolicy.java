@@ -20,32 +20,17 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette.run;
+package hu.bme.mit.sette.application;
 
 /**
- * Tasks (commands) for the SETTE.  
+ * The policy whether create a backup of the runner project during generation when it already
+ * exists.
  */
-public enum SetteApplicationTask {
-    EXIT("exit"),
-    
-    // all requires snippet-project
-    GENERATOR("generator"), // requires tool & tag
-    RUNNER("runner"), // requires tool & tag
-    PARSER("parser"), // requires tool & tag
-    TEST_GENERATOR("test-generator"), // requires tool & tag
-    TEST_RUNNER("test-runner"), // requires tool & tag
-    SNIPPET_BROWSER("snippet-browser"),
-    EXPORT_CSV("export-csv"), // requires tool & tag
-    EXPORT_CSV_BATCH("export-csv-batch");
-
-    private final String name;
-
-    private SetteApplicationTask(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
+public enum BackupPolicy {
+    /** Ask the user whether to create a backup or not. */
+    ASK,
+    /** Automatically create a backup. */
+    CREATE,
+    /** Automatically skip backup. */
+    SKIP;
 }

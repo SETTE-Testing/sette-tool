@@ -21,11 +21,11 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.run;
+package hu.bme.mit.sette.application;
 
 public final class RunSnippetBrowser {
     public static void main(String[] args) throws Exception {
-        Run.main(new String[] { "snippet-browser" });
+        SetteApplicationMain.main("--task", "snippet-browser");
     }
 
     private RunSnippetBrowser() {

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette.run;
+package hu.bme.mit.sette.application;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -29,14 +29,16 @@ import org.kohsuke.args4j.spi.Messages;
 import org.kohsuke.args4j.spi.OneArgumentOptionHandler;
 import org.kohsuke.args4j.spi.Setter;
 
+import lombok.NonNull;
+
 public class TimeInMsOptionHandler extends OneArgumentOptionHandler<Integer> {
-    public TimeInMsOptionHandler(CmdLineParser parser, OptionDef option,
-            Setter<? super Integer> setter) {
+    public TimeInMsOptionHandler(@NonNull CmdLineParser parser, @NonNull OptionDef option,
+            @NonNull Setter<? super Integer> setter) {
         super(parser, option, setter);
     }
 
     @Override
-    protected Integer parse(String time) throws NumberFormatException, CmdLineException {
+    protected Integer parse(@NonNull String time) throws NumberFormatException, CmdLineException {
         if (time.endsWith("ms")) {
             return Integer.parseInt(time.substring(0, time.length() - 2));
         } else if (time.endsWith("s")) {

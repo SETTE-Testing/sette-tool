@@ -23,9 +23,8 @@
 // NOTE revise this file
 // NOTE revise this file
 // NOTE revise this file
-package hu.bme.mit.sette;
+package hu.bme.mit.sette.application;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -33,65 +32,64 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.commons.lang3.Validate;
-
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
-import hu.bme.mit.sette.core.tool.Tool;
-import hu.bme.mit.sette.run.Run;
 
 public final class GeneratorUI implements BaseUI {
-    private final RunnerProjectGenerator<?> generator;
-
-    public GeneratorUI(SnippetProject snippetProject, Tool tool, String runnerProjectTag) {
-        Validate.notNull(snippetProject, "Snippet project settings must not be null");
-        Validate.notNull(tool, "The tool must not be null");
-        generator = tool.createRunnerProjectGenerator(snippetProject, Run.OUTPUT_DIR,
-                runnerProjectTag);
-    }
-
     @Override
-    public void run(BufferedReader in, PrintStream out) throws Exception {
+    public void execute(ExecutionContext context) throws Exception {
+        RunnerProjectGenerator<?> generator = context.getTool().createRunnerProjectGenerator(
+                context.getSnippetProject(), context.getOutputDir(),
+                context.getRunnerProjectTag());
+
         // directories
         File snippetProjectDir = generator.getSnippetProject().getBaseDir().toFile();
         File runnerProjectDir = generator.getSnippetProject().getBaseDir().toFile();
 
-        out.println("Snippet project: " + snippetProjectDir);
-        out.println("Runner project: " + runnerProjectDir);
+        context.getOutput().println("Snippet project: " + snippetProjectDir);
+        context.getOutput().println("Runner project: " + runnerProjectDir);
 
         // backup output directory if it exists
         if (runnerProjectDir.exists()) {
-            if (Run.CREATE_BACKUP) {
-                // create
-                doBackup(runnerProjectDir, out);
-            } else if (Run.SKIP_BACKUP) {
-                // skip
-            } else {
-                // ask
-                out.print("The output directory exists. It will be deleted before generation. "
-                        + "Would you like to make a backup? [yes] ");
+            switch (context.getBackupPolicy()) {
+                case ASK:
+                    context.getOutput().print(
+                            "The output directory exists. It will be deleted before generation. "
+                                    + "Would you like to make a backup? [yes] ");
 
-                String line = in.readLine();
+                    String line = context.getInput().readLine();
 
-                if (line == null) {
-                    out.println("EOF detected, exiting");
-                    return;
-                }
+                    if (line == null) {
+                        context.getOutput().println("EOF detected, exiting");
+                        return;
+                    }
 
-                if (!line.trim().equalsIgnoreCase("no")) {
-                    doBackup(runnerProjectDir, out);
-                }
+                    if (!line.trim().equalsIgnoreCase("no")) {
+                        doBackup(runnerProjectDir, context.getOutput());
+                    }
+                    break;
+
+                case CREATE:
+                    doBackup(runnerProjectDir, context.getOutput());
+                    break;
+
+                case SKIP:
+                    break;
+
+                default:
+                    throw new UnsupportedOperationException(
+                            "Unknown backup policy: " + context.getBackupPolicy());
+
             }
         }
 
         try {
             // generate runner project
-            out.println("Starting generation");
+            context.getOutput().println("Starting generation");
             Files.deleteIfExists(runnerProjectDir.toPath());
             generator.generate();
-            out.println("Generation successful");
+            context.getOutput().println("Generation successful");
         } catch (Exception ex) {
-            out.println("Generation failed: " + ex.getMessage());
+            context.getOutput().println("Generation failed: " + ex.getMessage());
             ex.printStackTrace();
         }
     }

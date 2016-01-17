@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette.run;
+package hu.bme.mit.sette.application;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -36,9 +36,10 @@ import org.kohsuke.args4j.spi.Setter;
 
 import hu.bme.mit.sette.core.configuration.SetteConfiguration;
 import hu.bme.mit.sette.core.configuration.SetteToolConfiguration;
+import lombok.NonNull;
 
 /**
- * args4j {@link OptionHandler} for the tool parameter of {@link SetteArgumentParser}. This class is
+ * args4j {@link OptionHandler} for the tool parameter of {@link ArgumentParser}. This class is
  * needed because tool name is an enum-like structure, but the list of tools are determined by the
  * configuration at runtime and not at compile-time.
  */
@@ -49,8 +50,8 @@ public class ToolOptionHandler extends OneArgumentOptionHandler<SetteToolConfigu
      * <p>
      * Note: this is required to be static because the class instantiated by args4j
      * {@link CmdLineParser} dynamically and the class will have no real connection to
-     * {@link SetteArgumentParser} (args4j parses this class as a bean and does not saves a
-     * reference to the instance).
+     * {@link ArgumentParser} (args4j parses this class as a bean and does not saves a reference to
+     * the instance).
      */
     public static SetteConfiguration configuration = null;
 
@@ -71,15 +72,15 @@ public class ToolOptionHandler extends OneArgumentOptionHandler<SetteToolConfigu
      * @param setter
      *            the setter which the handler shall call if it has parsed the option value
      */
-    public ToolOptionHandler(CmdLineParser parser, OptionDef option,
-            Setter<? super SetteToolConfiguration> setter) {
+    public ToolOptionHandler(@NonNull CmdLineParser parser, @NonNull OptionDef option,
+            @NonNull Setter<? super SetteToolConfiguration> setter) {
         super(parser, option, setter);
         checkConfiguration();
 
     }
 
     @Override
-    protected SetteToolConfiguration parse(String toolName)
+    protected SetteToolConfiguration parse(@NonNull String toolName)
             throws NumberFormatException, CmdLineException {
         Optional<SetteToolConfiguration> toolConfig = configuration.getToolConfigurations()
                 .stream()

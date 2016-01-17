@@ -20,11 +20,8 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette;
-
-import java.io.BufferedReader;
-import java.io.PrintStream;
+package hu.bme.mit.sette.application;
 
 public interface BaseUI {
-    void run(BufferedReader in, PrintStream out) throws Exception;
+    void execute(ExecutionContext context) throws Exception;
 }
