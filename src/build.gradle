@@ -165,6 +165,6 @@ project(':sette-common') {
 //
 task wrapper(type: Wrapper) {
     group = 'Build Setup'
-    description = 'Generates Gradle 2.7 wrapper files.'
-    gradleVersion = '2.7'
+    description = 'Generates Gradle 2.10 wrapper files.'
+    gradleVersion = '2.10'
 }
