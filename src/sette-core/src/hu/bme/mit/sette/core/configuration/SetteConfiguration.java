@@ -46,7 +46,7 @@ import lombok.NonNull;
  * An instance of this class represents a parsed configuration for SETTE.
  */
 public final class SetteConfiguration {
-    private static final Logger LOG = LoggerFactory.getLogger(SetteConfiguration.class);
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     /** The base directory */
     @Getter
@@ -157,7 +157,7 @@ public final class SetteConfiguration {
         LOG.debug("Validated configuration: {}", this);
     }
 
-    private static String resolveTildeInPath(String path) {
+    private String resolveTildeInPath(String path) {
         // resolve tilde to user home
         if (path.startsWith("~")) {
             if (path.equals("~") || path.charAt(1) == '/' || path.charAt(1) == '\\') {

@@ -50,7 +50,7 @@ import lombok.NonNull;
  * configuration is validated and finalised by the {@link SetteConfiguration} class.
  */
 public final class SetteConfigurationDescription {
-    private static final Logger LOG = LoggerFactory.getLogger(SetteConfiguration.class);
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private static final String NODE_BASEDIRS = "baseDirs";
     private static final String NODE_OUTPUT_DIR = "outputDir";

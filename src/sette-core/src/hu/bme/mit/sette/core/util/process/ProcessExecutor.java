@@ -45,7 +45,7 @@ import lombok.NonNull;
  * 
  */
 public final class ProcessExecutor {
-    private static final Logger LOG = LoggerFactory.getLogger(ProcessUtils.class);
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     /** The builder used to create the process. */
     private final ProcessBuilder processBuilder;
@@ -181,6 +181,8 @@ public final class ProcessExecutor {
      * Please note that the thread does not close the stream.
      */
     private abstract static class InputStreamGobbler extends Thread {
+        private final Logger LOG = LoggerFactory.getLogger(getClass());
+
         /** the input stream, if <code>null</code> the class will not read anything. */
         private final InputStream inputStream;
 

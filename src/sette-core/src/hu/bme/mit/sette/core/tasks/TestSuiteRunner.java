@@ -88,7 +88,7 @@ import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
 public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
-    private static final Logger logger = LoggerFactory.getLogger(TestSuiteRunner.class);
+    private final Logger LOG = LoggerFactory.getLogger(TestSuiteRunner.class);
 
     public TestSuiteRunner(SnippetProject snippetProject, File outputDirectory, Tool tool,
             String runnerProjectTag) {
@@ -113,7 +113,7 @@ public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
         File[] binaryDirectories = new File[2];
         binaryDirectories[0] = getSnippetProject().getBuildDir().toFile();
         binaryDirectories[1] = getRunnerProjectSettings().getBinaryDirectory();
-        logger.debug("Binary directories: {}", (Object) binaryDirectories);
+        LOG.debug("Binary directories: {}", (Object) binaryDirectories);
 
         // foreach containers
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
@@ -235,8 +235,8 @@ public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
         String testClassName = snippet.getContainer().getJavaClass().getName() + "_"
                 + snippet.getMethod().getName() + "_Test";
 
-        logger.debug("Snippet: {}#{}()", snippetClassName, snippetMethodName);
-        logger.debug("Test: {}", testClassName);
+        LOG.debug("Snippet: {}#{}()", snippetClassName, snippetMethodName);
+        LOG.debug("Test: {}", testClassName);
 
         // create JaCoCo runtime and instrumenter
         IRuntime runtime = new LoggerRuntime();
@@ -273,12 +273,12 @@ public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
                     try {
                         // NOTE skip infinite, consider using timeout
                         if (!snippet.getMethod().getName().contains("infinite")) {
-                            logger.trace("Invoking: " + m.getName());
+                            LOG.trace("Invoking: " + m.getName());
                             // NOTE maybe thread and kill it thread if takes too much time?
                             invokeMethod(testClassInstance, m);
                         } else {
                             System.err.println("Not Invoking: " + m.getName());
-                            logger.trace("Not invoking: " + m.getName());
+                            LOG.trace("Not invoking: " + m.getName());
                         }
                     } catch (InvocationTargetException ex) {
                         Throwable cause = ex.getCause();
@@ -286,16 +286,16 @@ public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
                         if (cause instanceof NullPointerException
                                 || cause instanceof ArrayIndexOutOfBoundsException
                                 || cause instanceof AssertionFailedError) {
-                            logger.warn(cause.getClass().getName() + ": "
+                            LOG.warn(cause.getClass().getName() + ": "
                                     + m.getDeclaringClass().getName() + "." + m.getName());
                         } else {
-                            logger.error("Exception: " + m.getDeclaringClass().getName() + "."
+                            LOG.error("Exception: " + m.getDeclaringClass().getName() + "."
                                     + m.getName());
                         }
-                        logger.debug(ex.getMessage(), ex);
+                        LOG.debug(ex.getMessage(), ex);
                     }
                 } else {
-                    logger.warn("Not test method: {}", m.getName());
+                    LOG.warn("Not test method: {}", m.getName());
                 }
             }
         }
@@ -347,7 +347,7 @@ public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
         Analyzer analyzer = new Analyzer(executionData, coverageBuilder);
 
         for (String javaClassName : javaClasses) {
-            logger.trace("Analysing: {}", javaClassName);
+            LOG.trace("Analysing: {}", javaClassName);
             analyzer.analyzeClass(testClassLoader.readBytes(javaClassName), javaClassName);
         }
 

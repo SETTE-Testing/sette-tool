@@ -115,7 +115,7 @@ public abstract class Tool implements Comparable<Tool> {
      * Note: reflection-related exceptions will be wrapped into a {@link RuntimeException} and
      * re-thrown.
      *
-     * @param toolConfig
+     * @param toolConfiguration
      *            the tool configuration
      * @return the created object
      * @throws IOException
@@ -123,12 +123,13 @@ public abstract class Tool implements Comparable<Tool> {
      * @throws ValidationException
      *             if validation fails
      */
-    public static Tool create(@NonNull SetteToolConfiguration toolConfig)
+    public static Tool create(@NonNull SetteToolConfiguration toolConfiguration)
             throws IOException, ValidationException {
         try {
-            Class<?> toolClass = Class.forName(toolConfig.getClassName());
+            Class<?> toolClass = Class.forName(toolConfiguration.getClassName());
             Constructor<?> ctor = toolClass.getConstructor(Path.class, String.class, String.class);
-            return (Tool) ctor.newInstance(toolConfig.getName(), toolConfig.getToolDir());
+            return (Tool) ctor.newInstance(toolConfiguration.getName(),
+                    toolConfiguration.getToolDir());
         } catch (Exception ex) {
             if (ex instanceof InvocationTargetException) {
                 // re-throw probable exceptions caught from the ctor call
@@ -142,7 +143,7 @@ public abstract class Tool implements Comparable<Tool> {
             }
 
             // wrap other exceptions
-            throw new RuntimeException("Cannot instatiate tool: " + toolConfig, ex);
+            throw new RuntimeException("Cannot instatiate tool: " + toolConfiguration, ex);
         }
     }
 

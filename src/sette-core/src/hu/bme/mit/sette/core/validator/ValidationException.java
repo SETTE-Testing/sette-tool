@@ -39,7 +39,7 @@ import lombok.NonNull;
  * containing all the errors for the validator or for the validation context.
  */
 public final class ValidationException extends SetteException {
-    private static final Logger LOG = LoggerFactory.getLogger(ValidationException.class);
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     /** The Constant serialVersionUID. */
     private static final long serialVersionUID = -17608370218683000L;
