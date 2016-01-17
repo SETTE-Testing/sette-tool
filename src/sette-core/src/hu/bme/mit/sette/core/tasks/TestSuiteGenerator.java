@@ -57,7 +57,7 @@ import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.util.io.DeleteFileVisitor;
 
-public final class TestSuiteGenerator extends SetteTask<Tool> {
+public final class TestSuiteGenerator extends SetteEvaluationTask<Tool> {
     public static final String ANT_BUILD_TEST_FILENAME;
     private static final String ANT_BUILD_TEST_DATA;
 

@@ -197,6 +197,28 @@ public final class SetteConfiguration {
         }
     }
 
+    /**
+     * Parses a SETTE configuration from a JSON file.
+     * 
+     * @param json
+     *            the JSON file
+     * @return the parsed SETTE configuration
+     * @throws IOException
+     *             if an I/O error occurs
+     * @throws SetteConfigurationException
+     *             if parsing fails or the configuration is invalid
+     */
+    public static SetteConfiguration parse(@NonNull Path jsonFile)
+            throws SetteConfigurationException, IOException {
+        try {
+            PathValidator.forRegularFile(jsonFile, true, null, null, "json").validate();
+            String json = new String(Files.readAllBytes(jsonFile));
+            return parse(json);
+        } catch (ValidationException ex) {
+            throw new SetteConfigurationException("The file is invalid: " + jsonFile, ex);
+        }
+    }
+
     @Override
     public String toString() {
         return "SetteConfiguration [baseDir=" + baseDir + ", outputDir=" + outputDir

@@ -55,7 +55,7 @@ import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
-public abstract class RunResultParser<T extends Tool> extends SetteTask<T> {
+public abstract class RunResultParser<T extends Tool> extends SetteEvaluationTask<T> {
     public RunResultParser(SnippetProject snippetProject, File outputDirectory, T tool,
             String runnerProjectTag) {
         super(snippetProject, outputDirectory, tool, runnerProjectTag);

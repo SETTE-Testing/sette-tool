@@ -72,7 +72,7 @@ import hu.bme.mit.sette.core.tool.Tool;
  * @param <T>
  *            the type of the tool
  */
-public abstract class RunnerProjectGenerator<T extends Tool> extends SetteTask<T> {
+public abstract class RunnerProjectGenerator<T extends Tool> extends SetteEvaluationTask<T> {
     /** The Eclipse project. */
     private EclipseProject eclipseProject;
 

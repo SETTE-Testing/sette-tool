@@ -25,7 +25,6 @@ package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
 
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,7 @@ import lombok.NonNull;
  * @param <T>
  *            the type of the tool
  */
-abstract class SetteTask<T extends Tool> {
+abstract class SetteEvaluationTask<T extends Tool> {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     /** The snippet project. */
@@ -64,7 +63,8 @@ abstract class SetteTask<T extends Tool> {
      * @param runnerProjectTag
      *            tag for the runner project
      */
-    public SetteTask(@NonNull SnippetProject snippetProject, @NonNull File outputDirectory,
+    public SetteEvaluationTask(@NonNull SnippetProject snippetProject,
+            @NonNull File outputDirectory,
             @NonNull T tool,
             @NonNull String runnerProjectTag) {
         this.snippetProject = snippetProject;

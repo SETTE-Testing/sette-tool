@@ -56,7 +56,7 @@ import hu.bme.mit.sette.core.util.process.ProcessExecutorListener;
  * @param <T>
  *            the type of the tool
  */
-public abstract class RunnerProjectRunner<T extends Tool> extends SetteTask<T> {
+public abstract class RunnerProjectRunner<T extends Tool> extends SetteEvaluationTask<T> {
     /** The poll interval for {@link ProcessExecutor} objects. */
     public static final int POLL_INTERVAL = 100;
 

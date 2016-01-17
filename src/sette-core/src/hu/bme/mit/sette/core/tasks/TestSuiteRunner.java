@@ -87,7 +87,7 @@ import hu.bme.mit.sette.core.validator.ValidationException;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
-public final class TestSuiteRunner extends SetteTask<Tool> {
+public final class TestSuiteRunner extends SetteEvaluationTask<Tool> {
     private static final Logger logger = LoggerFactory.getLogger(TestSuiteRunner.class);
 
     public TestSuiteRunner(SnippetProject snippetProject, File outputDirectory, Tool tool,

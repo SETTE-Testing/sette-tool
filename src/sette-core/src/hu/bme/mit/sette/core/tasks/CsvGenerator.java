@@ -45,7 +45,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 
-public final class CsvGenerator extends SetteTask<Tool> {
+public final class CsvGenerator extends SetteEvaluationTask<Tool> {
     private static final String FIELD_SEP = ",";
 
     public CsvGenerator(SnippetProject snippetProject, File outputDir, Tool tool,
