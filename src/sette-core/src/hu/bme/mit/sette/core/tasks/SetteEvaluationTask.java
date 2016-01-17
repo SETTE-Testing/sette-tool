@@ -35,7 +35,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * Base class for SETTE tasks, i.e. phases of the whole workflow.
+ * Base class for SETTE evaluation tasks, i.e. steps of the whole workflow.
  *
  * @param <T>
  *            the type of the tool
