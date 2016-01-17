@@ -41,27 +41,27 @@ class SetteConfigurationDescriptionTest {
   "snippetProjectDirs":["sette-snippets/sette-snippets"],
   "tools":[
     {
-      "className":"hu.bme.mit.sette.catg.CatgTool",
+      "className":"hu.bme.mit.sette.tools.catg.CatgTool",
       "name":"CATG",
       "toolDir":"sette-tool/test-generator-tools/catg"
     },
     {
-      "className":"hu.bme.mit.sette.evosuite.EvoSuiteTool",
+      "className":"hu.bme.mit.sette.tools.evosuite.EvoSuiteTool",
       "name":"EvoSuite",
       "toolDir":"sette-tool/test-generator-tools/evosuite"
     },
     {
-      "className":"hu.bme.mit.sette.jpet.JPetTool",
+      "className":"hu.bme.mit.sette.tools.jpet.JPetTool",
       "name":"jPET",
       "toolDir":"sette-tool/test-generator-tools/jpet"
     },
     {
-      "className":"hu.bme.mit.sette.randoop.RandoopTool",
+      "className":"hu.bme.mit.sette.tools.randoop.RandoopTool",
       "name":"Randoop",
       "toolDir":"sette-tool/test-generator-tools/randoop"
     },
     {
-      "className":"hu.bme.mit.sette.spf.SpfTool",
+      "className":"hu.bme.mit.sette.tools.spf.SpfTool",
       "name":"SPF",
       "toolDir":"sette-tool/test-generator-tools/spf"
     }
@@ -76,7 +76,7 @@ class SetteConfigurationDescriptionTest {
             assert toolConfigurations.size() == 5
 
             toolConfigurations[0].with {
-                assert className == 'hu.bme.mit.sette.catg.CatgTool'
+                assert className == 'hu.bme.mit.sette.tools.catg.CatgTool'
                 assert name == 'CATG'
                 assert toolDirPath == 'sette-tool/test-generator-tools/catg'
             }
