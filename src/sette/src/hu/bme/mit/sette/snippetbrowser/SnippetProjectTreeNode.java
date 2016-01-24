@@ -74,8 +74,7 @@ public final class SnippetProjectTreeNode extends TreeNodeBase<TreeNode, Snippet
 
             return sb.toString();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            return ex.getMessage();
+            throw new RuntimeException(ex);
         }
     }
 }

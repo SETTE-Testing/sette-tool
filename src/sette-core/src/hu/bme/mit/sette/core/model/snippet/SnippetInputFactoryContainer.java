@@ -40,6 +40,7 @@ import hu.bme.mit.sette.core.validator.ClassFieldValidator;
 import hu.bme.mit.sette.core.validator.ClassValidator;
 import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
+import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -95,12 +96,12 @@ public final class SnippetInputFactoryContainer
         // add factory methods
         for (Method method : factoryMethods.values()) {
             try {
-
                 SnippetInputFactory inputFactory = new SnippetInputFactory(this, method);
                 tmpInputFactories.put(method.getName(), inputFactory);
             } catch (ValidationException ex) {
-                // FIXME
-                throw ex;
+                Validator<Method> v = new Validator<>(method);
+                v.addException(ex);
+                vc.addValidator(v);
             }
         }
 

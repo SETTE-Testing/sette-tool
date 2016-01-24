@@ -112,10 +112,7 @@ public final class SnippetCoverageXml extends SnippetBaseXml {
                 try {
                     coverageElement.validate();
                 } catch (ValidationException ex) {
-                    // FIXME
-                    // v.addChild(ex.getValidator());
-                    // throw ex;
-                    validator.addError(ex.getMessage());
+                    validator.addException(ex);
                 }
             }
         }

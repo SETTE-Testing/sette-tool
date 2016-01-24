@@ -52,7 +52,7 @@ public final class SnippetResultXmlMain {
             resultXml.validate();
         } catch (ValidationException ex) {
             System.err.println(ex.getMessage());
-            System.exit(-1);
+            throw new RuntimeException(ex);
         }
 
         Serializer serializer = new Persister(new AnnotationStrategy());

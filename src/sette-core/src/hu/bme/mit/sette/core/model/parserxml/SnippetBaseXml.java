@@ -153,9 +153,7 @@ public abstract class SnippetBaseXml implements XmlElement {
             try {
                 snippetProjectElement.validate();
             } catch (ValidationException ex) {
-                // FIXME
-                // v.addChild(ex.getValidator());
-                validator.addError(ex.getMessage());
+                validator.addException(ex);
             }
         }
 
@@ -165,9 +163,7 @@ public abstract class SnippetBaseXml implements XmlElement {
             try {
                 snippetElement.validate();
             } catch (ValidationException ex) {
-                // FIXME
-                // v.addChild(ex.getValidator());
-                validator.addError(ex.getMessage());
+                validator.addException(ex);
             }
         }
 

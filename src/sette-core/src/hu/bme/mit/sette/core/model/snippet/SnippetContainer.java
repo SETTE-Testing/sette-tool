@@ -79,7 +79,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
     @Getter
     private final JavaVersion requiredJavaVersion;
 
-    /** The code snippets (immutable). */
+    /** The code snippets (immutable) mapped by their names. */
     @Getter
     private final ImmutableSortedMap<String, Snippet> snippets;
 
@@ -135,7 +135,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             requiredJavaVersion = containerAnnot.requiredJavaVersion();
         }
 
-        vc.addValidatorIfInvalid(cv);
+        vc.addValidator(cv);
 
         validateFields(vc);
         validateConstructor(vc);
@@ -148,8 +148,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                 Snippet snippet = new Snippet(this, method);
                 tmpSnippets.put(snippet.getName(), snippet);
             } catch (ValidationException ex) {
-                // FIXME
-                cv.addError(ex.getMessage());
+                cv.addException(ex);
             }
 
         }
@@ -166,8 +165,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                 inputFactCont = new SnippetInputFactoryContainer(this,
                         containerAnnot.inputFactoryContainer());
             } catch (ValidationException ex) {
-                // FIXME
-                cv.addError(ex.getMessage());
+                cv.addException(ex);
             }
         }
         vc.validate();

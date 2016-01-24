@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.util.io.DeleteFileVisitor;
 
 public final class GeneratorUI implements BaseUI {
     @Override
@@ -43,10 +44,9 @@ public final class GeneratorUI implements BaseUI {
 
         // directories
         File snippetProjectDir = generator.getSnippetProject().getBaseDir().toFile();
-        File runnerProjectDir = generator.getSnippetProject().getBaseDir().toFile();
+        File runnerProjectDir = generator.getRunnerProjectSettings().getBaseDir();
 
         context.getOutput().println("Snippet project: " + snippetProjectDir);
-        context.getOutput().println("Runner project: " + runnerProjectDir);
 
         // backup output directory if it exists
         if (runnerProjectDir.exists()) {
@@ -73,6 +73,7 @@ public final class GeneratorUI implements BaseUI {
                     break;
 
                 case SKIP:
+                    Files.walkFileTree(runnerProjectDir.toPath(), new DeleteFileVisitor());
                     break;
 
                 default:
@@ -85,12 +86,11 @@ public final class GeneratorUI implements BaseUI {
         try {
             // generate runner project
             context.getOutput().println("Starting generation");
-            Files.deleteIfExists(runnerProjectDir.toPath());
             generator.generate();
             context.getOutput().println("Generation successful");
         } catch (Exception ex) {
             context.getOutput().println("Generation failed: " + ex.getMessage());
-            ex.printStackTrace();
+            throw ex;
         }
     }
 

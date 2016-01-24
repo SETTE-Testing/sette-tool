@@ -28,7 +28,6 @@ package hu.bme.mit.sette.application;
 import java.io.File;
 
 import hu.bme.mit.sette.core.tasks.RunResultParser;
-import hu.bme.mit.sette.core.validator.ValidationException;
 
 public final class ParserUI implements BaseUI {
     @Override
@@ -48,12 +47,7 @@ public final class ParserUI implements BaseUI {
             parser.parse();
         } catch (Exception ex) {
             context.getOutput().println("Parse failed: " + ex.getMessage());
-
-            if (ex instanceof ValidationException) {
-                throw (ValidationException) ex;
-            } else {
-                ex.printStackTrace();
-            }
+            throw ex;
         }
     }
 }

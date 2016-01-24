@@ -28,8 +28,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 
 import hu.bme.mit.sette.core.SetteException;
 import lombok.NonNull;
@@ -39,8 +39,6 @@ import lombok.NonNull;
  * containing all the errors for the validator or for the validation context.
  */
 public final class ValidationException extends SetteException {
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
-
     /** The Constant serialVersionUID. */
     private static final long serialVersionUID = -17608370218683000L;
 
@@ -54,7 +52,6 @@ public final class ValidationException extends SetteException {
      */
     public ValidationException(Validator<?> validator) {
         super(String.join("\n", createMessage(validator)));
-        LOG.debug(getMessage());
     }
 
     /**
@@ -68,7 +65,6 @@ public final class ValidationException extends SetteException {
      */
     public ValidationException(ValidationContext validationContext) {
         super(String.join("\n", createMessage(validationContext)));
-        LOG.debug(getMessage());
     }
 
     /**
@@ -85,10 +81,12 @@ public final class ValidationException extends SetteException {
                 "Cannot create exception for validator with no errors");
 
         List<String> msg = new LinkedList<>();
-        msg.add(validator.getErrorCount() + " errors occurred during validation");
-        msg.add("    " + validator);
-        validator.getErrors().stream().map(ValidationError::toString)
-                .forEach(error -> msg.add("    " + error));
+        msg.add(String.valueOf(validator.getSubject()));
+        validator.getErrors().stream().forEach(error -> {
+            Splitter.on('\n').splitToList(error.getMessage()).forEach(line -> {
+                msg.add("    " + line);
+            });
+        });
 
         return msg;
     }
@@ -107,22 +105,19 @@ public final class ValidationException extends SetteException {
                 "Cannot create exception for validation context with no errors");
 
         List<String> msg = new LinkedList<>();
-        msg.add(validationContext.getErrorCount() + " errors occurred during validation");
-        msg.add("    " + validationContext);
+        msg.add(String.valueOf(validationContext.getContext()));
 
-        validationContext.getValidators().stream().forEach(v -> {
-            if (!v.isValid()) {
-                List<String> vMsg = createMessage(v);
-                // skip error count message
-                vMsg.remove(0);
+        validationContext.getValidators()
+                .stream()
+                .filter(v -> !v.isValid())
+                .forEach(v -> {
+                    List<String> vMsg = createMessage(v);
 
-                // do not indent the "Validator..." line
-                msg.add(vMsg.remove(0));
+                    // indent other lines
+                    vMsg.stream().forEach(error -> msg.add("    " + error));
+                });
 
-                // indent other lines
-                vMsg.stream().forEach(error -> msg.add("    " + error));
-            }
-        });
+        msg.add(Strings.repeat("=", 40));
 
         return msg;
     }

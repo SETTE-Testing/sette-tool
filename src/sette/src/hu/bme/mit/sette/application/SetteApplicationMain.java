@@ -47,8 +47,8 @@ public final class SetteApplicationMain {
      *            program arguments
      */
     public static void main(String... args) {
-        LOG.info("main() called, arguments: {}", (Object) args);
         Thread.currentThread().setName("MAIN");
+        LOG.info("main() called, arguments: {}", (Object) args);
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
@@ -64,13 +64,18 @@ public final class SetteApplicationMain {
             }
         });
 
-        BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-        Path configFile = Paths.get("sette.config.json");
+        try {
+            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+            Path configFile = Paths.get("sette.config.json");
 
-        SetteApplication app = new SetteApplication(input, System.out, System.err, configFile);
-        app.execute(args);
+            SetteApplication app = new SetteApplication(input, System.out, System.err, configFile);
+            app.execute(args);
 
-        LOG.info("main() has finished");
+            LOG.info("main() has finished");
+        } catch (Exception ex) {
+            LOG.error("Exception, exiting", ex);
+            System.exit(2);
+        }
     }
 
     private SetteApplicationMain() {

@@ -79,16 +79,6 @@ public class ArgumentParser {
     private boolean help = false;
 
     /**
-     * Instantiates a new SETTE argument parser with {@link System#err} as error output.
-     *
-     * @param configuration
-     *            the SETTE configuration to use while parsing the arguments
-     */
-    public ArgumentParser(@NonNull SetteConfiguration configuration) {
-        this(configuration, System.err);
-    }
-
-    /**
      * Instantiates a new SETTE argument parser.
      *
      * @param configuration

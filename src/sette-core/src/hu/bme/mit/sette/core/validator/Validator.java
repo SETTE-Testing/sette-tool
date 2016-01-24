@@ -200,4 +200,8 @@ public class Validator<T> {
         return String.format("%s [subject=%s, subjectClass=%s, errorCount=%d]",
                 getClass().getSimpleName(), subject, subject.getClass().getName(), getErrorCount());
     }
+
+    public void addException(@NonNull ValidationException ex) {
+        addError(ex.getMessage());
+    }
 }

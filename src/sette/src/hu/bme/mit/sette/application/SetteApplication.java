@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.awt.EventQueue;
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -64,174 +65,169 @@ public final class SetteApplication {
         this.configurationFile = configurationFile;
     }
 
-    public void execute(String... args) {
-        try {
-            //
-            // Parse configuration
-            //
-            SetteConfiguration configuration = SetteConfiguration.parse(configurationFile);
+    public void execute(String... args) throws Exception {
+        //
+        // Parse configuration
+        //
+        SetteConfiguration configuration = SetteConfiguration.parse(configurationFile);
 
-            //
-            // Determine what to do in this execution
-            //
+        //
+        // Determine what to do in this execution
+        //
 
-            // Parse arguments
-            ArgumentParser argParser = new ArgumentParser(configuration, System.err);
-            if (!argParser.parse(args)) {
-                LOG.debug("Exiting (invalid cmd-line arguments or --help was specified");
+        // Parse arguments
+        ArgumentParser argParser = new ArgumentParser(configuration, errorOutput);
+        if (!argParser.parse(args)) {
+            LOG.debug("Exiting (invalid cmd-line arguments or --help was specified");
+            return;
+        }
+
+        Path snippetProjectDir;
+        if (argParser.getSnippetProjectDir() != null) {
+            snippetProjectDir = configuration.getBaseDir()
+                    .resolve(argParser.getSnippetProjectDir());
+        } else {
+            snippetProjectDir = null;
+        }
+        ApplicationTask applicationTask = argParser.getApplicationTask();
+        SetteToolConfiguration toolConfiguration = argParser.getToolConfiguration();
+        String runnerProjectTag = argParser.getRunnerProjectTag();
+
+        int runnerTimeoutInMs = argParser.getRunnerTimeoutInMs();
+        BackupPolicy backupPolicy = argParser.getBackupPolicy();
+
+        // Determine the snippet project if needed
+        if (snippetProjectDir == null) {
+            snippetProjectDir = selectSnippetProjectDir(configuration.getSnippetProjectDirs());
+        }
+
+        // Determine the task if needed (and exit if specified)
+        if (applicationTask == null) {
+            applicationTask = selectApplicationTask();
+        }
+
+        if (applicationTask == ApplicationTask.EXIT) {
+            LOG.debug("Exiting for user request");
+            return;
+        }
+
+        // Determine the tool if needed
+        Tool tool = null;
+        if (applicationTask.requiresTool()) {
+            if (toolConfiguration == null) {
+                toolConfiguration = selectToolConfiguration(
+                        configuration.getToolConfigurations());
+            }
+            tool = Tool.create(toolConfiguration);
+        } else {
+            if (toolConfiguration != null) {
+                String msg = String.format("The tool is specified (%s) but for the %s task "
+                        + "it is not required, thus it will not affect the current execution",
+                        toolConfiguration.getName(), applicationTask);
+                output.println(msg);
+                LOG.debug(msg);
+                toolConfiguration = null;
+            }
+        }
+
+        // Determine the runner project tag if needed
+        if (applicationTask.requiresRunnerProjectTag()) {
+            if (runnerProjectTag == null) {
+                output.print("Enter a runner project tag: ");
+                runnerProjectTag = readLineOrExitIfEOF().trim();
+            }
+        } else {
+            if (runnerProjectTag != null) {
+                String msg = String.format("The runner project tag is specified (%s) but for "
+                        + "the %s task it is not required, thus it will not affect the "
+                        + "current execution", runnerProjectTag);
+                output.println(msg);
+                LOG.debug(msg);
+                runnerProjectTag = null;
+            }
+        }
+
+        // Print settings
+        output.println("Snippet project: " + snippetProjectDir);
+        output.println("Task: " + applicationTask);
+        output.println("Tool: " + tool);
+        output.println("Runner project tag: " + runnerProjectTag);
+        output.println(
+                String.format("Runner timeout: %d ms", runnerTimeoutInMs));
+        output.println("Backup policy: " + backupPolicy);
+
+        //
+        // Execute the specified task
+        //
+        SnippetProject snippetProject = SnippetProject.parse(snippetProjectDir);
+        ExecutionContext context = new ExecutionContext(input, output, errorOutput,
+                snippetProject, tool, runnerProjectTag, runnerTimeoutInMs, backupPolicy,
+                configuration.getOutputDir());
+
+        switch (applicationTask) {
+            case EXIT:
                 return;
-            }
 
-            Path snippetProjectDir;
-            if (argParser.getSnippetProjectDir() != null) {
-                snippetProjectDir = configuration.getBaseDir()
-                        .resolve(argParser.getSnippetProjectDir());
-            } else {
-                snippetProjectDir = null;
-            }
-            ApplicationTask applicationTask = argParser.getApplicationTask();
-            SetteToolConfiguration toolConfiguration = argParser.getToolConfiguration();
-            String runnerProjectTag = argParser.getRunnerProjectTag();
+            case GENERATOR:
+                new GeneratorUI().execute(context);
+                break;
 
-            int runnerTimeoutInMs = argParser.getRunnerTimeoutInMs();
-            BackupPolicy backupPolicy = argParser.getBackupPolicy();
+            case RUNNER:
+                new RunnerUI().execute(context);
+                break;
 
-            // Determine the snippet project if needed
-            if (snippetProjectDir == null) {
-                snippetProjectDir = selectSnippetProjectDir(configuration.getSnippetProjectDirs());
-            }
+            case PARSER:
+                new ParserUI().execute(context);
+                break;
 
-            // Determine the task if needed (and exit if specified)
-            if (applicationTask == null) {
-                applicationTask = selectApplicationTask();
-            }
+            case TEST_GENERATOR:
+                // NOTE now the generator skips the test suite generation and only generates the
+                // ant
+                // build file
+                // if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
+                new TestSuiteGenerator(snippetProject, configuration.getOutputDir(), tool,
+                        runnerProjectTag).generate();
+                // } else {
+                // out.println("This tool has already generated a test suite");
+                // }
+                break;
 
-            if (applicationTask == ApplicationTask.EXIT) {
-                LOG.debug("Exiting for user request");
-                return;
-            }
+            case TEST_RUNNER:
+                new TestSuiteRunner(snippetProject, configuration.getOutputDir(), tool,
+                        runnerProjectTag).analyze();
+                break;
 
-            // Determine the tool if needed
-            Tool tool = null;
-            if (applicationTask.requiresTool()) {
-                if (toolConfiguration == null) {
-                    toolConfiguration = selectToolConfiguration(
-                            configuration.getToolConfigurations());
-                }
-                tool = Tool.create(toolConfiguration);
-            } else {
-                if (toolConfiguration != null) {
-                    String msg = String.format("The tool is specified (%s) but for the %s task "
-                            + "it is not required, thus it will not affect the current execution",
-                            toolConfiguration.getName(), applicationTask);
-                    output.println(msg);
-                    LOG.debug(msg);
-                    toolConfiguration = null;
-                }
-            }
-
-            // Determine the runner project tag if needed
-            if (applicationTask.requiresRunnerProjectTag()) {
-                if (runnerProjectTag == null) {
-                    output.print("Enter a runner project tag: ");
-                    runnerProjectTag = readLineOrExitIfEOF().trim();
-                }
-            } else {
-                if (runnerProjectTag != null) {
-                    String msg = String.format("The runner project tag is specified (%s) but for "
-                            + "the %s task it is not required, thus it will not affect the "
-                            + "current execution", runnerProjectTag);
-                    output.println(msg);
-                    LOG.debug(msg);
-                    runnerProjectTag = null;
-                }
-            }
-
-            // Print settings
-            output.println("Snippet project: " + snippetProjectDir);
-            output.println("Task: " + applicationTask);
-            output.println("Tool: " + tool);
-            output.println("Runner project tag: " + runnerProjectTag);
-            output.println(
-                    String.format("Runner timeout: %d ms", runnerTimeoutInMs));
-            output.println("Backup policy: " + backupPolicy);
-
-            //
-            // Execute the specified task
-            //
-            SnippetProject snippetProject = SnippetProject.parse(snippetProjectDir);
-            ExecutionContext context = new ExecutionContext(input, output, errorOutput,
-                    snippetProject, tool, runnerProjectTag, runnerTimeoutInMs, backupPolicy,
-                    configuration.getOutputDir());
-
-            switch (applicationTask) {
-                case EXIT:
-                    return;
-
-                case GENERATOR:
-                    new GeneratorUI().execute(context);
-                    break;
-
-                case RUNNER:
-                    new RunnerUI().execute(context);
-                    break;
-
-                case PARSER:
-                    new ParserUI().execute(context);
-                    break;
-
-                case TEST_GENERATOR:
-                    // NOTE now the generator skips the test suite generation and only generates the
-                    // ant
-                    // build file
-                    // if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
-                    new TestSuiteGenerator(snippetProject, configuration.getOutputDir(), tool,
-                            runnerProjectTag).generate();
-                    // } else {
-                    // out.println("This tool has already generated a test suite");
-                    // }
-                    break;
-
-                case TEST_RUNNER:
-                    new TestSuiteRunner(snippetProject, configuration.getOutputDir(), tool,
-                            runnerProjectTag).analyze();
-                    break;
-
-                case SNIPPET_BROWSER:
-                    EventQueue.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                SnippetBrowser frame = new SnippetBrowser(snippetProject);
-                                frame.setVisible(true);
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
+            case SNIPPET_BROWSER:
+                EventQueue.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            SnippetBrowser frame = new SnippetBrowser(snippetProject);
+                            frame.setVisible(true);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
                         }
-                    });
-                    break;
+                    }
+                });
+                break;
 
-                case EXPORT_CSV:
-                    new CsvGenerator(snippetProject, configuration.getOutputDir(), tool,
-                            runnerProjectTag).generate();
-                    break;
+            case EXPORT_CSV:
+                new CsvGenerator(snippetProject, configuration.getOutputDir(), tool,
+                        runnerProjectTag).generate();
+                break;
 
-                case EXPORT_CSV_BATCH:
-                    // FIXME runnerProjectTag is a list of tags separated by ','
-                    String toolNames = configuration.getToolConfigurations()
-                            .stream()
-                            .map(tc -> tc.getName())
-                            .collect(joining(","));
-                    new CsvBatchGenerator(snippetProject, configuration.getOutputDir(),
-                            toolNames, runnerProjectTag).generateAll();
-                    break;
+            case EXPORT_CSV_BATCH:
+                // FIXME runnerProjectTag is a list of tags separated by ','
+                String toolNames = configuration.getToolConfigurations()
+                        .stream()
+                        .map(tc -> tc.getName())
+                        .collect(joining(","));
+                new CsvBatchGenerator(snippetProject, configuration.getOutputDir(),
+                        toolNames, runnerProjectTag).generateAll();
+                break;
 
-                default:
-                    throw new UnsupportedOperationException("Unknown task: " + applicationTask);
-            }
-        } catch (Throwable ex) {
-            LOG.error("Exception, exiting", ex);
-            System.exit(2);
+            default:
+                throw new UnsupportedOperationException("Unknown task: " + applicationTask);
         }
     }
 
@@ -357,8 +353,7 @@ public final class SetteApplication {
             String msg = "EOF detected, exiting";
             errorOutput.println(msg);
             LOG.debug(msg);
-            System.exit(0);
-            return null;
+            throw new EOFException();
         } else {
             return line.trim();
         }

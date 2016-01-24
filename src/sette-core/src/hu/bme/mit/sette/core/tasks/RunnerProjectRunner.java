@@ -252,6 +252,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
                     runnerLoggerOut.println("==========");
                     ex.printStackTrace(runnerLoggerOut);
                     runnerLoggerOut.println("==========");
+                    throw new RuntimeException(ex);
                 }
             }
         }

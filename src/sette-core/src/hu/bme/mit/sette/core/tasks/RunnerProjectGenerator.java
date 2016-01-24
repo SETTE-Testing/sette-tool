@@ -116,11 +116,11 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
             afterWriteRunnerProject(eclipseProject);
 
             phase = "complete";
-        } catch (Exception xe) {
+        } catch (Exception ex) {
             String message = String.format(
                     "The runner project generation has failed\n(phase: [%s])\n(tool: [%s])", phase,
                     getTool().getName());
-            throw new RunnerProjectGeneratorException(message, this, xe);
+            throw new RunnerProjectGeneratorException(message, this, ex);
         }
     }
 
@@ -177,13 +177,15 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
         // TODO revise whole method
         // TODO now using a newer JAPA (suuports java 8), -> maybe ANTLR supports better
 
-        // create INFO file
-        writeInfoFile();
+        Files.createDirectories(getRunnerProjectSettings().getBaseDir().toPath());
 
         // copy snippets
         Files.copy(getSnippetProject().getSourceDir(),
                 getRunnerProjectSettings().getSnippetSourceDirectory().toPath(),
                 StandardCopyOption.REPLACE_EXISTING);
+
+        // create INFO file
+        writeInfoFile();
 
         // remove SETTE annotations and imports from file
         Collection<File> filesWritten = Files

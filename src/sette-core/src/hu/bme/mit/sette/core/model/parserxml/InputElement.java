@@ -133,9 +133,7 @@ public final class InputElement implements XmlElement {
             try {
                 ape.validate();
             } catch (ValidationException ex) {
-                // FIXME
-                // v.addChild(ex.getValidator());
-                v.addError(ex.getMessage());
+                v.addException(ex);
             }
         }
 

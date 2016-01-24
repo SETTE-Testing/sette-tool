@@ -291,7 +291,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                                     }
                                     System.err.println("=============================");
 
-                                    throw new RuntimeException();
+                                    throw new RuntimeException(ex);
                                 }
 
                                 input.getParameters().add(pe);

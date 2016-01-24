@@ -446,6 +446,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
     //
     // } catch (ValidationException ex) {
     // System.err.println(ex.getFullMessage());
+    // throw ex;
     // }
     // }
     // }

@@ -68,7 +68,7 @@ public final class RunnerUI implements BaseUI {
             context.getOutput().println("Run successful");
         } catch (Exception ex) {
             context.getOutput().println("Run failed: " + ex.getMessage());
-            ex.printStackTrace();
+            throw ex;
         }
 
     }

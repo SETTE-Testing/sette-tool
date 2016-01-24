@@ -124,10 +124,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
                 try {
                     input.validate();
                 } catch (ValidationException ex) {
-                    // FIXME
-                    // v.addChild(ex.getValidator());
-                    // throw ex;
-                    validator.addError(ex.getMessage());
+                    validator.addException(ex);
                 }
             }
         }

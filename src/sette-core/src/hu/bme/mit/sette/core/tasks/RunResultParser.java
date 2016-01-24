@@ -108,23 +108,19 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
                 }
 
                 SnippetInputsXml inputsXml = parseSnippet(snippet);
-                try {
-                    // TODO further validation
-                    inputsXml.validate();
+                // TODO further validation
+                inputsXml.validate();
 
-                    File inputsXmlFile = RunnerProjectUtils
-                            .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
+                File inputsXmlFile = RunnerProjectUtils
+                        .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
-                    Files.createDirectories(inputsXmlFile.getParentFile().toPath());
+                Files.createDirectories(inputsXmlFile.getParentFile().toPath());
 
-                    Files.deleteIfExists(inputsXmlFile.toPath());
+                Files.deleteIfExists(inputsXmlFile.toPath());
 
-                    Serializer serializer = new Persister(new AnnotationStrategy(),
-                            new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-                    serializer.write(inputsXml, inputsXmlFile);
-                } catch (ValidationException ex) {
-                    ex.printStackTrace();
-                }
+                Serializer serializer = new Persister(new AnnotationStrategy(),
+                        new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
+                serializer.write(inputsXml, inputsXmlFile);
             }
         }
 

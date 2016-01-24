@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -162,7 +163,8 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
     private void copyTool(EclipseProject eclipseProject)
             throws IOException, SetteConfigurationException {
         Files.copy(getTool().getToolDir(),
-                getRunnerProjectSettings().getBaseDir().toPath());
+                getRunnerProjectSettings().getBaseDir().toPath(),
+                StandardCopyOption.REPLACE_EXISTING);
 
         // edit build.xml
         // TODO make better

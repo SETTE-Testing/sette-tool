@@ -350,6 +350,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
             // System.out.println(pe.getType());
             // System.out.println(pe.getValue());
             // ex.printStackTrace();
+            // throw ex;
             //
             // System.err
             // .println("=============================");
@@ -362,7 +363,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
             // System.err
             // .println("=============================");
             //
-            // System.exit(-1);
+            // throw new RuntimeException("EXIT")
             // }
             //
             // input.parameters().add(pe);

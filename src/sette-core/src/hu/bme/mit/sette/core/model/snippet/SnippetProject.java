@@ -22,6 +22,8 @@
  */
 package hu.bme.mit.sette.core.model.snippet;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,6 +41,7 @@ import com.google.common.collect.ImmutableSortedSet;
 
 import hu.bme.mit.sette.common.annotations.SetteDependency;
 import hu.bme.mit.sette.common.annotations.SetteSnippetContainer;
+import hu.bme.mit.sette.core.util.reflection.ClassComparator;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
@@ -117,6 +120,29 @@ public final class SnippetProject {
         this.snippetContainers = loadSnippetContainers();
         this.snippetDependencies = loadSnippetDepenencies();
 
+        // check that snippet id is unique
+        List<String> snippetIds = snippetContainers.stream()
+                .map(sc -> sc.getSnippets())
+                .flatMap(s -> s.values().stream())
+                .map(s -> s.getId())
+                .collect(toList());
+        Set<String> uniqueSnippetIds = new TreeSet<>(snippetIds);
+
+        if (snippetIds.size() != uniqueSnippetIds.size()) {
+            // remove all removes ALL the occurrences
+            for (String id : uniqueSnippetIds) {
+                snippetIds.remove(id);
+            }
+
+            SortedSet<String> duplicates = new TreeSet<>(snippetIds);
+
+            Validator<String> v = new Validator<>("Check unique snippet ids");
+            v.addError("Duplicates: " + duplicates);
+            vc.addValidator(v);
+        }
+
+        vc.validate();
+
         // class is ready
     }
 
@@ -174,11 +200,11 @@ public final class SnippetProject {
 
         PathValidator v = PathValidator.forDirectory(getBuildDir(), true, null, true);
         v.validate();
-        
-        if (Files.walk(getBuildDir()).filter(Files::isRegularFile).findAny().isPresent()) {
-            v.addError("The build directory does not contain any regular file "
-                    + "(probably the project is not built)");
-        }
+
+        // if (Files.walk(getBuildDir()).filter(Files::isRegularFile).findAny().isPresent()) {
+        // v.addError("The build directory does not contain any regular file "
+        // + "(probably the project is not built)");
+        // }
         vc.addValidator(v);
 
         vc.validate();
@@ -209,7 +235,7 @@ public final class SnippetProject {
         Path sourceDir = getSourceDir();
 
         // collect snippet container classes
-        Set<Class<?>> snippetContainerClasses = new TreeSet<>();
+        Set<Class<?>> snippetContainerClasses = new TreeSet<>(ClassComparator.INSTANCE);
         Validator<SnippetProject> v = new Validator<>(this);
 
         for (Path sourceFile : snippetFiles) {
@@ -242,7 +268,7 @@ public final class SnippetProject {
             try {
                 sc.add(new SnippetContainer(this, javaClass));
             } catch (ValidationException ex) {
-                v.addError(ex.getMessage());
+                v.addException(ex);
             }
         }
         v.validate();
@@ -255,7 +281,7 @@ public final class SnippetProject {
         Path sourceDir = getSourceDir();
 
         // collect snippet container classes
-        Set<Class<?>> snippetDepClasses = new TreeSet<>();
+        Set<Class<?>> snippetDepClasses = new TreeSet<>(ClassComparator.INSTANCE);
         Validator<SnippetProject> v = new Validator<>(this);
 
         for (Path sourceFile : snippetFiles) {
@@ -288,7 +314,7 @@ public final class SnippetProject {
             try {
                 sd.add(new SnippetDependency(this, javaClass));
             } catch (ValidationException ex) {
-                v.addError(ex.getMessage());
+                v.addException(ex);
             }
         }
         v.validate();

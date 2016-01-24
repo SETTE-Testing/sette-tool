@@ -127,7 +127,7 @@ public final class SnippetInputsXmlMain {
             snippetInputsXml.validate();
         } catch (ValidationException ex) {
             System.err.println(ex.getMessage());
-            System.exit(-1);
+            throw new RuntimeException(ex);
         }
 
         Serializer serializer = new Persister(new AnnotationStrategy(),
@@ -138,7 +138,7 @@ public final class SnippetInputsXmlMain {
             serializer.write(snippetInputsXml, s);
         } catch (Exception ex) {
             ex.printStackTrace();
-            System.exit(-1);
+            throw new RuntimeException(ex);
         }
 
         System.out.println(s);

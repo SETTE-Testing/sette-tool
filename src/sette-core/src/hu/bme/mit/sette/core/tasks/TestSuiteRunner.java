@@ -206,6 +206,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
                     ex.printStackTrace();
                     System.out.println("========================================================");
                     System.out.println("========================================================");
+                    throw new RuntimeException(ex);
                 }
             }
         }
@@ -477,6 +478,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
             } catch (Throwable ex) {
                 System.err.println("Thread Stop...");
                 ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
         }
 
