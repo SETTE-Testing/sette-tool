@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.tests.tools.jpet;
 
-  import java.io.File;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,25 +55,22 @@ public final class JPetTypeConverterTest {
 
     @Test
     public final void test_fromJavaString() {
-        Assert.assertEquals(String.format("javaType: <%s>", javaType),
-                jPetType, JPetTypeConverter.fromJava(javaType));
+        Assert.assertEquals(String.format("javaType: <%s>", javaType), jPetType,
+                JPetTypeConverter.fromJava(javaType));
     }
 
     @Test
     public final void test_toJavaString() {
         if (bothStringDirections) {
-            Assert.assertEquals(
-                    String.format("jPetType: <%s>", jPetType),
-                    javaType, JPetTypeConverter.toJava(jPetType));
+            Assert.assertEquals(String.format("jPetType: <%s>", jPetType), javaType,
+                    JPetTypeConverter.toJava(jPetType));
         }
     }
 
     @Test
     public final void test_fromJavaClass() {
         if (javaClass != null) {
-            Assert.assertEquals(
-                    String.format("javaClass: <%s>",
-                            javaClass.getName()), jPetType,
+            Assert.assertEquals(String.format("javaClass: <%s>", javaClass.getName()), jPetType,
                     JPetTypeConverter.fromJava(javaClass));
         }
     }
@@ -81,9 +78,7 @@ public final class JPetTypeConverterTest {
     @Test
     public final void test_toJavaClass() throws ClassNotFoundException {
         if (javaClass != null) {
-            Assert.assertEquals(
-                    String.format("jPetType: <%s>", jPetType),
-                    javaClass,
+            Assert.assertEquals(String.format("jPetType: <%s>", jPetType), javaClass,
                     JPetTypeConverter.toJava(jPetType, classLoader));
         }
     }

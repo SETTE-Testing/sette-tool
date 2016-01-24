@@ -25,6 +25,7 @@ package hu.bme.mit.sette.application
 import groovy.transform.TypeChecked
 import groovy.transform.TypeChecked.*
 import groovy.util.logging.Slf4j
+import hu.bme.mit.sette.TestPrintStream
 import hu.bme.mit.sette.core.configuration.SetteConfiguration
 
 import java.io.ByteArrayOutputStream.*
@@ -42,16 +43,7 @@ import org.junit.Before.*
 class ArgumentParserTest {
     static SetteConfiguration config
     ArgumentParser argParser
-    ByteArrayOutputStream err
-
-    private List<String> getErrorOutputLines() {
-        if (err.size()) {
-            // preserves empty lines
-            return err.toString().replace('\r\n', '\n').split('\n') as List<String>
-        } else {
-            return []
-        }
-    }
+    TestPrintStream errorOutput
 
     @BeforeClass
     static void setUpClass() {
@@ -94,20 +86,20 @@ class ArgumentParserTest {
 
     @Before
     void setUp() {
-        err = new ByteArrayOutputStream()
-        argParser = new ArgumentParser(config, new PrintStream(err))
+        errorOutput = new TestPrintStream()
+        argParser = new ArgumentParser(config, errorOutput)
     }
 
     @Test
     void testParseNoArgs() {
         argParser.with {
-            assert parse() : errorOutputLines
+            assert parse() : errorOutput.lines
 
-            assert errorOutputLines.isEmpty()
+            assert errorOutput.lines.isEmpty()
 
             assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
-            assert runnerTimeoutInMs == null
+            assert runnerTimeoutInMs == 30000
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration == null
@@ -117,11 +109,11 @@ class ArgumentParserTest {
     @Test
     void testParseHelp() {
         argParser.with {
-            assert !parse('--help') : errorOutputLines
-            assert errorOutputLines[0].startsWith('Usage:')
+            assert !parse('--help') : errorOutput.lines
+            assert errorOutput.lines[0].startsWith('Usage:')
 
             // only verify message here
-            List<String> actualLines = errorOutputLines*.trim()
+            List<String> actualLines = errorOutput.lines*.trim()
             List<String> expectedLines = '''
 Usage:
  --backup [ASK | CREATE | SKIP]         : Set the backup policy for runner
@@ -132,7 +124,7 @@ Usage:
  --runner-timeout [ 30000ms | 30s ]     : Timeout for execution of a tool on
                                           one snippet - if missing, then the
                                           value specified in the configuration
-                                          will be used
+                                          will be used (default: 30000)
  --snippet-project-dir [PROJECT_NAME]   : The path to the snippet-project
                                           (relative to the base-directory) to
                                           use - if missing, then the user will
@@ -155,7 +147,7 @@ Usage:
         argParser.with{
             assert parse('--backup', 'skip', '--runner-project-tag', 'my tag',
             '--runner-timeout', '5000ms', '--snippet-project-dir', '../snippet-project',
-            '--task', 'test-runner', '--tool', 'spf') : errorOutputLines
+            '--task', 'test-runner', '--tool', 'spf') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.SKIP
             assert runnerProjectTag == 'my tag'
@@ -169,11 +161,11 @@ Usage:
     @Test
     void testParseIgnoreCaseEnum() {
         argParser.with{
-            assert parse('--backup', 'CrEaTe') : errorOutputLines
+            assert parse('--backup', 'CrEaTe') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.CREATE
             assert runnerProjectTag == null
-            assert runnerTimeoutInMs == null
+            assert runnerTimeoutInMs == 30000
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration == null
@@ -183,11 +175,11 @@ Usage:
     @Test
     void testParseUnderscoreForEnum() {
         argParser.with{
-            assert parse('--task', 'TEST_RUNNER') : errorOutputLines
+            assert parse('--task', 'TEST_RUNNER') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
-            assert runnerTimeoutInMs == null
+            assert runnerTimeoutInMs == 30000
             assert snippetProjectDir == null
             assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration == null
@@ -197,11 +189,11 @@ Usage:
     @Test
     void testParseDashForEnum() {
         argParser.with{
-            assert parse('--task', 'test-runner') : errorOutputLines
+            assert parse('--task', 'test-runner') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
-            assert runnerTimeoutInMs == null
+            assert runnerTimeoutInMs == 30000
             assert snippetProjectDir == null
             assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration == null
@@ -211,9 +203,9 @@ Usage:
     @Test
     void testParseFailsIfInvalidEnumValue() {
         argParser.with{
-            assert !parse('--backup', 'differential') : errorOutputLines
-            assert errorOutputLines[0].contains('"differential" is not a valid value for "--backup"')
-            assert errorOutputLines[1].startsWith('Usage:')
+            assert !parse('--backup', 'differential') : errorOutput.lines
+            assert errorOutput.lines[0].contains('"differential" is not a valid value for "--backup"')
+            assert errorOutput.lines[1].startsWith('Usage:')
         }
     }
 
@@ -221,11 +213,11 @@ Usage:
     void testParseForTool() {
         argParser.with{
             // case-insensitive
-            assert parse('--tool', 'SpF') : errorOutputLines
+            assert parse('--tool', 'SpF') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
-            assert runnerTimeoutInMs == null
+            assert runnerTimeoutInMs == 30000
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration.name == 'SPF'
@@ -235,16 +227,16 @@ Usage:
     @Test
     void testParseFailsIfInvalidTool() {
         argParser.with{
-            assert !parse('--tool', 'MyTool') : errorOutputLines
-            assert errorOutputLines[0].contains('"MyTool" is not a valid value for "--tool"')
-            assert errorOutputLines[1].startsWith('Usage:')
+            assert !parse('--tool', 'MyTool') : errorOutput.lines
+            assert errorOutput.lines[0].contains('"MyTool" is not a valid value for "--tool"')
+            assert errorOutput.lines[1].startsWith('Usage:')
         }
     }
 
     @Test
     void testParseTimeIfSec() {
         argParser.with{
-            assert parse('--runner-timeout', '5s') : errorOutputLines
+            assert parse('--runner-timeout', '5s') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
@@ -258,7 +250,7 @@ Usage:
     @Test
     void testParseTimeIfMs() {
         argParser.with{
-            assert parse('--runner-timeout', '5000ms') : errorOutputLines
+            assert parse('--runner-timeout', '5000ms') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
@@ -272,35 +264,35 @@ Usage:
     @Test
     void testParseFailsIfNotANumber() {
         argParser.with{
-            assert !parse('--runner-timeout', 'five seconds') : errorOutputLines
+            assert !parse('--runner-timeout', 'five seconds') : errorOutput.lines
 
-            assert errorOutputLines[0].contains('"five seconds" is not a valid value for "--runner-timeout"')
-            assert errorOutputLines[1].startsWith('Usage:')
+            assert errorOutput.lines[0].contains('"five seconds" is not a valid value for "--runner-timeout"')
+            assert errorOutput.lines[1].startsWith('Usage:')
         }
     }
 
     @Test
     void testParseFailsIfTimeUnitIsMissing() {
         argParser.with{
-            assert !parse('--runner-timeout', '5000') : errorOutputLines
+            assert !parse('--runner-timeout', '5000') : errorOutput.lines
 
-            assert errorOutputLines[0].contains('"5000" is not a valid value for "--runner-timeout"')
-            assert errorOutputLines[1].startsWith('Usage:')
+            assert errorOutput.lines[0].contains('"5000" is not a valid value for "--runner-timeout"')
+            assert errorOutput.lines[1].startsWith('Usage:')
         }
     }
 
     @Test
     void testParseFailsIfExtraArgs() {
         argParser.with{
-            assert !parse('--runner-project-tag', 'TAG', 'extra1', 'extra2') : errorOutputLines
+            assert !parse('--runner-project-tag', 'TAG', 'extra1', 'extra2') : errorOutput.lines
 
-            assert errorOutputLines[0].contains('No argument is allowed: extra1')
-            assert errorOutputLines[1].startsWith('Usage:')
+            assert errorOutput.lines[0].contains('No argument is allowed: extra1')
+            assert errorOutput.lines[1].startsWith('Usage:')
         }
     }
 
     @Test
     void testMain() throws Exception {
-        assert argParser.parse('--runner-timeout', '30s') : errorOutputLines
+        assert argParser.parse('--runner-timeout', '30s') : errorOutput.lines
     }
 }

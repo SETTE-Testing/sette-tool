@@ -184,8 +184,10 @@ public final class JPetTestCasesConverter {
 
                 String javaType = JPetTypeConverter.toJava(heapObject.getClassName());
 
-                // call constructor via reflection, because maybe the class does not have a default ctor
-                heap.append(String.format("%s heap_%s = %s.class.newInstance();", javaType, num, javaType))
+                // call constructor via reflection, because maybe the class does not have a default
+                // ctor
+                heap.append(String.format("%s heap_%s = %s.class.newInstance();", javaType, num,
+                        javaType))
                         .append('\n');
 
                 // set fields via reflection
@@ -269,7 +271,7 @@ public final class JPetTestCasesConverter {
                 }
                 // TODO debug
                 // System.err.println(heap);
-                // System.exit(0);
+                // throw new RuntimeException("EXIT")
             } else {
                 // TODO handle error
                 throw new RuntimeException("FATAL ERROR: neither array, nor object!");
@@ -296,8 +298,6 @@ public final class JPetTestCasesConverter {
 
                     int intVal = Integer.parseInt(arg.getText());
 
-                    
-                    
                     parameterElement
                             .setType(ParameterType.primitiveFromJavaClass(paramTypes[paramIndex]));
 
