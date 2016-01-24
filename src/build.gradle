@@ -1,6 +1,16 @@
 buildscript {
-    repositories { jcenter() }
-    dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:+' }
+    repositories { maven { url 'https://plugins.gradle.org/m2/' } }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:+'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:1.2'
+    }
+}
+
+// Apply sonar on the root project
+apply plugin: 'org.sonarqube'
+
+sonarqube {
+    properties { property 'sonar.sourceEncoding', 'UTF-8' }
 }
 
 // Apply same group, version and repos for all projects
@@ -51,7 +61,6 @@ project(':sette') {
     dependencies {
         compile project(':sette-core')
         compile 'args4j:args4j:2.32'
-        compile 'commons-cli:commons-cli:1.3.1' // FIXME remove
     }
 
     afterEvaluate {
@@ -85,20 +94,15 @@ project(':sette') {
 
         doLast {
             File setteJar = new File(deployTarget, 'sette-all.jar')
-            File setteProps = new File(deployTarget, 'sette.properties')
-            File setteLog4j2Xml = new File(deployTarget, 'sette-log4j2.xml')
+            File setteConfig = new File(deployTarget, 'sette.config.json')
 
             // Always deploy the new JAR
             setteJar.delete()
             setteJar << tasks.shadowJar.archivePath.bytes
 
-            // Always deploy log4j2.xml
-            setteLog4j2Xml.delete()
-            setteLog4j2Xml << new File(project.projectDir, 'log4j2.xml').text
-
             // Only deploy sette.properties of not present
-            if (!setteProps.exists()) {
-                setteProps << new File(project.projectDir, 'sette.properties.default').text
+            if (!setteConfig.exists()) {
+                setteConfig << new File(project.projectDir, 'sette.config.default.json').text
             }
         }
     }
@@ -109,7 +113,6 @@ project(':sette') {
 //
 project(':sette-core') {
     def jacocoVersion = '0.7.5.201505241946'
-    def log4jVersion = '2.3'
 
     configurations {
         provided
@@ -127,19 +130,17 @@ project(':sette-core') {
         compile 'org.jacoco:org.jacoco.agent:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.core:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.report:' + jacocoVersion
-        compile 'com.github.javaparser:javaparser-core:2.2.2'
+        compile 'com.github.javaparser:javaparser-core:2.3.0'
 
         // Utilities
-        compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
-        compile 'com.google.guava:guava:18.0'
+        compile 'com.fasterxml.jackson.core:jackson-databind:2.7.0'
+        compile 'com.google.guava:guava:19.0'
         compile 'org.apache.commons:commons-lang3:3.4'
         compile 'org.simpleframework:simple-xml:2.7.1'
 
         // Logging
         compile 'org.slf4j:slf4j-api:1.7.12'
-        compile 'org.apache.logging.log4j:log4j-api:' + log4jVersion
-        compile 'org.apache.logging.log4j:log4j-core:' + log4jVersion
-        compile 'org.apache.logging.log4j:log4j-slf4j-impl:' + log4jVersion
+        compile 'ch.qos.logback:logback-classic:1.1.3'
     }
 
     // FIXME

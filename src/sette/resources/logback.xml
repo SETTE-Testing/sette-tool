@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <consolePlugin />
+
+  <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.err</target>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>WARN</level>
+    </filter>
+    <encoder>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="INFO_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>sette.info.log</file>
+    <append>false</append>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+    <encoder>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="DEBUG_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>sette.debug.log</file>
+    <append>false</append>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
+    <encoder>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="TRACE_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>sette.trace.log</file>
+    <append>false</append>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>TRACE</level>
+    </filter>
+    <encoder>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="ALL">
+    <appender-ref ref="STDERR" />
+    <appender-ref ref="INFO_FILE" />
+    <appender-ref ref="DEBUG_FILE" />
+    <appender-ref ref="TRACE_FILE" />
+  </root>
+</configuration>
