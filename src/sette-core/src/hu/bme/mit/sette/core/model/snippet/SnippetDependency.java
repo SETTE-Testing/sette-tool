@@ -28,10 +28,8 @@ import java.lang.reflect.Method;
 import hu.bme.mit.sette.common.annotations.SetteDependency;
 import hu.bme.mit.sette.core.util.reflection.ClassComparator;
 import hu.bme.mit.sette.core.util.reflection.SetteAnnotationUtils;
-import hu.bme.mit.sette.core.validator.ClassExecutableValidator;
-import hu.bme.mit.sette.core.validator.ClassValidator;
-import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
+import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
@@ -64,17 +62,15 @@ public final class SnippetDependency implements Comparable<SnippetDependency> {
         this.javaClass = javaClass;
 
         // Validation: no @SetteXxx annotations except @SnippetDependency
-        ValidationContext vc = new ValidationContext("SnippetDependency: " + javaClass.getName());
+        Validator<String> v = Validator.of("SnippetDependency: " + javaClass.getName());
 
         // validate class
         // check: only @SetteDependency SETTE annotation
         val classAnns = SetteAnnotationUtils.getSetteAnnotations(javaClass);
 
         if (classAnns.size() != 1 || classAnns.get(SetteDependency.class) == null) {
-            ClassValidator v = new ClassValidator(javaClass);
             v.addError("The class must not only have the @" + SetteDependency.class.getSimpleName()
                     + " SETTE annotation");
-            vc.addValidator(v);
         }
 
         // validate methods
@@ -86,13 +82,11 @@ public final class SnippetDependency implements Comparable<SnippetDependency> {
             }
 
             if (!SetteAnnotationUtils.getSetteAnnotations(method).isEmpty()) {
-                ClassExecutableValidator v = new ClassExecutableValidator(method);
-                v.addError("The method must not have any SETTE annotations");
-                vc.addValidator(v);
+                v.addError("The method " + method + " must not have any SETTE annotations");
             }
         }
 
-        vc.validate();
+        v.validate();
     }
 
     @Override

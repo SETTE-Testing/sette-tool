@@ -54,7 +54,6 @@ import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
-import hu.bme.mit.sette.core.validator.ValidationException;
 
 public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> {
     public RunResultParser(SnippetProject snippetProject, Path outputDir, T tool,

@@ -90,7 +90,7 @@ public final class SnippetCoverageXml extends SnippetBaseXml {
     }
 
     @Override
-    protected void validate2(Validator validator) {
+    protected void validate2(Validator<?> validator) {
         if (coverage == null) {
             validator.addError("The coverage must not be null");
         } else {
@@ -112,7 +112,7 @@ public final class SnippetCoverageXml extends SnippetBaseXml {
                 try {
                     coverageElement.validate();
                 } catch (ValidationException ex) {
-                    validator.addException(ex);
+                    validator.addChild(ex.getValidator());
                 }
             }
         }

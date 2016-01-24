@@ -43,7 +43,6 @@ import hu.bme.mit.sette.common.annotations.SetteDependency;
 import hu.bme.mit.sette.common.annotations.SetteSnippetContainer;
 import hu.bme.mit.sette.core.util.reflection.ClassComparator;
 import hu.bme.mit.sette.core.validator.PathValidator;
-import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Getter;
@@ -110,10 +109,10 @@ public final class SnippetProject {
         validateDirs();
 
         // collect and validate source & lib files
-        ValidationContext vc = new ValidationContext(this);
-        this.snippetFiles = collectAndValidateFiles(getSourceDir(), "java", vc);
-        this.snippetInputFiles = collectAndValidateFiles(getInputSourceDir(), "java", vc);
-        this.libFiles = collectAndValidateFiles(getLibDir(), "jar", vc);
+        Validator<SnippetProject> v = Validator.of(this);
+        this.snippetFiles = collectAndValidateFiles(getSourceDir(), "java", v);
+        this.snippetInputFiles = collectAndValidateFiles(getInputSourceDir(), "java", v);
+        this.libFiles = collectAndValidateFiles(getLibDir(), "jar", v);
 
         // load classes
         this.classLoader = createClassLoader();
@@ -136,26 +135,24 @@ public final class SnippetProject {
 
             SortedSet<String> duplicates = new TreeSet<>(snippetIds);
 
-            Validator<String> v = new Validator<>("Check unique snippet ids");
-            v.addError("Duplicates: " + duplicates);
-            vc.addValidator(v);
+            v.addError("Duplicate snippet IDs: " + duplicates);
         }
 
-        vc.validate();
+        v.validate();
 
         // class is ready
     }
 
     /**
      * Collects and validates the files for the specified extension from a directory using the
-     * specified {@link ValidationContext}.
+     * specified {@link Validator}.
      * 
      * @param dir
      *            the directory whose files needs to be collected
      * @param extension
      *            the file extension to validate (<code>null</code> means no requirement)
-     * @param validationContext
-     *            the {@link ValidationContext} to which errors will be added
+     * @param validator
+     *            the {@link Validator} to which errors will be added
      * @return set of collected files (note: it will contain all the files regardless if some of
      *         them does not have the specified extension)
      * @throws IOException
@@ -163,13 +160,13 @@ public final class SnippetProject {
      */
     private static ImmutableSortedSet<Path> collectAndValidateFiles(@NonNull Path dir,
             String extension,
-            @NonNull ValidationContext validationContext) throws IOException {
+            @NonNull Validator<?> validator) throws IOException {
         if (Files.exists(dir)) {
             SortedSet<Path> files = Files.walk(dir).filter(Files::isRegularFile).sorted()
                     .collect(Collectors.toCollection(TreeSet<Path>::new));
             files.forEach(f -> {
                 PathValidator pv = PathValidator.forRegularFile(f, true, null, null, extension);
-                validationContext.addValidatorIfInvalid(pv);
+                validator.addChild(pv);
             });
             return ImmutableSortedSet.copyOf(files);
         } else {
@@ -186,28 +183,28 @@ public final class SnippetProject {
      *             if an I/O error had occurred
      */
     private void validateDirs() throws ValidationException, IOException {
-        ValidationContext vc = new ValidationContext(this);
+        Validator<String> v = Validator.of("SnippetProject directories: " + baseDir);
 
-        vc.addValidator(PathValidator.forDirectory(getSourceDir(), true, null, true));
+        v.addChild(PathValidator.forDirectory(getSourceDir(), true, null, true));
 
         if (Files.exists(getInputSourceDir())) {
-            vc.addValidator(PathValidator.forDirectory(getInputSourceDir(), true, null, true));
+            v.addChild(PathValidator.forDirectory(getInputSourceDir(), true, null, true));
         }
 
         if (Files.exists(getLibDir())) {
-            vc.addValidator(PathValidator.forDirectory(getLibDir(), true, null, true));
+            v.addChild(PathValidator.forDirectory(getLibDir(), true, null, true));
         }
 
-        PathValidator v = PathValidator.forDirectory(getBuildDir(), true, null, true);
+        v.addChild(PathValidator.forDirectory(getBuildDir(), true, null, true));
         v.validate();
 
         // if (Files.walk(getBuildDir()).filter(Files::isRegularFile).findAny().isPresent()) {
         // v.addError("The build directory does not contain any regular file "
         // + "(probably the project is not built)");
         // }
-        vc.addValidator(v);
+        v.addChild(v);
 
-        vc.validate();
+        v.validate();
     }
 
     /**
@@ -236,7 +233,7 @@ public final class SnippetProject {
 
         // collect snippet container classes
         Set<Class<?>> snippetContainerClasses = new TreeSet<>(ClassComparator.INSTANCE);
-        Validator<SnippetProject> v = new Validator<>(this);
+        Validator<SnippetProject> v = Validator.of(this);
 
         for (Path sourceFile : snippetFiles) {
             if (!sourceFile.toString().startsWith(sourceDir.toString())) {
@@ -268,7 +265,7 @@ public final class SnippetProject {
             try {
                 sc.add(new SnippetContainer(this, javaClass));
             } catch (ValidationException ex) {
-                v.addException(ex);
+                v.addChild(ex.getValidator());
             }
         }
         v.validate();
@@ -282,7 +279,7 @@ public final class SnippetProject {
 
         // collect snippet container classes
         Set<Class<?>> snippetDepClasses = new TreeSet<>(ClassComparator.INSTANCE);
-        Validator<SnippetProject> v = new Validator<>(this);
+        Validator<SnippetProject> v = Validator.of(this);
 
         for (Path sourceFile : snippetFiles) {
             if (!sourceFile.toString().startsWith(sourceDir.toString())) {
@@ -314,7 +311,7 @@ public final class SnippetProject {
             try {
                 sd.add(new SnippetDependency(this, javaClass));
             } catch (ValidationException ex) {
-                v.addException(ex);
+                v.addChild(ex.getValidator());
             }
         }
         v.validate();

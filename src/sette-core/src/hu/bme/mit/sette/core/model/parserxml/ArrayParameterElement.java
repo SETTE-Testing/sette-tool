@@ -78,7 +78,7 @@ public final class ArrayParameterElement extends AbstractParameterElement {
     }
 
     @Override
-    void validateValue(Validator validator) {
+    void validateValue(Validator<?> validator) {
         if (getType() != null) {
             // TODO validate elements for type
         }

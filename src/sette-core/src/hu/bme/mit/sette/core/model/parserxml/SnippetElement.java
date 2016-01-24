@@ -101,7 +101,7 @@ public final class SnippetElement implements XmlElement {
 
     @Override
     public void validate() throws ValidationException {
-        Validator v = new Validator(this);
+        Validator<SnippetElement> v = Validator.of(this);
 
         if (Strings.isNullOrEmpty(containerName)) {
             v.addError("The container name must not be empty");

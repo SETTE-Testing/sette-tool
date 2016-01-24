@@ -121,7 +121,7 @@ public final class InputElement implements XmlElement {
 
     @Override
     public void validate() throws ValidationException {
-        Validator<?> v = new Validator<>(this);
+        Validator<InputElement> v = Validator.of(this);
 
         if (parameters == null) {
             v.addError("The list of parameters must not be null");
@@ -133,7 +133,7 @@ public final class InputElement implements XmlElement {
             try {
                 ape.validate();
             } catch (ValidationException ex) {
-                v.addException(ex);
+                v.addChild(ex.getValidator());
             }
         }
 

@@ -23,63 +23,85 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.validator;
 
-import java.util.ArrayList;
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Stream.concat;
+
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
-
+import hu.bme.mit.sette.core.util.LazyImmutable;
 import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * Simple validator class for object validation. Please not that modifying the subject during
+ * Base validator class for object validation. Please note that modifying the subject during
  * validation because the validator may get to an inconsistent state. The purpose of this class is
  * to validate several requirements on an object at the same time. If {@link #validate()}
  * invalidates the subject, an exception will be thrown containing all the errors, nut just the
  * first one.
+ * <p>
+ * This class is also able to maintain a complete validator hierarchy, which is a tree-like
+ * structure. A validator is valid if it and all of its children are valid. If {@link #validate()}
+ * throws an exception, it will contain the errors of all the validators. The
+ * {@link #addChild(Validator)} method ensures that the hierarchy will remain truee.
  *
  * @param <T>
  *            Type of the subject which will be validated.
  */
 public class Validator<T> {
+    /**
+     * Creates a new {@link Validator} instance.
+     *
+     * @param <T>
+     *            the type of the subject
+     * @param subject
+     *            the subject
+     * @return a new {@link Validator} instance
+     */
+    public static <T> Validator<T> of(@NonNull T subject) {
+        return new Validator<>(subject);
+    }
+
     /** The subject under validation. */
     @Getter
     private final T subject;
 
     /** List of validation errors. */
-    private final List<ValidationError> errors;
+    private final List<ValidationError> errors = new LinkedList<>();
+
+    /** The parent of this validator (only can be set once). */
+    private final LazyImmutable<Validator<?>> parent = LazyImmutable.of();
+
+    /** List of children validators. */
+    private final List<Validator<?>> children = new LinkedList<>();
 
     /**
-     * Initializes the class.
+     * Initialises the class.
      *
      * @param subject
      *            the subject, must not be <code>null</code> (<code>null</code> values should be
      *            checked before using a validator)
      */
-    public Validator(@NonNull T subject) {
+    Validator(@NonNull T subject) {
         this.subject = subject;
-        errors = new ArrayList<>();
     }
 
     /**
-     * Gets the number of validation errors.
-     *
-     * @return the number of validation errors
+     * @return a stream of validation errors (does not include the children)
      */
-    public final int getErrorCount() {
-        return errors.size();
+    final Stream<ValidationError> getErrors() {
+        return errors.stream();
     }
 
     /**
-     * Gets an immutable list of errors representing the current state. Please note that this list
-     * will not be updated when a new error is added to the validator.
-     * 
-     * @return an immutable list of errors
+     * @return number of validation errors (including the errors in the children validators)
      */
-    public final ImmutableList<ValidationError> getErrors() {
-        return ImmutableList.copyOf(errors);
+    public final int getTotalErrorCount() {
+        return errors.size() + getAllChildren().mapToInt(v -> v.errors.size()).sum();
     }
 
     /**
@@ -175,12 +197,79 @@ public class Validator<T> {
     }
 
     /**
+     * @return the parent of this validator or <code>null</code> if not present
+     */
+    public final Validator<?> getParent() {
+        return parent.get();
+    }
+
+    /**
+     * @return the root validator in the hierarchy
+     */
+    public final Validator<?> getRoot() {
+        Validator<?> v = this;
+        while (v.parent.isSet()) {
+            v = v.getParent();
+        }
+        return v;
+    }
+
+    /**
+     * @return a stream of the children validators
+     */
+    final Stream<Validator<?>> getChildren() {
+        return children.stream();
+    }
+
+    /**
+     * @return a stream of the all validators in the hierarchy
+     */
+    final Stream<Validator<?>> getAllChildren() {
+        return Stream.concat(
+                children.stream(),
+                children.stream().flatMap(Validator::getAllChildren));
+    }
+
+    /**
+     * Adds the specified validator to the hierarchy. The validator to add must not be the same
+     * instance, must not belont to anywhere and most not be the root of the hierarchy.
+     * 
+     * @param child
+     *            The validator to add
+     */
+    public final void addChild(@NonNull Validator<?> child) {
+        // child: not this, no parents, not the root
+        checkArgument(this != child, "The child must not be the same validator");
+        checkArgument(!child.parent.isSet(), "The child must not belong anywhere");
+        checkArgument(getRoot() != child, "The child must not bee the root if this hierarchy");
+
+        children.add(child);
+        child.parent.set(this);
+    }
+
+    /**
+     * Adds the specified validator to the hierarchy if it invalidates its subject. The validator to
+     * add must not be the same instance, must not belont to anywhere and most not be the root of
+     * the hierarchy.
+     * <p>
+     * Note: only add validators using this method if you they will not be used after the addition.
+     * 
+     * @param child
+     *            The validator to add
+     */
+    public final void addChildIfInvalid(@NonNull Validator<?> child) {
+        if (!child.isValid()) {
+            addChild(child);
+        }
+    }
+
+    /**
      * Checks if the subject is valid.
      *
      * @return <code>true</code> if the subject is valid, otherwise <code>false</code>
      */
     public final boolean isValid() {
-        return errors.isEmpty();
+        return getTotalErrorCount() == 0;
     }
 
     /**
@@ -197,11 +286,58 @@ public class Validator<T> {
 
     @Override
     public final String toString() {
-        return String.format("%s [subject=%s, subjectClass=%s, errorCount=%d]",
-                getClass().getSimpleName(), subject, subject.getClass().getName(), getErrorCount());
+        // with no stack trace
+        return toString(0);
     }
 
-    public void addException(@NonNull ValidationException ex) {
-        addError(ex.getMessage());
+    /**
+     * Returns a string representation of the validator, containing all the errors in the hierarchy.
+     * 
+     * @param stackTraceDepth
+     *            the depth of the stack trace to display (for no stack trace, specify
+     *            <code>0</code>, for full stact trace specify {@link Integer#MAX_VALUE})
+     * @return the string representation of the validator
+     */
+    public final String toString(int stackTraceDepth) {
+        checkArgument(stackTraceDepth >= 0);
+        return toStringLines(stackTraceDepth).collect(joining("\n"));
+    }
+
+    private static final String TO_STRING_INDENT = "    ";
+
+    /**
+     * Returns a stream of the lines of the string representation of the validator, containing all
+     * the errors in the hierarchy.
+     * 
+     * @param stackTraceDepth
+     *            the depth of the stack trace to display (for no stack trace, specify
+     *            <code>0</code>, for full stact trace specify {@link Integer#MAX_VALUE})
+     * @return a stream of the lines of the string representation of the validator
+     */
+    public final Stream<String> toStringLines(int stackTraceDepth) {
+        checkArgument(stackTraceDepth >= 0);
+
+        Stream<String> selfLines = concat(
+                Stream.of(String.format("[V] %s: %d error(s)", subject, getTotalErrorCount())),
+                errors.stream().flatMap(e -> createErrorLines(e, stackTraceDepth)));
+
+        Stream<String> childrenLines = getAllChildren()
+                .filter(v -> !v.isValid())
+                .flatMap(v -> v.toStringLines(stackTraceDepth))
+                .map(l -> TO_STRING_INDENT + l);
+
+        return concat(selfLines, childrenLines);
+    }
+
+    private static final Stream<String> createErrorLines(ValidationError error,
+            int stackTraceDepth) {
+        Stream<String> selfLine = Stream.of(TO_STRING_INDENT + "[E] " + error.getMessage());
+
+        Stream<String> stackTraceLines = error.getStackTrace()
+                .stream()
+                .map(s -> TO_STRING_INDENT + TO_STRING_INDENT + "[S] " + s)
+                .limit(stackTraceDepth);
+
+        return concat(selfLine, stackTraceLines);
     }
 }

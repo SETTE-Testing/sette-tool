@@ -142,7 +142,7 @@ public class FileCoverageElement implements XmlElement {
 
     @Override
     public void validate() throws ValidationException {
-        Validator v = new Validator(this);
+        Validator<FileCoverageElement> v = Validator.of(this);
 
         // TODO validate notnull
         // TODO lines can be blank respectively

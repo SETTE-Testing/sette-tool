@@ -66,8 +66,7 @@ public final class SetteConfigurationDescription {
     private static final ImmutableSet<String> TOOL_FIELDS = ImmutableSet.of(NODE_TOOL_CLASS_NAME,
             NODE_TOOL_NAME, NODE_TOOL_DIR);
 
-    private transient final Validator<String> validator = new Validator<>(
-            getClass().getSimpleName());
+    private transient final Validator<String> validator = Validator.of(getClass().getSimpleName());
 
     /** List of possible base directory paths */
     @Getter

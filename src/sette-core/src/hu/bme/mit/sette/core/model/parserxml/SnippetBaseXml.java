@@ -141,7 +141,7 @@ public abstract class SnippetBaseXml implements XmlElement {
 
     @Override
     public final void validate() throws ValidationException {
-        Validator validator = new Validator(this);
+        Validator<?> validator = Validator.of(this);
 
         if (Strings.isNullOrEmpty(toolName)) {
             validator.addError("The tool name must not be empty");
@@ -153,7 +153,7 @@ public abstract class SnippetBaseXml implements XmlElement {
             try {
                 snippetProjectElement.validate();
             } catch (ValidationException ex) {
-                validator.addException(ex);
+                validator.addChild(ex.getValidator());
             }
         }
 
@@ -163,7 +163,7 @@ public abstract class SnippetBaseXml implements XmlElement {
             try {
                 snippetElement.validate();
             } catch (ValidationException ex) {
-                validator.addException(ex);
+                validator.addChild(ex.getValidator());
             }
         }
 
@@ -183,5 +183,5 @@ public abstract class SnippetBaseXml implements XmlElement {
      * @param validator
      *            a validator
      */
-    protected abstract void validate2(Validator validator);
+    protected abstract void validate2(Validator<?> validator);
 }

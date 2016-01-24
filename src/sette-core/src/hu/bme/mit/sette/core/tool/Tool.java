@@ -95,7 +95,7 @@ public abstract class Tool implements Comparable<Tool> {
                     .collect(Collectors.toList());
 
             if (versionFileNonBlankLines.size() != 1) {
-                Validator<Tool> v = new Validator<>(this);
+                Validator<Tool> v = Validator.of(this);
                 v.addError("The VERSION file should only contain exactly line with the version: "
                         + versionFileNonBlankLines);
                 v.validate();

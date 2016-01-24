@@ -22,14 +22,14 @@
  */
 package hu.bme.mit.sette.core.descriptors.java;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
 
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
-import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
+import hu.bme.mit.sette.core.validator.Validator;
 import lombok.NonNull;
 
 /**
@@ -81,17 +81,17 @@ public final class JavaSourceFile {
             //
             // validate permissions
             //
-            ValidationContext vc = new ValidationContext(JavaSourceFile.class);
+            Validator<?> v = Validator.of(JavaSourceFile.class);
 
             PathValidator srcDirValidator = new PathValidator(sourceDir.toPath())
                     .type(PathType.DIRECTORY).readable(true).executable(true);
-            vc.addValidator(srcDirValidator);
+            v.addChild(srcDirValidator);
 
             PathValidator srcFileValidator = new PathValidator(sourceFile.toPath())
                     .type(PathType.REGULAR_FILE).readable(true).extension("java");
-            vc.addValidator(srcFileValidator);
+            v.addChild(srcFileValidator);
 
-            vc.validate();
+            v.validate();
 
             //
             // get canonical file objects and absolute paths

@@ -86,7 +86,7 @@ public final class SnippetResultXml extends SnippetBaseXml {
     }
 
     @Override
-    protected void validate2(Validator v) {
+    protected void validate2(Validator<?> v) {
         if (getResultType() == ResultType.S) {
             v.addError("The result type must not be S");
         }

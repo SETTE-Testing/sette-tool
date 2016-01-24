@@ -43,7 +43,7 @@ public final class ValidationError {
     @Getter
     private final ImmutableList<StackTraceElement> stackTrace;
 
-    public ValidationError(@NonNull String message) {
+    ValidationError(@NonNull String message) {
         this.message = message;
 
         // collect the stack trace

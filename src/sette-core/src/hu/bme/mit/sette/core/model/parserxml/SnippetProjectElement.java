@@ -58,7 +58,7 @@ public final class SnippetProjectElement implements XmlElement {
 
     @Override
     public void validate() throws ValidationException {
-        Validator v = new Validator(this);
+        Validator<SnippetProjectElement> v = Validator.of(this);
 
         if (Strings.isNullOrEmpty(baseDirPath)) {
             v.addError("The base directory path must not be empty");

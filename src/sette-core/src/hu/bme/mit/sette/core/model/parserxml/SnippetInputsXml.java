@@ -102,7 +102,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
     }
 
     @Override
-    protected void validate2(Validator validator) {
+    protected void validate2(Validator<?> validator) {
         if (getResultType() == ResultType.NC || getResultType() == ResultType.C) {
             // TODO enable back?
             // validator.addError("The result type must not be NC or C");
@@ -124,7 +124,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
                 try {
                     input.validate();
                 } catch (ValidationException ex) {
-                    validator.addException(ex);
+                    validator.addChild(ex.getValidator());
                 }
             }
         }

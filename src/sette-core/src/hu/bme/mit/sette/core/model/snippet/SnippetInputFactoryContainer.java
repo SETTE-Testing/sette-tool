@@ -38,7 +38,6 @@ import hu.bme.mit.sette.core.util.reflection.SetteAnnotationUtils;
 import hu.bme.mit.sette.core.validator.ClassExecutableValidator;
 import hu.bme.mit.sette.core.validator.ClassFieldValidator;
 import hu.bme.mit.sette.core.validator.ClassValidator;
-import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Getter;
@@ -79,16 +78,17 @@ public final class SnippetInputFactoryContainer
         this.javaClass = javaClass;
 
         // start validation
-        ValidationContext vc = new ValidationContext(SnippetInputFactoryContainer.class);
+        Validator<String> v = Validator
+                .of("Snippet Input Factory Container: " + javaClass.getName());
 
         // validate class
-        validateClass(vc);
+        validateClass(v);
         // validate fields
-        validateFields(vc);
+        validateFields(v);
         // validate constructor
-        validateConstructor(vc);
+        validateConstructor(v);
         // validate methods and get factory methods
-        Map<String, Method> factoryMethods = validateMethods(vc);
+        Map<String, Method> factoryMethods = validateMethods(v);
 
         // save data to fields
         Map<String, SnippetInputFactory> tmpInputFactories = new HashMap<>();
@@ -99,13 +99,11 @@ public final class SnippetInputFactoryContainer
                 SnippetInputFactory inputFactory = new SnippetInputFactory(this, method);
                 tmpInputFactories.put(method.getName(), inputFactory);
             } catch (ValidationException ex) {
-                Validator<Method> v = new Validator<>(method);
-                v.addException(ex);
-                vc.addValidator(v);
+                v.addChild(ex.getValidator());
             }
         }
 
-        vc.validate();
+        v.validate();
         inputFactories = ImmutableSortedMap.copyOf(tmpInputFactories);
     }
 
@@ -115,7 +113,7 @@ public final class SnippetInputFactoryContainer
      * @param validationContext
      *            a validation context
      */
-    private void validateClass(ValidationContext validationContext) {
+    private void validateClass(Validator<?> validator) {
         // check: "public final class", no superclass, interface, declared
         // class, exactly one constructor
         ClassValidator v = new ClassValidator(javaClass);
@@ -130,7 +128,7 @@ public final class SnippetInputFactoryContainer
             v.addError("The class must not have any SETTE annotations");
         }
 
-        validationContext.addValidator(v);
+        validator.addChildIfInvalid(v);
     }
 
     /**
@@ -139,7 +137,7 @@ public final class SnippetInputFactoryContainer
      * @param validationContext
      *            a validation context
      */
-    private void validateFields(ValidationContext validationContext) {
+    private void validateFields(Validator<?> validator) {
         // check: no declared fields
         for (Field field : javaClass.getDeclaredFields()) {
             if (field.isSynthetic()) {
@@ -150,7 +148,7 @@ public final class SnippetInputFactoryContainer
 
             ClassFieldValidator v = new ClassFieldValidator(field);
             v.addError("The class must not declare fields");
-            validationContext.addValidator(v);
+            validator.addChildIfInvalid(v);
         }
     }
 
@@ -160,7 +158,7 @@ public final class SnippetInputFactoryContainer
      * @param validationContext
      *            a validation context
      */
-    private void validateConstructor(ValidationContext validationContext) {
+    private void validateConstructor(Validator<?> validator) {
         if (javaClass.getDeclaredConstructors().length != 1) {
             // constructor count is validated with the class
             return;
@@ -191,7 +189,7 @@ public final class SnippetInputFactoryContainer
                     + "UnsupportedOperationException with the message \"Static class\"");
         }
 
-        validationContext.addValidator(v);
+        validator.addChildIfInvalid(v);
     }
 
     /**
@@ -201,7 +199,7 @@ public final class SnippetInputFactoryContainer
      *            a validation context
      * @return a map containing the input factory methods by their name
      */
-    private Map<String, Method> validateMethods(ValidationContext validationContext) {
+    private Map<String, Method> validateMethods(Validator<?> validator) {
         // check: only "public static" or synthetic methods
         Map<String, Method> factoryMethods = new HashMap<String, Method>();
 
@@ -222,7 +220,7 @@ public final class SnippetInputFactoryContainer
 
             factoryMethods.put(method.getName(), method);
 
-            validationContext.addValidator(v);
+            validator.addChildIfInvalid(v);
         }
 
         return factoryMethods;

@@ -101,7 +101,7 @@ public final class ParameterElement extends AbstractParameterElement {
     }
 
     @Override
-    void validateValue(Validator validator) {
+    void validateValue(Validator<?> validator) {
         switch (getType()) {
             case BYTE:
                 // TODO validator exception

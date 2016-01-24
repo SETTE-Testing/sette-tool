@@ -36,19 +36,9 @@ class ValidationExceptionTest {
         new ValidationException((Validator) null)
     }
 
-    @Test(expected = NullPointerException)
-    void testThrowsExceptionifNullValidationContext() {
-        new ValidationException((ValidationContext) null)
-    }
-
     @Test(expected = IllegalArgumentException)
     void testThrowsExceptionifValidatorHasNoErrors() {
         new ValidationException(new Validator<>('subject'))
-    }
-
-    @Test(expected = IllegalArgumentException)
-    void testThrowsExceptionifValidationContextHasNoErrors() {
-        new ValidationException(new ValidationContext('context'))
     }
 
     @Test
@@ -58,42 +48,8 @@ class ValidationExceptionTest {
         v.addError('error2')
 
         ValidationException ex = new ValidationException(v)
-        List<String> lines = ex.message.tokenize('\n')
 
-        assert lines.size() == 4
-        assert lines[0] == '2 errors occurred during validation'
-        assert lines[1].startsWith('    Validator') && lines[1].contains('subject=subject')
-        assert lines[2].startsWith('    ValidationError') && lines[2].contains('message=error1')
-        assert lines[3].startsWith('    ValidationError') && lines[3].contains('message=error2')
-    }
-
-    @Test
-    void testExceptionMessageForValidationContext() {
-        String context = 'context'
-        ValidationContext vc = new ValidationContext(context)
-
-        Validator<String> v1 = new Validator<>('a')
-        Validator<String> v2 = new Validator<>('b')
-        Validator<String> v3 = new Validator<>('c')
-
-        vc.addValidator(v1)
-        vc.addValidator(v2)
-        vc.addValidator(v3)
-
-        v1.addError('error1')
-        v1.addError('error2')
-        v3.addError('error3')
-
-        ValidationException ex = new ValidationException(vc)
-        List<String> lines = ex.message.tokenize('\n')
-
-        assert lines.size() == 7
-        assert lines[0] == '3 errors occurred during validation'
-        assert lines[1].startsWith('    ValidationContext') && lines[1].contains('context=context')
-        assert lines[2].startsWith('    Validator') && lines[2].contains('subject=a')
-        assert lines[3].startsWith('        ValidationError') && lines[3].contains('message=error1')
-        assert lines[4].startsWith('        ValidationError') && lines[4].contains('message=error2')
-        assert lines[5].startsWith('    Validator') && lines[5].contains('subject=c')
-        assert lines[6].startsWith('        ValidationError') && lines[6].contains('message=error3')
+        assert ex.validator == v
+        assert ex.message == 'Validation has failed for subject\n' + v.toString(5)
     }
 }

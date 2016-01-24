@@ -76,7 +76,7 @@ public abstract class AbstractParameterElement implements XmlElement {
 
     @Override
     public final void validate() throws ValidationException {
-        Validator validator = new Validator(this);
+        Validator<AbstractParameterElement> validator = Validator.of(this);
 
         if (type == null) {
             validator.addError("The type must not be null");
@@ -94,7 +94,7 @@ public abstract class AbstractParameterElement implements XmlElement {
      * @param validator
      *            a validator
      */
-    abstract void validateValue(Validator validator);
+    abstract void validateValue(Validator<?> validator);
 
     /**
      * Returns the value as a Java object.

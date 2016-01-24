@@ -24,14 +24,13 @@
 package hu.bme.mit.sette.core.validator;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Stream.concat;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
+import java.util.stream.Stream;
 
 import hu.bme.mit.sette.core.SetteException;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -39,8 +38,11 @@ import lombok.NonNull;
  * containing all the errors for the validator or for the validation context.
  */
 public final class ValidationException extends SetteException {
-    /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = -17608370218683000L;
+    private static final long serialVersionUID = -7969479308454420853L;
+
+    /** The validator. */
+    @Getter
+    private final Validator<?> validator;
 
     /**
      * Instantiates a new validation exception.
@@ -50,21 +52,9 @@ public final class ValidationException extends SetteException {
      * @throws IllegalArgumentException
      *             if the validator contains no errors
      */
-    public ValidationException(Validator<?> validator) {
-        super(String.join("\n", createMessage(validator)));
-    }
-
-    /**
-     * 
-     * Instantiates a new validation exception.
-     *
-     * @param validationContext
-     *            the validation (must not be <code>null</code>)
-     * @throws IllegalArgumentException
-     *             if the validation context contains no errors
-     */
-    public ValidationException(ValidationContext validationContext) {
-        super(String.join("\n", createMessage(validationContext)));
+    public ValidationException(@NonNull Validator<?> validator) {
+        super(createMessage(validator));
+        this.validator = validator;
     }
 
     /**
@@ -76,49 +66,13 @@ public final class ValidationException extends SetteException {
      * @throws IllegalArgumentException
      *             if the validator contains no errors
      */
-    private static List<String> createMessage(@NonNull Validator<?> validator) {
+    private static String createMessage(@NonNull Validator<?> validator) {
         checkArgument(!validator.isValid(),
                 "Cannot create exception for validator with no errors");
 
-        List<String> msg = new LinkedList<>();
-        msg.add(String.valueOf(validator.getSubject()));
-        validator.getErrors().stream().forEach(error -> {
-            Splitter.on('\n').splitToList(error.getMessage()).forEach(line -> {
-                msg.add("    " + line);
-            });
-        });
-
-        return msg;
-    }
-
-    /**
-     * Creates an exception message for a validation context.
-     * 
-     * @param validationContext
-     *            the validation context
-     * @return list of the lines of the exception message
-     * @throws IllegalArgumentException
-     *             if the validation context contains no errors
-     */
-    private static List<String> createMessage(@NonNull ValidationContext validationContext) {
-        checkArgument(!validationContext.isValid(),
-                "Cannot create exception for validation context with no errors");
-
-        List<String> msg = new LinkedList<>();
-        msg.add(String.valueOf(validationContext.getContext()));
-
-        validationContext.getValidators()
-                .stream()
-                .filter(v -> !v.isValid())
-                .forEach(v -> {
-                    List<String> vMsg = createMessage(v);
-
-                    // indent other lines
-                    vMsg.stream().forEach(error -> msg.add("    " + error));
-                });
-
-        msg.add(Strings.repeat("=", 40));
-
-        return msg;
+        Stream<String> lines = concat(
+                Stream.of("Validation has failed for " + validator.getSubject()),
+                validator.toStringLines(5));
+        return lines.collect(joining("\n"));
     }
 }

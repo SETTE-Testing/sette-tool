@@ -33,8 +33,8 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
-import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
+import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -187,47 +187,47 @@ public final class RunnerProjectSettings<T extends Tool> {
      */
     public void validateExists() throws SetteConfigurationException {
         try {
-            ValidationContext vc = new ValidationContext(this);
+            Validator<?> v = Validator.of(this);
 
             // base directory
             PathValidator v1 = new PathValidator(this.baseDir.toPath());
             v1.type(PathType.DIRECTORY).readable(true).executable(true);
-            vc.addValidator(v1);
+            v.addChild(v1);
 
             // snippet source directory
             PathValidator v2 = new PathValidator(this.getSnippetSourceDirectory().toPath());
             v2.type(PathType.DIRECTORY).readable(true).executable(true);
-            vc.addValidator(v2);
+            v.addChild(v2);
 
             // snippet library directory
             if (this.getSnippetLibraryDirectory().exists()) {
                 PathValidator v3 = new PathValidator(this.getSnippetLibraryDirectory().toPath())
                         .type(PathType.DIRECTORY).readable(true).executable(true);
-                vc.addValidator(v3);
+                v.addChild(v3);
             }
 
             // generated directory
             if (this.getGeneratedDirectory().exists()) {
                 PathValidator v4 = new PathValidator(this.getGeneratedDirectory().toPath())
                         .type(PathType.DIRECTORY).readable(true).executable(true);
-                vc.addValidator(v4);
+                v.addChild(v4);
             }
 
             // runner output directory
             if (this.getRunnerOutputDirectory().exists()) {
                 PathValidator v5 = new PathValidator(this.getRunnerOutputDirectory().toPath())
                         .type(PathType.DIRECTORY).readable(true).executable(true);
-                vc.addValidator(v5);
+                v.addChild(v5);
             }
 
             // test directory
             if (this.getTestDirectory().exists()) {
                 PathValidator v6 = new PathValidator(this.getTestDirectory().toPath())
                         .type(PathType.DIRECTORY).readable(true).executable(true);
-                vc.addValidator(v6);
+                v.addChild(v6);
             }
 
-            vc.validate();
+            v.validate();
         } catch (ValidationException ex) {
             throw new SetteConfigurationException(
                     "The runner project or a part of it does not exists or is not readable", ex);

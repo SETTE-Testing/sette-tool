@@ -80,7 +80,7 @@ public final class SetteConfiguration {
             throws ValidationException {
         LOG.debug("Validating configuration: {}", configDesc);
 
-        Validator<SetteConfigurationDescription> v = new Validator<>(configDesc);
+        Validator<SetteConfigurationDescription> v = Validator.of(configDesc);
 
         // check: at least one base dir, one snippet project and one tool
         v.addErrorIfTrue("Please specify at least one base directory",

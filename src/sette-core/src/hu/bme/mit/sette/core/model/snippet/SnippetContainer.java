@@ -46,7 +46,6 @@ import hu.bme.mit.sette.core.util.reflection.SetteAnnotationUtils;
 import hu.bme.mit.sette.core.validator.ClassExecutableValidator;
 import hu.bme.mit.sette.core.validator.ClassFieldValidator;
 import hu.bme.mit.sette.core.validator.ClassValidator;
-import hu.bme.mit.sette.core.validator.ValidationContext;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Data;
@@ -103,7 +102,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
         this.javaClass = javaClass;
 
         // Start validation
-        ValidationContext vc = new ValidationContext("SnippetContainer: " + javaClass.getName());
+        Validator<String> v = Validator.of("SnippetContainer: " + javaClass.getName());
 
         // check: "public final class", no superclass, interface, declared class, one constructor
         ClassValidator cv = new ClassValidator(javaClass);
@@ -121,7 +120,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             cv.addError("The class must have the annotation @SetteSnippetContainer");
 
             // TODO inner parser class like snippets, noew set is needed because they are final
-            vc.validate();
+            v.validate();
             throw new RuntimeException("WTF: this should never happen");
         } else {
             cv.addErrorIfTrue("The category in @SetteSnippetContainer must not be blank",
@@ -135,12 +134,12 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             requiredJavaVersion = containerAnnot.requiredJavaVersion();
         }
 
-        vc.addValidator(cv);
+        v.addChild(cv);
 
-        validateFields(vc);
-        validateConstructor(vc);
+        validateFields(v);
+        validateConstructor(v);
 
-        Set<Method> snippetMethods = collectSnippetMethods(vc);
+        Set<Method> snippetMethods = collectSnippetMethods(v);
         Map<String, Snippet> tmpSnippets = new HashMap<>();
 
         for (Method method : snippetMethods) {
@@ -148,12 +147,12 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                 Snippet snippet = new Snippet(this, method);
                 tmpSnippets.put(snippet.getName(), snippet);
             } catch (ValidationException ex) {
-                cv.addException(ex);
+                cv.addChild(ex.getValidator());
             }
 
         }
 
-        vc.validate();
+        v.validate();
         snippets = ImmutableSortedMap.copyOf(tmpSnippets);
 
         // input factory container
@@ -165,16 +164,16 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                 inputFactCont = new SnippetInputFactoryContainer(this,
                         containerAnnot.inputFactoryContainer());
             } catch (ValidationException ex) {
-                cv.addException(ex);
+                cv.addChild(ex.getValidator());
             }
         }
-        vc.validate();
+        v.validate();
 
         // set input factory container
         inputFactoryContainer = inputFactCont;
     }
 
-    private void validateFields(ValidationContext validationContext) {
+    private void validateFields(Validator<?> validator) {
         // check: only constant ("public static final") or synthetic (~compiler-generated) fields
         for (Field field : javaClass.getDeclaredFields()) {
             if (field.isSynthetic()) {
@@ -183,11 +182,11 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
 
             ClassFieldValidator v = new ClassFieldValidator(field);
             v.withModifiers(Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL);
-            validationContext.addValidatorIfInvalid(v);
+            validator.addChildIfInvalid(v);
         }
     }
 
-    private void validateConstructor(ValidationContext validationContext) {
+    private void validateConstructor(Validator<?> validator) {
         Constructor<?>[] ctors = javaClass.getDeclaredConstructors();
         if (ctors.length != 1) {
             // error, but constructor count is validated with the class
@@ -215,10 +214,10 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                     + "the message \"Static class\"");
         }
 
-        validationContext.addValidatorIfInvalid(v);
+        validator.addChildIfInvalid(v);
     }
 
-    private Set<Method> collectSnippetMethods(ValidationContext validationContext) {
+    private Set<Method> collectSnippetMethods(Validator<?> validator) {
         // check: only "[public|private] static" or synthetic methods
         SortedMap<String, Method> snippetMethods = new TreeMap<>();
         SortedSet<String> duplicateMethods = new TreeSet<>();
@@ -265,19 +264,19 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
                 }
             }
 
-            validationContext.addValidatorIfInvalid(v);
+            validator.addChildIfInvalid(v);
         }
 
         // collect duplicates
         if (!duplicateMethods.isEmpty()) {
-            Validator<Class<?>> v = new Validator<>(javaClass);
+            Validator<Class<?>> v = Validator.of(javaClass);
 
             for (String duplicateMethodName : duplicateMethods) {
                 v.addError("Non-unique snippet method name: " + duplicateMethodName);
                 snippetMethods.remove(duplicateMethodName);
             }
 
-            validationContext.addValidatorIfInvalid(v);
+            validator.addChildIfInvalid(v);
         }
 
         return new HashSet<>(snippetMethods.values());
