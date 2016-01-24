@@ -24,7 +24,7 @@ package hu.bme.mit.sette.samplesnippets._1_simple;
 
 import hu.bme.mit.sette.common.snippets.SnippetInputContainer;
 
-public class TS1a_IfElse_Inputs {
+public final class TS1a_IfElse_Inputs {
     private TS1a_IfElse_Inputs() {
         throw new UnsupportedOperationException("Static class");
     }
@@ -51,14 +51,6 @@ public class TS1a_IfElse_Inputs {
 
         inputs.addByExpectedAndParameters(IndexOutOfBoundsException.class, -1);
         inputs.addByParameters(1);
-
-        return inputs;
-    }
-
-    public static SnippetInputContainer timeout() {
-        SnippetInputContainer inputs = new SnippetInputContainer(1);
-
-        inputs.addByParameters(0);
 
         return inputs;
     }

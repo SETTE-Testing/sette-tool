@@ -33,7 +33,7 @@ import hu.bme.mit.sette.common.snippets.JavaVersion;
  * Sample snippet container with Java 7 restriction and with snippets having included coverage, but
  * no inputs.
  */
-@SetteSnippetContainer(category = "TS2", goal = "Snippets with function call",
+@SetteSnippetContainer(category = "TS1", goal = "Snippets with function call",
         inputFactoryContainer = Void.class, requiredJavaVersion = JavaVersion.JAVA_7)
 public final class TS1b_FunctionCallJava7 {
     private TS1b_FunctionCallJava7() {

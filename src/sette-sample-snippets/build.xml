@@ -9,7 +9,7 @@
     <javac destdir="build" includeantruntime="no" source="1.8" target="1.8">
       <classpath>
         <fileset dir="../sette-common/build/libs/" includes="sette-common*.jar" />
-        <fileset dir="snippet-libs" includes="**/*.jar" erroronmissingdir="false" />
+        <fileset dir="snippet-lib" includes="**/*.jar" erroronmissingdir="false" />
       </classpath>
       <src path="snippet-src" />
       <src path="snippet-input-src" />
@@ -47,7 +47,7 @@
         <classpathentry kind="src" path="snippet-input-src" />
         <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" />
         <classpathentry kind="src" path="/sette-common" />
-        <classpathentry kind="lib" path="snippet-libs/commons-lang3-3.4.jar" />
+        <classpathentry kind="lib" path="snippet-lib/commons-lang3-3.4.jar" />
       </classpath>
     </echoxml>
   </target>
