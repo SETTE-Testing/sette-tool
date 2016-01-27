@@ -67,6 +67,10 @@ abstract class EvaluationTask<T extends Tool> {
             @NonNull Path outputDir,
             @NonNull T tool,
             @NonNull String runnerProjectTag) {
+        log.info(
+                "Instantiated {} (snippet project: %s, output dir: %s, tool: %s, runner project tag: %s",
+                getClass().getSimpleName(), snippetProject.getBaseDir(), outputDir, tool.getName(),
+                runnerProjectTag);
         this.snippetProject = snippetProject;
         this.runnerProjectSettings = new RunnerProjectSettings<>(snippetProject,
                 outputDir, tool, runnerProjectTag);

@@ -23,13 +23,13 @@
 package hu.bme.mit.sette.core.descriptors.eclipse;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import hu.bme.mit.sette.core.exceptions.XmlException;
 import hu.bme.mit.sette.core.random.XmlUtils;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import lombok.Getter;
@@ -64,10 +64,7 @@ public final class EclipseProject {
      *             If an XML related exception occurs.
      */
     public void save(@NonNull Path dir) throws IOException, XmlException {
-        // create directory if not exists
-        if (!Files.exists(dir)) {
-            Files.createDirectories(dir);
-        }
+        PathUtils.createDir(dir); // create directory if not exists
 
         try {
             PathValidator.forDirectory(dir, true, null, true).validate();

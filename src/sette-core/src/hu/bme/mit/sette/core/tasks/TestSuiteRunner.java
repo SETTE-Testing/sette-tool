@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,6 +81,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
@@ -778,7 +778,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
                 htmlData.append("       \n");
 
                 File src = new File(getSnippetProject().getSourceDir().toFile(), fce.getName());
-                List<String> srcLines = Files.readAllLines(src.toPath());
+                List<String> srcLines = PathUtils.readAllLines(src.toPath());
 
                 int[] full = linesToArray(fce.getFullyCoveredLines());
                 int[] partial = linesToArray(fce.getPartiallyCoveredLines());
@@ -798,7 +798,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
             htmlData.append("</body>\n");
             htmlData.append("</html>\n");
 
-            Files.write(htmlFile.toPath(), htmlData.toString().getBytes());
+            PathUtils.write(htmlFile.toPath(), htmlData.toString().getBytes());
         }
 
         private String getLineDivClass(int lineNumber, int[] full, int[] partial, int[] not) {

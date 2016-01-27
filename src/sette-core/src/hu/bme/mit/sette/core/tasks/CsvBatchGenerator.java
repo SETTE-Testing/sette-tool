@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +33,7 @@ import java.util.stream.Stream;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolRegister;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class CsvBatchGenerator {
     private final SnippetProject snippetProject;
@@ -71,7 +71,7 @@ public final class CsvBatchGenerator {
         List<String> mergedLines = new ArrayList<>();
         for (File csvFile : filesToMerge) {
             System.err.println("Merging: " + csvFile);
-            List<String> csvLines = Files.readAllLines(csvFile.toPath());
+            List<String> csvLines = PathUtils.readAllLines(csvFile.toPath());
             if (!mergedLines.isEmpty()) {
                 csvLines.remove(0); // remove header if not first file
             }
@@ -90,6 +90,6 @@ public final class CsvBatchGenerator {
         File mergedFile = new File(outputDir, mergedFilename);
 
         System.err.println("Writing into: " + mergedFile);
-        Files.write(mergedFile.toPath(), mergedLines);
+        PathUtils.write(mergedFile.toPath(), mergedLines);
     }
 }

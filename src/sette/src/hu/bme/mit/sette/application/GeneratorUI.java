@@ -28,12 +28,11 @@ package hu.bme.mit.sette.application;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
-import hu.bme.mit.sette.core.util.io.DeleteFileVisitor;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class GeneratorUI implements BaseUI {
     @Override
@@ -73,7 +72,7 @@ public final class GeneratorUI implements BaseUI {
                     break;
 
                 case SKIP:
-                    Files.walkFileTree(runnerProjectDir.toPath(), new DeleteFileVisitor());
+                    // skip
                     break;
 
                 default:
@@ -82,6 +81,8 @@ public final class GeneratorUI implements BaseUI {
 
             }
         }
+
+        PathUtils.deleteIfExists(runnerProjectDir.toPath());
 
         try {
             // generate runner project

@@ -33,6 +33,7 @@ import org.jacoco.core.instr.Instrumenter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import lombok.NonNull;
 
 /**
@@ -145,7 +146,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
         File file = findBinaryFile(className);
 
         if (file != null) {
-            return Files.readAllBytes(file.toPath());
+            return PathUtils.readAllBytes(file.toPath());
         } else {
             return null;
         }

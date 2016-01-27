@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.jpet;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -39,6 +38,7 @@ import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
@@ -64,7 +64,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
 
         if (errorFile.exists()) {
             // TODO enhance this section and make it clear
-            List<String> lines = Files.readAllLines(errorFile.toPath());
+            List<String> lines = PathUtils.readAllLines(errorFile.toPath());
 
             String firstLine = lines.get(0);
 
@@ -97,9 +97,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
             }
         } else {
             // TODO enhance
-
-            // LineIterator lines = Files.lineIterator(outputFile);
-            List<String> lines = Files.readAllLines(outputFile.toPath());
+            List<String> lines = PathUtils.readAllLines(outputFile.toPath());
 
             if (lines.get(lines.size() - 1).startsWith("Error loading bytecode program")) {
                 // System.err.println(snippet.getMethod().getName());

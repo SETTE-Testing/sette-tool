@@ -52,6 +52,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 
@@ -96,9 +97,9 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
                     File inputsXmlFile = RunnerProjectUtils
                             .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
-                    Files.createDirectories(inputsXmlFile.getParentFile().toPath());
+                    PathUtils.createDir(inputsXmlFile.getParentFile().toPath());
 
-                    Files.deleteIfExists(inputsXmlFile.toPath());
+                    PathUtils.deleteIfExists(inputsXmlFile.toPath());
 
                     Serializer serializer = new Persister(new AnnotationStrategy(),
                             new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
@@ -113,9 +114,9 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
                 File inputsXmlFile = RunnerProjectUtils
                         .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
-                Files.createDirectories(inputsXmlFile.getParentFile().toPath());
+                PathUtils.createDir(inputsXmlFile.getParentFile().toPath());
 
-                Files.deleteIfExists(inputsXmlFile.toPath());
+                PathUtils.deleteIfExists(inputsXmlFile.toPath());
 
                 Serializer serializer = new Persister(new AnnotationStrategy(),
                         new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
@@ -167,7 +168,7 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
         if (!infoFile.exists()) {
             inputsXml.setResultType(ResultType.NA);
         } else {
-            List<String> lines = Files.readAllLines(infoFile.toPath());
+            List<String> lines = PathUtils.readAllLines(infoFile.toPath());
 
             if (lines.get(2).startsWith("Destroyed")) {
                 if (lines.get(2).startsWith("Destroyed: yes")) {

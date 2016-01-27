@@ -23,6 +23,7 @@
 package hu.bme.mit.sette.core.util.process
 
 import groovy.transform.TypeChecked
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -111,8 +112,8 @@ class ProcessExecutorTest {
 
         assert listener.stdoutData.length() == 0
         assert listener.stderrData.length() == 0
-        assert Files.readAllLines(outFile).size() == 1
-        assert Files.readAllLines(errFile).size() == 2
+        assert PathUtils.readAllLines(outFile).size() == 1
+        assert PathUtils.readAllLines(errFile).size() == 2
     }
 
     @Test

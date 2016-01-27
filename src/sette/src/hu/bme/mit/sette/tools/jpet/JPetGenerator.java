@@ -25,13 +25,13 @@ package hu.bme.mit.sette.tools.jpet;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class JPetGenerator extends RunnerProjectGenerator<JPetTool> {
     public JPetGenerator(SnippetProject snippetProject, Path outputDir, JPetTool tool,
@@ -43,6 +43,6 @@ public class JPetGenerator extends RunnerProjectGenerator<JPetTool> {
     protected void afterWriteRunnerProject(EclipseProject eclipseProject)
             throws IOException, SetteException {
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        Files.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
+        PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }
 }

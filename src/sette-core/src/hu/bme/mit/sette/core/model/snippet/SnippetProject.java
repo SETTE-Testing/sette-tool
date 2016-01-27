@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableSortedSet;
 
 import hu.bme.mit.sette.common.annotations.SetteDependency;
 import hu.bme.mit.sette.common.annotations.SetteSnippetContainer;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.reflection.ClassComparator;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
@@ -161,8 +162,8 @@ public final class SnippetProject {
     private static ImmutableSortedSet<Path> collectAndValidateFiles(@NonNull Path dir,
             String extension,
             @NonNull Validator<?> validator) throws IOException {
-        if (Files.exists(dir)) {
-            SortedSet<Path> files = Files.walk(dir).filter(Files::isRegularFile).sorted()
+        if (PathUtils.exists(dir)) {
+            SortedSet<Path> files = PathUtils.walk(dir).filter(Files::isRegularFile).sorted()
                     .collect(Collectors.toCollection(TreeSet<Path>::new));
             files.forEach(f -> {
                 PathValidator pv = PathValidator.forRegularFile(f, true, null, null, extension);
@@ -187,22 +188,21 @@ public final class SnippetProject {
 
         v.addChild(PathValidator.forDirectory(getSourceDir(), true, null, true));
 
-        if (Files.exists(getInputSourceDir())) {
+        if (PathUtils.exists(getInputSourceDir())) {
             v.addChild(PathValidator.forDirectory(getInputSourceDir(), true, null, true));
         }
 
-        if (Files.exists(getLibDir())) {
+        if (PathUtils.exists(getLibDir())) {
             v.addChild(PathValidator.forDirectory(getLibDir(), true, null, true));
         }
 
         v.addChild(PathValidator.forDirectory(getBuildDir(), true, null, true));
         v.validate();
 
-        // if (Files.walk(getBuildDir()).filter(Files::isRegularFile).findAny().isPresent()) {
+        // if (PathUtils.walk(getBuildDir()).filter(Files::isRegularFile).findAny().isPresent()) {
         // v.addError("The build directory does not contain any regular file "
         // + "(probably the project is not built)");
         // }
-        v.addChild(v);
 
         v.validate();
     }

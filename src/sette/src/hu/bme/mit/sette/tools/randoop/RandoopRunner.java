@@ -43,6 +43,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
@@ -103,7 +104,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         // create method list file
         File methodList = new File(getRunnerProjectSettings().getBaseDir(),
                 "methodlist_" + junitPackageName + ".tmp"); // TODO better file name
-        Files.write(methodList.toPath(),
+        PathUtils.write(methodList.toPath(),
                 ("method : " + getMethodNameAndParameterTypesString(snippet.getMethod()) + "\n")
                         .getBytes());
 
@@ -145,7 +146,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
                 errorFile);
 
         // delete method list file
-        Files.deleteIfExists(methodList.toPath());
+        PathUtils.deleteIfExists(methodList.toPath());
     }
 
     @Override

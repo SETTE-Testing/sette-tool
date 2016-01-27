@@ -34,7 +34,7 @@ import java.nio.file.attribute.BasicFileAttributes;
  * {@link Files#walkFileTree(Path, java.nio.file.FileVisitor)} to recursively delete the contents of
  * a directory.
  */
-public final class DeleteFileVisitor extends SimpleFileVisitor<Path> {
+final class DeleteFileVisitor extends SimpleFileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         Files.delete(file);

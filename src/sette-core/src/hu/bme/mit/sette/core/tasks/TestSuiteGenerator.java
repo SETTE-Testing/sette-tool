@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +55,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
-import hu.bme.mit.sette.core.util.io.DeleteFileVisitor;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class TestSuiteGenerator extends EvaluationTask<Tool> {
     public static final String ANT_BUILD_TEST_FILENAME;
@@ -111,11 +110,11 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         if (getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
             if (testDir.exists()) {
                 System.out.println("Removing test dir");
-                Files.walkFileTree(testDir.toPath(), new DeleteFileVisitor());
+                PathUtils.delete(testDir.toPath());
             }
         }
 
-        Files.createDirectories(testDir.toPath());
+        PathUtils.createDir(testDir.toPath());
 
         Serializer serializer = new Persister(new AnnotationStrategy());
 
@@ -205,7 +204,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
                     java.append("}\n");
 
                     File testFile = new File(testDir, className.replace('.', '/') + ".java");
-                    Files.write(testFile.toPath(), java.toString().getBytes());
+                    PathUtils.write(testFile.toPath(), java.toString().getBytes());
 
                     // import junit.framework.TestCase;
                     // import
@@ -249,9 +248,9 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
             Preconditions.checkState(jUnitJar.delete());
         }
 
-        Files.write(antBuildTestFile.toPath(), ANT_BUILD_TEST_DATA.getBytes());
+        PathUtils.write(antBuildTestFile.toPath(), ANT_BUILD_TEST_DATA.getBytes());
 
-        Files.copy(getSetteJUnitJarInputStream(), jUnitJar.toPath());
+        PathUtils.copy(getSetteJUnitJarInputStream(), jUnitJar.toPath());
     }
 
     private static CharSequence generateTestCaseMethod(Snippet snippet, int i,
@@ -470,7 +469,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
     // if (!infoFile.exists()) {
     // inputsXml.setResultType(ResultType.NA);
     // } else {
-    // List<String> lines = Files.readAllLines(infoFile);
+    // List<String> lines = PathUtils.readAllLines(infoFile);
     //
     // if (lines.get(2).startsWith("Destroyed")) {
     // if (lines.get(2).startsWith("Destroyed: yes")) {

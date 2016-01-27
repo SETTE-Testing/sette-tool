@@ -25,7 +25,6 @@ package hu.bme.mit.sette.tools.jpet;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
-import hu.bme.mit.sette.core.util.io.DeleteFileVisitor;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
@@ -56,8 +55,9 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
         // delete test cases directory
         File testCasesDirectory = JPetTool.getTestCasesDirectory(getRunnerProjectSettings());
         if (testCasesDirectory.exists()) {
-            Files.walkFileTree(new File(getRunnerProjectSettings().getBaseDir(),
-                    JPetTool.TESTCASES_DIRNAME).toPath(), new DeleteFileVisitor());
+            Path dir = new File(getRunnerProjectSettings().getBaseDir(),
+                    JPetTool.TESTCASES_DIRNAME).toPath();
+            PathUtils.delete(dir);
         }
     }
 
@@ -70,7 +70,7 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
         getTool();
         File testCaseXml = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(), snippet);
 
-        Files.createDirectories(testCaseXml.getParentFile().toPath());
+        PathUtils.createDir(testCaseXml.getParentFile().toPath());
 
         StringBuilder jPetName = new StringBuilder();
 

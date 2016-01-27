@@ -38,6 +38,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
@@ -85,10 +86,10 @@ public abstract class Tool implements Comparable<Tool> {
         // parse version
         Path versionFile = toolDir.resolve("VERSION");
 
-        if (Files.exists(versionFile)) {
+        if (PathUtils.exists(versionFile)) {
             PathValidator.forRegularFile(versionFile, true, null, null, null).validate();
 
-            List<String> versionFileNonBlankLines = Files.readAllLines(versionFile)
+            List<String> versionFileNonBlankLines = PathUtils.readAllLines(versionFile)
                     .stream()
                     .map(l -> l.trim())
                     .filter(l -> !l.isEmpty())

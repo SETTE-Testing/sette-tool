@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.spf;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -46,6 +45,7 @@ import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class SpfParser extends RunResultParser<SpfTool> {
     public SpfParser(SnippetProject snippetProject, Path outputDir, SpfTool tool,
@@ -64,7 +64,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
 
             // TODO make this section simple and clear
 
-            List<String> lines = Files.readAllLines(errorFile.toPath());
+            List<String> lines = PathUtils.readAllLines(errorFile.toPath());
 
             String firstLine = lines.get(0);
 
@@ -118,7 +118,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
             // // no inputs for constant tests, just call them once
             // inputsXml.getGeneratedInputs().add(new InputElement());
             // } else {
-            Iterator<String> lines = Files.readAllLines(outputFile.toPath()).iterator();
+            Iterator<String> lines = PathUtils.readAllLines(outputFile.toPath()).iterator();
 
             // find input lines
 

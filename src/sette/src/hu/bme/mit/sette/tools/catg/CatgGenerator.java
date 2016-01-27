@@ -26,9 +26,7 @@ package hu.bme.mit.sette.tools.catg;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +45,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
     public CatgGenerator(SnippetProject snippetProject, Path outputDir, CatgTool tool,
@@ -154,25 +153,24 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
 
                 File targetMainFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
                         relativePathMain);
-                Files.createDirectories(targetMainFile.getParentFile().toPath());
-                Files.write(targetMainFile.toPath(), main.build());
+                PathUtils.createDir(targetMainFile.getParentFile().toPath());
+                PathUtils.write(targetMainFile.toPath(), main.build());
             }
         }
     }
 
     private void copyTool(EclipseProject eclipseProject)
             throws IOException, SetteConfigurationException {
-        Files.copy(getTool().getToolDir(),
-                getRunnerProjectSettings().getBaseDir().toPath(),
-                StandardCopyOption.REPLACE_EXISTING);
+        PathUtils.copy(getTool().getToolDir(), getRunnerProjectSettings().getBaseDir().toPath());
 
         // edit build.xml
         // TODO make better
 
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
+
         List<String> newLines = new ArrayList<>();
 
-        List<String> lines = Files.readAllLines(buildXml.toPath());
+        List<String> lines = PathUtils.readAllLines(buildXml.toPath());
 
         for (String line : lines) {
             if (line.contains("[SETTE]")) {
@@ -214,7 +212,7 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
             }
         }
 
-        Files.write(buildXml.toPath(), newLines);
+        PathUtils.write(buildXml.toPath(), newLines);
     }
 
     private static String getTypeString(Class<?> javaClass) {

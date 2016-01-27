@@ -5,7 +5,7 @@
   <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
     <target>System.err</target>
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>WARN</level>
+      <level>INFO</level>
     </filter>
     <encoder>
       <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>

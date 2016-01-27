@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSortedSet;
 
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
@@ -106,9 +107,9 @@ public final class SetteConfiguration {
 
         // outputDir: try to create if does not exists
         outputDir = baseDir.resolve(configDesc.getOutputDirPath());
-        if (!Files.exists(outputDir)) {
+        if (!PathUtils.exists(outputDir)) {
             try {
-                Files.createDirectories(outputDir);
+                PathUtils.createDir(outputDir);
                 LOG.debug("Output directory has been created: {}", outputDir);
             } catch (IOException ex) {
                 LOG.debug("Output directory creation has failed: " + outputDir, ex);
@@ -128,7 +129,7 @@ public final class SetteConfiguration {
                 .map(p -> baseDir.resolve(p))
                 .peek(p -> {
                     v.addErrorIfFalse("The snippet project directory does not exists: " + p,
-                            Files.exists(p));
+                            PathUtils.exists(p));
                 });
         snippetProjectDirs = ImmutableSortedSet.copyOf(tmpSnippetProjectDirs.iterator());
 
@@ -138,7 +139,7 @@ public final class SetteConfiguration {
                 .map(t -> {
                     Path toolDir = baseDir.resolve(t.getToolDirPath());
                     v.addErrorIfFalse("The tool directory does not exists: " + toolDir,
-                            Files.exists(toolDir));
+                            PathUtils.exists(toolDir));
                     return new SetteToolConfiguration(t.getClassName(), t.getName(), toolDir);
                 });
         toolConfigurations = ImmutableSortedSet.copyOf(tmpToolConfigurations.iterator());
@@ -212,7 +213,7 @@ public final class SetteConfiguration {
             throws SetteConfigurationException, IOException {
         try {
             PathValidator.forRegularFile(jsonFile, true, null, null, "json").validate();
-            String json = new String(Files.readAllBytes(jsonFile));
+            String json = new String(PathUtils.readAllBytes(jsonFile));
             return parse(json);
         } catch (ValidationException ex) {
             throw new SetteConfigurationException("The file is invalid: " + jsonFile, ex);

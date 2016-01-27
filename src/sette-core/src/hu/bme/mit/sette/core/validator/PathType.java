@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import lombok.NonNull;
 
 /**
@@ -35,7 +36,7 @@ import lombok.NonNull;
  */
 public enum PathType {
     /** Nonexistent path. */
-    NONEXISTENT(path -> !Files.exists(path)),
+    NONEXISTENT(path -> !PathUtils.exists(path)),
     /** Directory. */
     DIRECTORY(Files::isDirectory),
     /** Regular file. */

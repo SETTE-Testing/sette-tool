@@ -45,6 +45,7 @@ import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class RandoopParser extends RunResultParser<RandoopTool> {
     private final static Pattern TEST_COUNT_LINE_PATTERN = Pattern
@@ -73,7 +74,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             // extremely odd, but randoop stopped
             File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
                     snippet);
-            String info = new String(Files.readAllBytes(infoFile.toPath()));
+            String info = new String(PathUtils.readAllBytes(infoFile.toPath()));
             if (info.contains("Exit value: 137")) {
                 // N/A
                 inputsXml.setResultType(ResultType.NA);
@@ -84,7 +85,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
         }
 
         if (errorFile.exists()) {
-            List<String> lines = Files.readAllLines(errorFile.toPath());
+            List<String> lines = PathUtils.readAllLines(errorFile.toPath());
             String firstLine = lines.get(0);
 
             if (firstLine.startsWith("java.io.FileNotFoundException:")
@@ -115,7 +116,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             inputsXml.setResultType(ResultType.S);
 
             // get how many tests were generated
-            List<String> outputFileLines = Files.readAllLines(outputFile.toPath());
+            List<String> outputFileLines = PathUtils.readAllLines(outputFile.toPath());
             int generatedInputCount = outputFileLines.stream()
                     .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
                     .filter(m -> m.matches()).map(m -> Integer.parseInt(m.group(1))).findAny()
@@ -170,7 +171,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
         try {
             File testDir = getRunnerProjectSettings().getTestDirectory();
 
-            Iterator<File> it = Files.walk(testDir.toPath()).filter(Files::isRegularFile)
+            Iterator<File> it = PathUtils.walk(testDir.toPath()).filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java")).map(Path::toFile).sorted()
                     .collect(Collectors.toList()).iterator();
 
@@ -180,13 +181,13 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
                     continue;
                 }
 
-                List<String> lines = Files.readAllLines(testFile.toPath());
+                List<String> lines = PathUtils.readAllLines(testFile.toPath());
                 for (int i = 0; i < lines.size(); i++) {
                     String line = lines.get(i).replace("public static Test suite() {",
                             "public static TestSuite suite() {");
                     lines.set(i, line);
                 }
-                Files.write(testFile.toPath(), lines);
+                PathUtils.write(testFile.toPath(), lines);
             }
         } catch (IOException ex) {
             throw new RuntimeException(ex);

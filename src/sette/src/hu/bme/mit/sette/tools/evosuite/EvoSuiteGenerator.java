@@ -45,6 +45,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
     public EvoSuiteGenerator(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
@@ -58,7 +59,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
         createSpecialSnippetFiles();
 
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        Files.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
+       PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }
 
     private void createSpecialSnippetFiles() {
@@ -143,7 +144,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
 
                     // without comment might be buggy???
                     newCu.accept(new JavaParserFixStringVisitor(), null);
-                    Files.write(newSourceFile.toPath(), newCu.toString().getBytes());
+                    PathUtils.write(newSourceFile.toPath(), newCu.toString().getBytes());
                 } catch (Exception ex) {
                     throw new RuntimeException("SETTE ERROR", ex);
                 }

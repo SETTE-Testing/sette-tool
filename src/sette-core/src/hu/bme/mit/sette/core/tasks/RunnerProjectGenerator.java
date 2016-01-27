@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +59,7 @@ import hu.bme.mit.sette.core.exceptions.XmlException;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectSettings;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 /**
  * A SETTE task which provides base for runner project generation. The phases are the following:
@@ -118,7 +118,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
             phase = "complete";
         } catch (Exception ex) {
             String message = String.format(
-                    "The runner project generation has failed\n(phase: [%s])\n(tool: [%s])", phase,
+                    "The runner project generation has failed (phase: [%s], tool: [%s])", phase,
                     getTool().getName());
             throw new RunnerProjectGeneratorException(message, this, ex);
         }
@@ -177,12 +177,11 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
         // TODO revise whole method
         // TODO now using a newer JAPA (suuports java 8), -> maybe ANTLR supports better
 
-        Files.createDirectories(getRunnerProjectSettings().getBaseDir().toPath());
+        PathUtils.createDir(getRunnerProjectSettings().getBaseDir().toPath());
 
         // copy snippets
-        Files.copy(getSnippetProject().getSourceDir(),
-                getRunnerProjectSettings().getSnippetSourceDirectory().toPath(),
-                StandardCopyOption.REPLACE_EXISTING);
+        PathUtils.copy(getSnippetProject().getSourceDir(),
+                getRunnerProjectSettings().getSnippetSourceDirectory().toPath());
 
         // create INFO file
         writeInfoFile();
@@ -216,7 +215,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
             if (reqJavaVer != null && !getTool().supportsJavaVersion(reqJavaVer)) {
                 System.err.println(
                         "Skipping file: " + file + " (required Java version: " + reqJavaVer + ")");
-                Files.delete(file.toPath());
+                PathUtils.delete(file.toPath());
             } else {
                 // remove SETTE annotations from the class
                 Predicate<AnnotationExpr> isSetteAnnotation = (a -> a.getName().getName()
@@ -246,15 +245,14 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
                 });
 
                 // save edited source code
-                Files.write(file.toPath(), compilationUnit.toString().getBytes());
+                PathUtils.write(file.toPath(), compilationUnit.toString().getBytes());
             }
         }
 
         // copy libraries
         if (getSnippetProject().getLibDir().toFile().exists()) {
-            Files.copy(getSnippetProject().getLibDir(),
-                    getRunnerProjectSettings().getSnippetLibraryDirectory().toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
+            PathUtils.copy(getSnippetProject().getLibDir(),
+                    getRunnerProjectSettings().getSnippetLibraryDirectory().toPath());
         }
 
         // create project
@@ -279,7 +277,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
         String generatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         infoFileData.append("Generated at: ").append(generatedAt).append('\n');
 
-        Files.write(infoFile.toPath(), infoFileData.toString().getBytes());
+        PathUtils.write(infoFile.toPath(), infoFileData.toString().getBytes());
     }
 
     private static JavaVersion getRequiredJavaVersion(List<AnnotationExpr> classAnnotations) {

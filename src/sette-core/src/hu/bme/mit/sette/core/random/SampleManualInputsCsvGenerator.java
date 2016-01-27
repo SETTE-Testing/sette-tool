@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.core.random;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +36,7 @@ import org.apache.commons.lang3.Validate;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class SampleManualInputsCsvGenerator {
     public static void main(String[] args) throws Exception {
@@ -86,7 +86,7 @@ public final class SampleManualInputsCsvGenerator {
             lines.add(createRow(entry.getValue()));
         }
 
-        Files.write(getCsvFile().toPath(), lines);
+        PathUtils.write(getCsvFile().toPath(), lines);
     }
 
     public File getCsvFile() {

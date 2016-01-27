@@ -23,9 +23,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -44,6 +42,7 @@ import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class CatgParser extends RunResultParser<CatgTool> {
     private static final Pattern EXCEPTION_LINE_PATTERN;
@@ -72,10 +71,8 @@ public class CatgParser extends RunResultParser<CatgTool> {
         Path errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(), snippet)
                 .toPath();
 
-        List<String> outputLines = Files.exists(outputFile) ? Files.readAllLines(outputFile)
-                : new ArrayList<>();
-        List<String> errorLines = Files.exists(errorFile) ? Files.readAllLines(errorFile)
-                : new ArrayList<>();
+        List<String> outputLines = PathUtils.readAllLinesOrEmpty(outputFile);
+        List<String> errorLines = PathUtils.readAllLinesOrEmpty(errorFile);
 
         if (!errorLines.isEmpty()) {
             // error / warning from CATG

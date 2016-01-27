@@ -242,12 +242,9 @@ public final class RunnerProjectSettings<T extends Tool> {
      */
     public void validateNotExists() throws SetteConfigurationException {
         try {
-            // base directory
-            PathValidator v = new PathValidator(this.baseDir.toPath());
-            v.type(PathType.NONEXISTENT);
-            v.validate();
+            PathValidator.forNonexistent(baseDir.toPath()).validate();
         } catch (ValidationException ex) {
-            throw new SetteConfigurationException("The runner project already exists", ex);
+            throw new SetteConfigurationException("The runner project already exists");
         }
     }
 }

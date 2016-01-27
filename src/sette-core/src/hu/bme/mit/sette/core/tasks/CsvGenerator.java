@@ -45,6 +45,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class CsvGenerator extends EvaluationTask<Tool> {
     private static final String FIELD_SEP = ",";
@@ -81,7 +82,7 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
             lines.add(createRow(entry.getValue()));
         }
 
-        Files.write(getCsvFile().toPath(), lines);
+        PathUtils.write(getCsvFile().toPath(), lines);
     }
 
     public File getCsvFile() {
@@ -121,7 +122,7 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
         // example: Elapsed time: 2002 ms
         String elapsedTime;
         if (infoFile.exists()) {
-            elapsedTime = Files.lines(infoFile.toPath())
+            elapsedTime = PathUtils.lines(infoFile.toPath())
                     .filter(line -> !StringUtils.isBlank(line)
                             && line.trim().startsWith("Elapsed time:"))
                     .map(line -> line.replaceAll("Elapsed time:", "").trim()).findAny().get()

@@ -23,6 +23,7 @@
 package hu.bme.mit.sette.core.descriptors.eclipse
 
 import groovy.transform.TypeChecked
+import hu.bme.mit.sette.core.util.io.PathUtils;
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -73,7 +74,7 @@ class EclipseProjectTest {
         List<Path> files = Files.newDirectoryStream(dir).collect() as List
         assert files*.fileName*.toString() == ['.project']
 
-        List<String> projectLines = Files.readAllLines(dir.resolve('.project')) *.trim()
+        List<String> projectLines = PathUtils.readAllLines(dir.resolve('.project')) *.trim()
         assert projectLines == expectedProjectLines
     }
 
@@ -90,8 +91,8 @@ class EclipseProjectTest {
         List<Path> files = Files.newDirectoryStream(dir).collect() as List
         assert files*.fileName*.toString() as Set == ['.project', '.classpath'] as Set
 
-        List<String> projectLines = Files.readAllLines(dir.resolve('.project')) *.trim()
-        List<String> classpathLines = Files.readAllLines(dir.resolve('.classpath')) *.trim()
+        List<String> projectLines = PathUtils.readAllLines(dir.resolve('.project')) *.trim()
+        List<String> classpathLines = PathUtils.readAllLines(dir.resolve('.classpath')) *.trim()
 
         assert projectLines == expectedProjectLines
         assert classpathLines == expectedClasspathLines

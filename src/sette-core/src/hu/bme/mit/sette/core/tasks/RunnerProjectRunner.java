@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,7 +41,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.random.SplitterOutputStream;
 import hu.bme.mit.sette.core.tool.Tool;
-import hu.bme.mit.sette.core.util.io.DeleteFileVisitor;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.process.ProcessExecutionResult;
 import hu.bme.mit.sette.core.util.process.ProcessExecutor;
 import hu.bme.mit.sette.core.util.process.ProcessExecutorListener;
@@ -194,11 +193,11 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
         // delete previous outputs
         if (getRunnerProjectSettings().getRunnerOutputDirectory().exists()) {
             Path dir = getRunnerProjectSettings().getRunnerOutputDirectory().toPath();
-            Files.walkFileTree(dir, new DeleteFileVisitor());
+            PathUtils.delete(dir);
         }
 
         // create output directory
-        Files.createDirectories(getRunnerProjectSettings().getRunnerOutputDirectory().toPath());
+        PathUtils.createDir(getRunnerProjectSettings().getRunnerOutputDirectory().toPath());
     }
 
     @FunctionalInterface
