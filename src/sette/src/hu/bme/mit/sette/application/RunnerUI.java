@@ -41,6 +41,7 @@ public final class RunnerUI implements BaseUI {
                 context.getSnippetProject(), context.getOutputDir(),
                 context.getRunnerProjectTag());
         runner.setTimeoutInMs(context.getRunnerTimeoutInMs());
+        runner.setSnippetSelector(context.getSnippetSelector());
         log.info("Created {} for {} @ {} ms timeout", runner.getClass().getSimpleName(),
                 runner.getRunnerProjectSettings().getProjectName(), runner.getTimeoutInMs());
 

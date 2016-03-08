@@ -153,6 +153,7 @@ public final class SetteApplication {
             output.println("Task: " + applicationTask);
             output.println("Tool: " + tool);
             output.println("Runner project tag: " + runnerProjectTag);
+            output.println("Snippet selector: " + argParser.getSnippetSelector());
             output.println(
                     String.format("Runner timeout: %d ms", runnerTimeoutInMs));
             output.println("Backup policy: " + backupPolicy);
@@ -162,8 +163,8 @@ public final class SetteApplication {
             //
             SnippetProject snippetProject = SnippetProject.parse(snippetProjectDir);
             ExecutionContext context = new ExecutionContext(input, output, errorOutput,
-                    snippetProject, tool, runnerProjectTag, runnerTimeoutInMs, backupPolicy,
-                    configuration.getOutputDir());
+                    snippetProject, tool, runnerProjectTag, runnerTimeoutInMs,
+                    argParser.getSnippetSelector(), backupPolicy, configuration.getOutputDir());
 
             switch (applicationTask) {
                 case EXIT:

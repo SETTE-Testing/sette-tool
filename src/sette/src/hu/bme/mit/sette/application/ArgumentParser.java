@@ -23,6 +23,7 @@
 package hu.bme.mit.sette.application;
 
 import java.io.PrintStream;
+import java.util.regex.Pattern;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -69,6 +70,12 @@ public class ArgumentParser {
             usage = "Timeout for execution of a tool on one snippet - if missing, then the value "
                     + "specified in the configuration will be used")
     private int runnerTimeoutInMs;
+
+    @Getter
+    @Option(name = "--snippet-selector", metaVar = "[PATTERN]",
+            usage = "Regular expression to filter a subset of the snippets (the pattern will be "
+                    + "matched against snippet IDs and it will only be used by the runner task)")
+    private Pattern snippetSelector = null;
 
     @Getter
     @Option(name = "--backup", usage = "Set the backup policy for runner projects "

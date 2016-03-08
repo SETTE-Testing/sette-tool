@@ -25,6 +25,7 @@ package hu.bme.mit.sette.application;
 import java.io.BufferedReader;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
@@ -41,6 +42,7 @@ public final class ExecutionContext {
     private final Tool tool;
     private final String runnerProjectTag;
     private final int runnerTimeoutInMs;
+    private final Pattern snippetSelector;
     private final BackupPolicy backupPolicy;
     private final Path outputDir;
 }

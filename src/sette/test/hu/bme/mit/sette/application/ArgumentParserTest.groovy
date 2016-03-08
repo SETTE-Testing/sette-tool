@@ -131,6 +131,10 @@ Usage:
                                           be asked to select one from the
                                           projects specified in the
                                           configuration
+ --snippet-selector [PATTERN]           : Regular expression to filter a subset
+                                          of the snippets (the pattern will be
+                                          matched against snippet IDs and it
+                                          will only be used by the runner task)
  --task [exit | generator | runner |    : The task to execute
  parser | test-generator | test-runner
  | snippet-browser | export-csv |
@@ -138,7 +142,13 @@ Usage:
  --tool [CATG | EvoSuite | Randoop |    : The tool to use
  SPF | jPET]'''.trim().replace('\r\n', '\n').split('\n')*.trim()
 
-            assert actualLines == expectedLines
+            if (actualLines != expectedLines) {
+                println '== ACTUAL HELP BEGIN'
+                println errorOutput.lines.join('\n')
+                println '== ACTUAL HELP END'
+                
+                assert actualLines == expectedLines
+            } 
         }
     }
 
@@ -147,7 +157,8 @@ Usage:
         argParser.with{
             assert parse('--backup', 'skip', '--runner-project-tag', 'my tag',
             '--runner-timeout', '5000ms', '--snippet-project-dir', '../snippet-project',
-            '--task', 'test-runner', '--tool', 'spf') : errorOutput.lines
+            '--task', 'test-runner', '--tool', 'spf',
+            '--snippet-selector', 'pat{2}ern') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.SKIP
             assert runnerProjectTag == 'my tag'
@@ -155,6 +166,7 @@ Usage:
             assert snippetProjectDir == '../snippet-project'
             assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration.name == 'SPF'
+            assert snippetSelector.matcher('pattern').matches()
         }
     }
 
@@ -169,6 +181,7 @@ Usage:
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration == null
+            assert snippetSelector == null
         }
     }
 
@@ -183,6 +196,7 @@ Usage:
             assert snippetProjectDir == null
             assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration == null
+            assert snippetSelector == null
         }
     }
 
@@ -197,6 +211,7 @@ Usage:
             assert snippetProjectDir == null
             assert applicationTask == ApplicationTask.TEST_RUNNER
             assert toolConfiguration == null
+            assert snippetSelector == null
         }
     }
 
@@ -221,6 +236,7 @@ Usage:
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration.name == 'SPF'
+            assert snippetSelector == null
         }
     }
 
@@ -244,6 +260,7 @@ Usage:
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration == null
+            assert snippetSelector == null
         }
     }
 
@@ -258,6 +275,22 @@ Usage:
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration == null
+            assert snippetSelector == null
+        }
+    }
+
+    @Test
+    void testParsePattern() {
+        argParser.with{
+            assert parse('--snippet-selector', 'pat{2}ern') : errorOutput.lines
+
+            assert backupPolicy == BackupPolicy.ASK
+            assert runnerProjectTag == null
+            assert runnerTimeoutInMs == 30000
+            assert snippetProjectDir == null
+            assert applicationTask == null
+            assert toolConfiguration == null
+            assert snippetSelector.matcher('pattern').matches()
         }
     }
 
