@@ -34,7 +34,7 @@ subprojects {
     project.targetCompatibility = 1.8
 
     dependencies {
-        testCompile 'org.codehaus.groovy:groovy-all:2.4.5'
+        testCompile 'org.codehaus.groovy:groovy-all:2.4.6'
         testCompile 'junit:junit:4.12'
     }
 
@@ -60,7 +60,7 @@ project(':sette') {
 
     dependencies {
         compile project(':sette-core')
-        compile 'args4j:args4j:2.32'
+        compile 'args4j:args4j:2.33'
     }
 
     afterEvaluate {
@@ -112,7 +112,7 @@ project(':sette') {
 // Project sette-core
 //
 project(':sette-core') {
-    def jacocoVersion = '0.7.5.201505241946'
+    def jacocoVersion = '0.7.6.201602180812'
 
     configurations {
         provided
@@ -126,21 +126,20 @@ project(':sette-core') {
 
         // Essential for evaluation
         compile 'junit:junit:4.12' // JUnit is used for evaluation (JUnit 4 is compatible with JUnit 3)
-        compile 'org.ow2.asm:asm-debug-all:5.0.4' // to fix JaCoCo dependency
         compile 'org.jacoco:org.jacoco.agent:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.core:' + jacocoVersion
         compile 'org.jacoco:org.jacoco.report:' + jacocoVersion
         compile 'com.github.javaparser:javaparser-core:2.3.0'
 
         // Utilities
-        compile 'com.fasterxml.jackson.core:jackson-databind:2.7.0'
+        compile 'com.fasterxml.jackson.core:jackson-databind:2.7.2'
         compile 'com.google.guava:guava:19.0'
         compile 'org.apache.commons:commons-lang3:3.4'
         compile 'org.simpleframework:simple-xml:2.7.1'
 
         // Logging
-        compile 'org.slf4j:slf4j-api:1.7.12'
-        compile 'ch.qos.logback:logback-classic:1.1.3'
+        compile 'org.slf4j:slf4j-api:1.7.18'
+        compile 'ch.qos.logback:logback-classic:1.1.6'
     }
 
     // FIXME
@@ -166,6 +165,6 @@ project(':sette-common') {
 //
 task wrapper(type: Wrapper) {
     group = 'Build Setup'
-    description = 'Generates Gradle 2.10 wrapper files.'
-    gradleVersion = '2.10'
+    description = 'Generates Gradle 2.11 wrapper files.'
+    gradleVersion = '2.11'
 }
