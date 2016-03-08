@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <consolePlugin />
-
   <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
     <target>System.err</target>
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>INFO</level>
     </filter>
     <encoder>
-      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg \(%file:%line\)%n</pattern>
     </encoder>
   </appender>
 
@@ -19,7 +17,7 @@
       <level>INFO</level>
     </filter>
     <encoder>
-      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg \(%file:%line\)%n</pattern>
     </encoder>
   </appender>
 
@@ -30,7 +28,7 @@
       <level>DEBUG</level>
     </filter>
     <encoder>
-      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg \(%file:%line\)%n</pattern>
     </encoder>
   </appender>
 
@@ -41,7 +39,7 @@
       <level>TRACE</level>
     </filter>
     <encoder>
-      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg\(%file:%line\)%n</pattern>
+      <pattern>%date [%-4thread] %-5level %25logger{0} %-50msg \(%file:%line\)%n</pattern>
     </encoder>
   </appender>
 
