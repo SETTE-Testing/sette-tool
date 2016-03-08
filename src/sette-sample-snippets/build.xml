@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="sette-sample-snippets" default="compile">
+<project name="sette-sample-snippets" default="main">
+  <target name="main" depends="compile" />
+
   <target name="clean">
     <delete dir="build" />
   </target>
 
   <target name="compile" depends="clean">
     <mkdir dir="build" />
-    <javac destdir="build" includeantruntime="no" source="1.8" target="1.8">
+    <javac destdir="build" includeantruntime="no" source="1.8" target="1.8" debug="yes">
       <classpath>
         <fileset dir="../sette-common/build/libs/" includes="sette-common*.jar" />
         <fileset dir="snippet-lib" includes="**/*.jar" erroronmissingdir="false" />

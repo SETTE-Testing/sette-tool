@@ -5,7 +5,7 @@
 	<property name="gen.dir" location="gen" />
     <property name="test.dir" location="test" />
 	<property name="build.dir" location="build" />
-	<property name="snippet.libs.dir" location="snippet-libs" />
+	<property name="snippet.lib.dir" location="snippet-lib" />
 
 	<property name="source" value="1.8" />
 	<property name="target" value="1.8" />
@@ -23,7 +23,7 @@
 		<mkdir dir="${build.dir}" />
 		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}" debug="yes">
 			<classpath>
-				<fileset dir="${snippet.libs.dir}" includes="**/*.jar" />
+				<fileset dir="${snippet.lib.dir}" includes="**/*.jar" />
 			</classpath>
 			<src path="${snippet-src.dir}" />
 			<src path="${gen.dir}" />
@@ -31,11 +31,12 @@
 	</target>
 
     <!-- target: compile-tests  -->
+	<!-- TODO is it needed now? -->
     <target name="compile-tests">
         <mkdir dir="${build.dir}" />
         <javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}" debug="on">
             <classpath>
-                <pathelement path="../../sette-tool/src/sette-base/libs/junit-3.8.2.jar" />
+                <pathelement path="../../sette-tool/src/sette-base/lib/junit-3.8.2.jar" />
             </classpath>
             <src path="${test.dir}" />
         </javac>
