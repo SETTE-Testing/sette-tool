@@ -25,7 +25,6 @@ package hu.bme.mit.sette.core.model.parserxml;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -179,7 +178,7 @@ public class FileCoverageElement implements XmlElement {
      * @return the line numbers
      */
     private static Set<Integer> validateAndGetLineNumbers(String lines, Validator<?> validator) {
-        List<String> parts = Splitter.onPattern("\\s+").omitEmptyStrings().splitToList(lines);
+        Iterable<String> parts = Splitter.onPattern("\\s+").omitEmptyStrings().split(lines);
         Set<Integer> lineNumbers = new HashSet<>();
 
         // TODO enhance validator messages

@@ -62,6 +62,10 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
     @Getter
     private final SnippetProject snippetProject;
 
+    /** The name of the snippet container, which is the simple name of the Java {@link Class}. */
+    @Getter
+    private final String name;
+
     /** The Java {@link Class} of the snippet container. */
     @Getter
     private final Class<?> javaClass;
@@ -100,6 +104,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             throws ValidationException {
         this.snippetProject = snippetProject;
         this.javaClass = javaClass;
+        this.name = javaClass.getSimpleName();
 
         // Start validation
         Validator<String> v = Validator.of("SnippetContainer: " + javaClass.getName());
@@ -132,12 +137,23 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             category = containerAnnot.category();
             goal = containerAnnot.goal();
             requiredJavaVersion = containerAnnot.requiredJavaVersion();
+
+            cv.addErrorIfFalse("The class name should start with the category: " + category,
+                    javaClass.getSimpleName().startsWith(category));
+
+            if (cv.isValid()) {
+                cv.addErrorIfFalse("The class name should contain at least one '_' character after "
+                        + "the category (the part of the class name before the first '_' after the "
+                        + "category will be the prefix of the ids of the snippets",
+                        javaClass.getSimpleName().indexOf('_', category.length()) >= 0);
+            }
         }
 
         v.addChild(cv);
 
         validateFields(v);
         validateConstructor(v);
+        v.validate();
 
         Set<Method> snippetMethods = collectSnippetMethods(v);
         Map<String, Snippet> tmpSnippets = new HashMap<>();

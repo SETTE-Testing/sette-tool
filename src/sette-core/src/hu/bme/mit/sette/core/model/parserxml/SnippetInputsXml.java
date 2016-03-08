@@ -30,6 +30,8 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
 
+import com.google.common.base.MoreObjects;
+
 import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
@@ -46,6 +48,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
 
     /** The number of the generated inputs. */
     @Element(name = "generatedInputCount", required = false)
+    // FIXME boxed integer because of simple xml
     private Integer generatedInputCount = null;
 
     /**
@@ -81,11 +84,11 @@ public final class SnippetInputsXml extends SnippetBaseXml {
      *
      * @return the generated input count
      */
-    public Integer getGeneratedInputCount() {
+    public int getGeneratedInputCount() {
         if (generatedInputs != null) {
             return generatedInputs.size();
         } else {
-            return generatedInputCount;
+            return MoreObjects.firstNonNull(generatedInputCount, 0);
         }
     }
 
@@ -133,7 +136,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
             case NA:
             case EX:
             case TM:
-                if (getGeneratedInputCount() != null && getGeneratedInputCount() != 0) {
+                if (getGeneratedInputCount() != 0) {
                     validator.addError(
                             "N/A, EX and T/M results must not have any generated inputs");
                 }
@@ -142,9 +145,12 @@ public final class SnippetInputsXml extends SnippetBaseXml {
             case S:
             case NC:
             case C:
-                if (getGeneratedInputCount() == null && getGeneratedInputCount() < 1) {
-                    validator.addError("S, NC and C results must have at least one input");
-                }
+                // FIXME warning or what? this is not really en error, since it is S but no inputs
+                // (at least the tool stopped)
+
+                // if (getGeneratedInputCount() == null || getGeneratedInputCount() < 1) {
+                // validator.addError("S, NC and C results must have at least one input");
+                // }
                 break;
 
             default:

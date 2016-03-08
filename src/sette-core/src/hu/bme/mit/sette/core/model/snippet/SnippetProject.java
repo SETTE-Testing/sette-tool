@@ -36,7 +36,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 
 import hu.bme.mit.sette.common.annotations.SetteDependency;
@@ -72,10 +74,10 @@ public final class SnippetProject {
 
     @Getter
     /** Set of snippet containers (unmodifiable) */
-    private final ImmutableSortedSet<SnippetContainer> snippetContainers;
+    private final ImmutableList<SnippetContainer> snippetContainers;
 
     @Getter
-    private final ImmutableSortedSet<SnippetDependency> snippetDependencies;
+    private final ImmutableList<SnippetDependency> snippetDependencies;
 
     /**
      * Parses a {@link SnippetProject} from the specified directory.
@@ -227,7 +229,7 @@ public final class SnippetProject {
         }
     }
 
-    private ImmutableSortedSet<SnippetContainer> loadSnippetContainers()
+    private ImmutableList<SnippetContainer> loadSnippetContainers()
             throws ValidationException {
         Path sourceDir = getSourceDir();
 
@@ -259,7 +261,7 @@ public final class SnippetProject {
         v.validate();
 
         // create snippet container objects
-        SortedSet<SnippetContainer> sc = new TreeSet<>();
+        List<SnippetContainer> sc = new ArrayList<>();
 
         for (Class<?> javaClass : snippetContainerClasses) {
             try {
@@ -270,10 +272,10 @@ public final class SnippetProject {
         }
         v.validate();
 
-        return ImmutableSortedSet.copyOf(sc);
+        return ImmutableList.copyOf(sc);
     }
 
-    private ImmutableSortedSet<SnippetDependency> loadSnippetDepenencies()
+    private ImmutableList<SnippetDependency> loadSnippetDepenencies()
             throws ValidationException {
         Path sourceDir = getSourceDir();
 
@@ -305,7 +307,7 @@ public final class SnippetProject {
         v.validate();
 
         // create snippet container objects
-        SortedSet<SnippetDependency> sd = new TreeSet<>();
+        List<SnippetDependency> sd = new ArrayList<>();
 
         for (Class<?> javaClass : snippetDepClasses) {
             try {
@@ -316,7 +318,7 @@ public final class SnippetProject {
         }
         v.validate();
 
-        return ImmutableSortedSet.copyOf(sd);
+        return ImmutableList.copyOf(sd);
     }
 
     /**
@@ -352,6 +354,10 @@ public final class SnippetProject {
      */
     public Path getBuildDir() {
         return baseDir.resolve("build");
+    }
+
+    public Stream<Snippet> snippets() {
+        return snippetContainers.stream().flatMap(sc -> sc.getSnippets().values().stream());
     }
 
     @Override

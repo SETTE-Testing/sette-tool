@@ -38,6 +38,7 @@ import org.apache.commons.lang3.ClassUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
 
 import hu.bme.mit.sette.common.annotations.SetteIncludeCoverage;
 import hu.bme.mit.sette.common.annotations.SetteRequiredStatementCoverage;
@@ -55,7 +56,11 @@ import lombok.val;
  */
 @Data
 public final class Snippet implements Comparable<Snippet> {
-    /** The id of the snippet, which is category + '_' + name (e.g., C1_sample). */
+    /**
+     * The id of the snippet, which is generated from class name prefix and method name class + '_'
+     * + name. E.g., class name: "A_1_a_MyClass", category: "A_1" method name: "myMethod", id:
+     * "A_1_a_myMethod"
+     */
     @Getter
     private final String id;
 
@@ -104,7 +109,11 @@ public final class Snippet implements Comparable<Snippet> {
         this.method = method;
         this.container = container;
         name = method.getName();
-        id = String.format("%s_%s", this.container.getCategory(), this.name);
+
+        String clsName = container.getName();
+        String cat = container.getCategory();
+        String prefix = clsName.substring(0, clsName.indexOf('_', cat.length()));
+        id = String.format("%s_%s", prefix, name);
 
         Parser p = new Parser(method);
 
@@ -256,8 +265,9 @@ public final class Snippet implements Comparable<Snippet> {
             } else {
                 // valid method string
                 String includedMethodName = matcher.group(1).trim();
-                List<String> paramTypeStrings = Splitter.on(',').trimResults()
-                        .splitToList(matcher.group(2));
+                List<String> paramTypeStrings = Lists.newArrayList(Splitter.on(',').trimResults()
+                        .split(matcher.group(2)));
+
                 Class<?>[] paramTypes = new Class<?>[paramTypeStrings.size()];
                 boolean isConstructor = includedMethodName.equals(includedClass.getSimpleName());
                 // the parameters
@@ -275,7 +285,8 @@ public final class Snippet implements Comparable<Snippet> {
                         validator.addError(message);
                     } else {
                         try {
-                            paramTypes[i] = ClassUtils.getClass(method.getClass().getClassLoader(),
+                            paramTypes[i] = ClassUtils.getClass(
+                                    method.getDeclaringClass().getClassLoader(),
                                     parameterTypeString);
                         } catch (ClassNotFoundException ex) {
                             // parameter type was not found

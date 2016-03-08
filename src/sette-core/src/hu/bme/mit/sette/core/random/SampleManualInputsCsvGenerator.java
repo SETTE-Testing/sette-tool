@@ -131,7 +131,7 @@ public final class SampleManualInputsCsvGenerator {
     }
 
     private static String getShortSnippetName(Snippet snippet) {
-        String className = snippet.getContainer().getJavaClass().getSimpleName();
+        String className = snippet.getContainer().getName();
 
         String ret;
         if (className.equals("B4_SafeArrays")) {

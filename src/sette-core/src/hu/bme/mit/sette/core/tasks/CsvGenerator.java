@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -164,7 +163,7 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
     }
 
     private static String getShortSnippetName(Snippet snippet) {
-        String className = snippet.getContainer().getJavaClass().getSimpleName();
+        String className = snippet.getContainer().getName();
 
         String ret;
         if (className.equals("B4_SafeArrays")) {
