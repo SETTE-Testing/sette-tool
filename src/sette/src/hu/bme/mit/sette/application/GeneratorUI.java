@@ -96,10 +96,10 @@ public final class GeneratorUI implements BaseUI {
     }
 
     private static void doBackup(File runnerProjectDir, PrintStream out) throws IOException {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH;mm;ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
         File backup = new File(runnerProjectDir.getParentFile(),
-                runnerProjectDir.getName() + "___backup-" + dateFormat.format(new Date()))
+                runnerProjectDir.getName() + "___backup_" + dateFormat.format(new Date()))
                         .getCanonicalFile();
 
         if (runnerProjectDir.renameTo(backup)) {
