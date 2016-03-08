@@ -1,0 +1,58 @@
+package @@PACKAGE@@;
+
+import java.lang.reflect.*;
+import org.junit.*;
+import hu.bme.mit.sette.common.snippets.*;
+
+public class @@SNIPPET_CONTAINER_NAME@@_@@SNIPPET@@_Test {
+    private SnippetInputContainer inputs;
+    private Method method;
+
+    @Before
+    public void setUp() {
+        inputs = @@SNIPPET_INPUT_CONTAINER@@.@@SNIPPET@@();
+
+        for (Method m : @@SNIPPET_CONTAINER_NAME@@.class.getDeclaredMethods()) {
+            int mods = m.getModifiers();
+            if (m.getName() == "@@SNIPPET@@" && Modifier.isStatic(mods) && Modifier.isPublic(mods)) {
+                method = m;
+                break;
+            }
+        }
+
+        if (method == null) {
+            Assert.fail("Method was not found");
+        }
+    }
+
+    private void check(SnippetInput input) {
+        try {
+            call(input);
+            if (input.getExpected() != null) {
+                Assert.fail("Did not throw expected exception: " + input.getExpected().getName());
+            }
+        } catch (Throwable ex) {
+            if (input.getExpected() == null) {
+                Assert.fail("Not expected exception: " + ex);
+            } else {
+                if (input.getExpected().isAssignableFrom(ex.getClass())) {
+                    // ok, expected exception
+                } else {
+                    Assert.fail("Exception type mismatch: " + input.getExpected().getName() + "<-> " + ex);
+                }
+            }
+        }
+    }
+
+    private void call(SnippetInput input) throws Throwable {
+        try {
+            method.invoke(null, input.getParameters());
+        } catch (InvocationTargetException ex) {
+            throw ex.getTargetException();
+        } catch (Exception ex) {
+            Assert.fail("Unexpected exception during call: " + ex);
+        }
+    }
+
+@@TEST_METHODS@@
+}

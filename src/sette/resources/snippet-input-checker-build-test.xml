@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Build file for compiling tests -->
+<project default="compile-test">
+  <import file="build.xml" />
+
+  <target name="compile-test">
+    <mkdir dir="build" />
+    <javac destdir="build" includeantruntime="false" source="1.8" target="1.8" debug="on" nowarn="on">
+      <compilerarg value="-Xlint:none" />
+      <compilerarg value="-encoding" />
+      <compilerarg value="UTF8" />
+      <classpath>
+        <pathelement path="junit.jar" />
+        <fileset dir="../../sette-tool/src/sette-common/build/libs/" includes="sette-common*.jar" />
+        <fileset dir="snippet-lib" includes="**/*.jar" erroronmissingdir="false" />
+      </classpath>
+      <src path="snippet-src" />
+      <src path="snippet-input-src" />
+      <src path="test" />
+    </javac>
+  </target>
+</project>
