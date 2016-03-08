@@ -43,7 +43,7 @@ public final class SnippetTreeNode extends TreeNodeBase<SnippetContainerTreeNode
 
     @Override
     public String getTitle() {
-        return snippet.getMethod().getName();
+        return snippet.getId();
     }
 
     @Override

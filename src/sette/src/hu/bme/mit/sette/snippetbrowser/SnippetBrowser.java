@@ -24,10 +24,12 @@
 package hu.bme.mit.sette.snippetbrowser;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
@@ -51,6 +53,7 @@ public final class SnippetBrowser extends JFrame {
 
     private JTree treeSnippets;
     private JTextArea txtrInfo;
+    private JTextArea txtrSnippetList;
 
     /**
      * Create the application.
@@ -76,10 +79,13 @@ public final class SnippetBrowser extends JFrame {
         this.setBounds(50, 50, 1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        JTabbedPane tabbedPane = new JTabbedPane();
+        getContentPane().add(tabbedPane, BorderLayout.CENTER);
+
         JSplitPane splitPane = new JSplitPane();
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
         splitPane.setResizeWeight(0.3);
-        getContentPane().add(splitPane, BorderLayout.CENTER);
+        tabbedPane.addTab("Tree", splitPane);
 
         JScrollPane scrollPaneLeft = new JScrollPane();
         splitPane.setLeftComponent(scrollPaneLeft);
@@ -93,9 +99,15 @@ public final class SnippetBrowser extends JFrame {
         txtrInfo = new JTextArea();
         txtrInfo.setEditable(false);
         scrollPaneRight.setViewportView(txtrInfo);
+
+        txtrSnippetList = new JTextArea();
+        txtrSnippetList.setEditable(false);
+        txtrSnippetList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        tabbedPane.addTab("List", new JScrollPane(txtrSnippetList));
     }
 
     private void initialized() {
+        // set tree
         DefaultTreeModel model = new DefaultTreeModel(new SnippetProjectTreeNode(snippetProject));
         treeSnippets.setModel(model);
         treeSnippets.addTreeSelectionListener(new TreeSelectionListener() {
@@ -146,5 +158,15 @@ public final class SnippetBrowser extends JFrame {
                 }
             }
         });
+
+        // set list
+        StringBuilder sb = new StringBuilder();
+        snippetProject.snippets().forEach(s -> {
+            String line = String.format("%-50s %s_%s\n", s.getId(),
+                    s.getContainer().getName(),
+                    s.getName());
+            sb.append(line);
+        });
+        txtrSnippetList.setText(sb.toString());
     }
 }
