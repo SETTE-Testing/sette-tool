@@ -80,7 +80,6 @@ class ProcessExecutorTest {
         SimpleProcessExecutorListener listener = new SimpleProcessExecutorListener()
         ProcessExecutionResult result = executor.execute(listener)
 
-        assert result.exitValue == 1
         assert result.destroyed
         assert result.elapsedTimeInMs >= 200
         // hopefully it will be enough

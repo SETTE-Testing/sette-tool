@@ -34,7 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.collect.Lists;
 
 import lombok.NonNull;
 
@@ -102,7 +104,7 @@ public final class ProcessUtils {
     public static List<Integer> searchProcesses(@NonNull String searchExpression)
             throws IOException {
         failIfWindows();
-        Preconditions.checkArgument(searchExpression.trim().isEmpty());
+        Preconditions.checkArgument(!searchExpression.trim().isEmpty());
 
         /**
          * Command output example:
@@ -125,8 +127,10 @@ public final class ProcessUtils {
         // parse output
         String stdout = listener.getStdoutData().toString();
         String stderr = listener.getStderrData().toString();
-        LOG.debug("STDOUT", stdout);
-        LOG.debug("STDERR", stderr);
+        if (LOG.isTraceEnabled()) {
+            LOG.debug("STDOUT\n" + stdout);
+            LOG.debug("STDERR\n" + stderr);
+        }
 
         // zero exit value is expected
         if (result.getExitValue() != 0) {
@@ -140,18 +144,28 @@ public final class ProcessUtils {
 
         // parse stdout lines
         List<Integer> pids = new ArrayList<>();
-        String[] stdoutLines = stdout.split("[\\r?\\n]+");
+        Iterable<String> stdoutLinesIt = Splitter.on('\n').trimResults().omitEmptyStrings()
+                .split(stdout);
+        List<String> stdoutLines = Lists.newArrayList(stdoutLinesIt);
+
+        // remove header line
+        if (stdoutLines.size() > 0 && stdoutLines.get(0).startsWith("USER")) {
+            stdoutLines.remove(0);
+        }
+
         for (String line : stdoutLines) {
             Matcher m = linePattern.matcher(line);
 
-            if (m.matches() && m.group("command").contains(searchExpression)) {
-                String pid = m.group("pid");
-                LOG.debug("Found PID {} in line {}", pid, line);
+            if (m.matches()) {
+                if (m.group("command").contains(searchExpression)) {
+                    String pid = m.group("pid");
+                    LOG.debug("Found PID {} in line {}", pid, line);
 
-                try {
-                    pids.add(Integer.parseInt(pid));
-                } catch (NumberFormatException ex) {
-                    throw new IOException("The PID cannot be parsed as an integer: " + pid);
+                    try {
+                        pids.add(Integer.parseInt(pid));
+                    } catch (NumberFormatException ex) {
+                        throw new IOException("The PID cannot be parsed as an integer: " + pid);
+                    }
                 }
             } else {
                 throw new IOException("A line from stdout does not match the pattern: " + line);
