@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,20 +160,26 @@ public final class SetteConfiguration {
     }
 
     private String resolveTildeInPath(String path) {
+        if (!path.startsWith("~")) {
+            return path;
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            LOG.warn("Tilde (~) for home directory is not supported on Windows, "
+                    + "using path as is: " + path);
+            return path;
+        }
+
         // resolve tilde to user home
-        if (path.startsWith("~")) {
-            if (path.equals("~") || path.charAt(1) == '/' || path.charAt(1) == '\\') {
-                // "~" or "~/something"
-                String resolvedPath = path.replaceFirst("^~", System.getProperty("user.home"));
-                LOG.debug("Path with tilde (~) '{}' was resolved to '{}'", path, resolvedPath);
-                return resolvedPath;
-            } else {
-                // "~something", not handled (Linux: syscall to echo or ls -d, Windows: hard)
-                LOG.warn("Path with tilde (~) resolution is not supported for '{}' (only current "
-                        + "user's home is resolved, otherwise do not use tilde)", path);
-                return path;
-            }
+        if (path.equals("~") || path.charAt(1) == '/' || path.charAt(1) == '\\') {
+            // "~" or "~/something"
+            String resolvedPath = path.replaceFirst("^~", System.getProperty("user.home"));
+            LOG.debug("Path with tilde (~) '{}' was resolved to '{}'", path, resolvedPath);
+            return resolvedPath;
         } else {
+            // NOTE "~something" is not handled (syscall to echo or ls -d in the future?)
+            LOG.warn(
+                    "Path with tilde (~) resolution is not supported for '{}' (only current "
+                            + "user's home is resolved, otherwise do not use tilde)",
+                    path);
             return path;
         }
     }
