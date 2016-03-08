@@ -25,7 +25,6 @@ package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
@@ -86,7 +85,9 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
                         newJavaClassName + ".java");
 
                 try {
+                    log.debug("Parsing with JavaParser: {}", originalSourceFile);
                     CompilationUnit originalCu = JavaParser.parse(originalSourceFile);
+                    log.debug("Parsed with JavaParser: {}", originalSourceFile);
                     CompilationUnit newCu = (CompilationUnit) originalCu.clone();
 
                     // NOTE this does not work for private methods, so keep all non-snippet method!

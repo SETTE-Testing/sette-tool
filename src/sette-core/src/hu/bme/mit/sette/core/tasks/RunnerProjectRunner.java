@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
@@ -45,6 +46,8 @@ import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.process.ProcessExecutionResult;
 import hu.bme.mit.sette.core.util.process.ProcessExecutor;
 import hu.bme.mit.sette.core.util.process.ProcessExecutorListener;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * A SETTE task which provides base for runner project running. The phases are the following:
@@ -62,6 +65,10 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
     /** The timeout in ms for the called processes. */
     private int timeoutInMs;
+
+    @Getter
+    @Setter
+    private Pattern snippetSelector = null;
 
     /**
      * Instantiates a new runner project runner.
@@ -84,7 +91,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
      *
      * @return the timeout for the called processes
      */
-    public int getTimeoutInMs() {
+    public final int getTimeoutInMs() {
         return this.timeoutInMs;
     }
 
@@ -231,6 +238,14 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
+                if (snippetSelector != null
+                        && !snippetSelector.matcher(snippet.getId()).matches()) {
+                    String msg = String.format("Skipping %s (--snippet-selector)", snippet.getId());
+                    runnerLoggerOut.println(msg);
+                    log.info(msg);
+                    continue;
+                }
+
                 String filenameBase = getFilenameBase(snippet);
 
                 File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
@@ -334,7 +349,8 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
         pb.redirectError(errorFile);
 
         try {
-            ProcessExecutor pe = new ProcessExecutor(pb, getTimeoutInMs());
+            ProcessExecutor pe = new ProcessExecutor(pb,
+                    shouldKillAfterTimeout() ? getTimeoutInMs() : 0);
             pe.execute(new ProcessExecutorListener() {
                 @Override
                 public void onComplete(ProcessExecutionResult result) {
@@ -354,6 +370,13 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
                     infoData.append("Elapsed time: ").append(result.getElapsedTimeInMs())
                             .append(" ms\n");
+                    try {
+                        PathUtils.write(infoFile.toPath(), infoData.toString().getBytes());
+                    } catch (IOException ex) {
+                        // TODO Auto-generated catch block
+                        ex.printStackTrace();
+                        throw new RuntimeException(ex);
+                    }
                 }
             });
         } catch (Exception ex) {
@@ -361,4 +384,6 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
             throw new RuntimeException(ex);
         }
     }
+
+    public abstract boolean shouldKillAfterTimeout();
 }

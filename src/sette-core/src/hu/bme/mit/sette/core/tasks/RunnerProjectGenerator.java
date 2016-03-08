@@ -42,6 +42,7 @@ import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
@@ -149,13 +150,13 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
 
         // add snippet source directory
         // FIXME relativize paths
-        cp.addEntry(EclipseClasspathEntryKind.SOURCE,
-                getSnippetProject().getSourceDir().toString());
+        cp.addEntry(EclipseClasspathEntryKind.SOURCE, getSnippetProject().getBaseDir()
+                .relativize(getSnippetProject().getSourceDir()).toString());
 
         // add libraries used by the snippet project
         for (Path libraryFile : getSnippetProject().getLibFiles()) {
-            cp.addEntry(EclipseClasspathEntryKind.LIBRARY, String.format("%s/%s",
-                    getSnippetProject().getLibDir().toString(), libraryFile.toFile().getName()));
+            cp.addEntry(EclipseClasspathEntryKind.LIBRARY,
+                    getSnippetProject().getBaseDir().relativize(libraryFile).toString());
         }
 
         // create the Eclipse project
@@ -194,7 +195,9 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
 
         for (File file : filesWritten) {
             // parse source with JavaParser
+            log.debug("Parsing with JavaParser: {}", file);
             CompilationUnit compilationUnit = JavaParser.parse(file);
+            log.debug("Parsed with JavaParser: {}", file);
 
             // extract type
             List<TypeDeclaration> types = compilationUnit.getTypes();
@@ -227,13 +230,13 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
                     member.getAnnotations().removeIf(isSetteAnnotation);
                 }
 
+                // TODO enhance
+                List<String> toRemovePrefixes = new ArrayList<>();
+                toRemovePrefixes.add("hu.bme.mit.sette.snippets.inputs");
+                toRemovePrefixes.add("hu.bme.mit.sette.common");
+
                 // remove SETTE imports
                 compilationUnit.getImports().removeIf(importDeclaration -> {
-                    // TODO enhance
-                    List<String> toRemovePrefixes = new ArrayList<>();
-                    toRemovePrefixes.add("hu.bme.mit.sette.annotations");
-                    toRemovePrefixes.add("hu.bme.mit.sette.snippets.inputs");
-                    toRemovePrefixes.add("hu.bme.mit.sette.common.snippets.JavaVersion");
 
                     String impDecl = importDeclaration.getName().toString();
                     for (String prefix : toRemovePrefixes) {
@@ -245,7 +248,13 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
                 });
 
                 // save edited source code
-                PathUtils.write(file.toPath(), compilationUnit.toString().getBytes());
+                String source = compilationUnit.toString();
+                if (type instanceof EnumDeclaration) {
+                    // FIXME remove after javaparser bug is fixed
+                    source = source.replaceFirst(type.getName() + "\\s+implements\\s*\\{",
+                            type.getName() + " {");
+                }
+                PathUtils.write(file.toPath(), source.getBytes());
             }
         }
 

@@ -24,8 +24,8 @@
 package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Parameter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +46,7 @@ import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.parserxml.SnippetProjectElement;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectSettings;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
@@ -162,26 +163,20 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
         inputsXml.setSnippetElement(new SnippetElement(
                 snippet.getContainer().getJavaClass().getName(), snippet.getMethod().getName()));
 
-        // TODO needs more documentation
-        File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(), snippet);
+        SnippetOutFiles outFiles = new SnippetOutFiles(snippet, getRunnerProjectSettings());
 
-        if (!infoFile.exists()) {
+        // detect N/A and T/M
+        if (!PathUtils.exists(outFiles.infoFile)) {
             inputsXml.setResultType(ResultType.NA);
         } else {
-            List<String> lines = PathUtils.readAllLines(infoFile.toPath());
-
-            if (lines.get(2).startsWith("Destroyed")) {
-                if (lines.get(2).startsWith("Destroyed: yes")) {
-                    inputsXml.setResultType(ResultType.TM);
-                }
-            } else {
-                // TODO error handling
-                System.err.println("FORMAT PROBLEM");
+            if (PathUtils.lines(outFiles.infoFile).anyMatch(s -> s.startsWith("Destroyed: yes"))) {
+                inputsXml.setResultType(ResultType.TM);
             }
         }
 
+        // if not detected, parse
         if (inputsXml.getResultType() == null) {
-            parseSnippet(snippet, inputsXml);
+            parseSnippet(snippet, outFiles, inputsXml);
 
             if (inputsXml.getResultType() == null) {
                 throw new RuntimeException("Result type must be set at this point");
@@ -216,6 +211,33 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
         }
 
         return inputsXml;
+    }
+
+    public final static class SnippetOutFiles {
+        public final Path infoFile;
+        public final Path outputFile;
+        public final Path errorOutputFile;
+
+        public SnippetOutFiles(Snippet snippet, RunnerProjectSettings<?> runnerProjectSettings) {
+            infoFile = RunnerProjectUtils.getSnippetInfoFile(runnerProjectSettings,
+                    snippet).toPath();
+            outputFile = RunnerProjectUtils.getSnippetOutputFile(runnerProjectSettings,
+                    snippet).toPath();
+            errorOutputFile = RunnerProjectUtils.getSnippetErrorFile(runnerProjectSettings,
+                    snippet).toPath();
+        }
+
+        public List<String> readInfoLines() throws IOException {
+            return PathUtils.readAllLinesOrEmpty(infoFile);
+        }
+
+        public List<String> readOutputLines() throws IOException {
+            return PathUtils.readAllLinesOrEmpty(outputFile);
+        }
+
+        public List<String> readErrorOutputLines() throws IOException {
+            return PathUtils.readAllLinesOrEmpty(errorOutputFile);
+        }
     }
 
     // TODO visibility or refactor to other place
@@ -296,8 +318,8 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
         }
     }
 
-    protected abstract void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml)
-            throws Exception;
+    protected abstract void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
+            SnippetInputsXml inputsXml) throws Exception;
 
     protected void afterParse() {
         // can be overridden by the children

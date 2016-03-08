@@ -26,7 +26,6 @@ package hu.bme.mit.sette.tools.randoop;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +52,11 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
         this.seedGenerator = new Random();
+    }
+
+    @Override
+    public boolean shouldKillAfterTimeout() {
+        return false;
     }
 
     @Override
@@ -147,12 +151,6 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
 
         // delete method list file
         PathUtils.deleteIfExists(methodList.toPath());
-    }
-
-    @Override
-    public int getTimeoutInMs() {
-        // FIXME randoop
-        return 0;
     }
 
     @Override

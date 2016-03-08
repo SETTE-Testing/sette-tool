@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 
-import com.google.common.base.Preconditions;
+import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
 
 import hu.bme.mit.sette.core.exceptions.TestSuiteGeneratorException;
@@ -79,7 +78,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         lines.add("            <compilerarg value=\"UTF8\" />");
         lines.add("            <classpath>");
         lines.add("                <pathelement path=\"junit.jar\" />");
-        lines.add("                <fileset dir=\"snippet-libs\">");
+        lines.add("                <fileset dir=\"snippet-lib\">");
         lines.add("                    <include name=\"**/*.jar\" />");
         lines.add("                </fileset>");
         lines.add("            </classpath>");
@@ -239,18 +238,12 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         File antBuildTestFile = new File(getRunnerProjectSettings().getBaseDir(),
                 ANT_BUILD_TEST_FILENAME);
         File jUnitJar = new File(getRunnerProjectSettings().getBaseDir(), "junit.jar");
-        if (antBuildTestFile.exists()) {
-            // NOTE better ex type
-            Preconditions.checkState(antBuildTestFile.delete());
+        if (!antBuildTestFile.exists()) {
+            PathUtils.write(antBuildTestFile.toPath(), ANT_BUILD_TEST_DATA.getBytes());
         }
-        if (jUnitJar.exists()) {
-            // NOTE better ex type
-            Preconditions.checkState(jUnitJar.delete());
+        if (!jUnitJar.exists()) {
+            PathUtils.copy(getSetteJUnitJarInputStream(), jUnitJar.toPath());
         }
-
-        PathUtils.write(antBuildTestFile.toPath(), ANT_BUILD_TEST_DATA.getBytes());
-
-        PathUtils.copy(getSetteJUnitJarInputStream(), jUnitJar.toPath());
     }
 
     private static CharSequence generateTestCaseMethod(Snippet snippet, int i,
@@ -554,31 +547,12 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
 
     // NOTE should move somewhere else
     public static InputStream getSetteJUnitJarInputStream() {
-        // search with the classloader
-        URL url = TestSuiteGenerator.class.getClassLoader().getResource("junit.jar.res");
-
-        if (url == null) {
-            // search on classpath
-            for (URL u : ((URLClassLoader) (Thread.currentThread().getContextClassLoader()))
-                    .getURLs()) {
-                // search for a valid JUnit jar
-                // examples: junit.jar, junit-junit.jar, junit-4.12.jar
-                if (u.toString().replace('\\', '/').matches("^.*junit[0-9.-]*[.]jar$")) {
-                    url = u;
-                }
-            }
-        }
-
-        if (url == null) {
+        URL url = Resources.getResource("junit.jar.res");
+        try {
+            return url.openStream();
+        } catch (IOException ex) {
             // NOTE make it better
-            throw new RuntimeException("JUnit was not found");
-        } else {
-            try {
-                return url.openStream();
-            } catch (IOException ex) {
-                // NOTE make it better
-                throw new RuntimeException(ex);
-            }
+            throw new RuntimeException(ex);
         }
     }
 }

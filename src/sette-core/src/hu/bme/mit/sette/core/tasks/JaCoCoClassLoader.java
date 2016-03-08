@@ -23,9 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-  import java.io.File;
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.Validate;
@@ -48,7 +47,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
     public JaCoCoClassLoader(@NonNull File[] binaryDirectories, @NonNull Instrumenter instrumenter,
             @NonNull ClassLoader parent) {
         super(parent);
-        
+
         Validate.notEmpty(binaryDirectories,
                 "The array of binary directories must not be empty or null");
         Validate.noNullElements(binaryDirectories,
@@ -62,7 +61,8 @@ public final class JaCoCoClassLoader extends ClassLoader {
     }
 
     @Override
-    protected Class<?> loadClass(@NonNull String className, boolean resolve) throws ClassNotFoundException {
+    protected Class<?> loadClass(@NonNull String className, boolean resolve)
+            throws ClassNotFoundException {
         Class<?> javaClass = findLoadedClass(className);
 
         if (javaClass != null) {

@@ -49,7 +49,6 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
@@ -63,30 +62,28 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
+            SnippetInputsXml inputsXml) throws Exception {
         // do not parse inputs
         inputsXml.setGeneratedInputs(null);
 
         // files
+        List<String> outputLines = outFiles.readOutputLines();
+        List<String> errorLines = outFiles.readErrorOutputLines();
         File testDir = getRunnerProjectSettings().getTestDirectory();
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
-                snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
-                snippet);
 
-        if (!outputFile.exists()) {
+        if (outputLines.isEmpty()) {
             // TODO
             throw new RuntimeException("TODO parser problem");
         }
 
-        if (errorFile.exists()) {
-            List<String> errLines = PathUtils.readAllLines(errorFile.toPath());
-            if (errLines.stream().anyMatch(
+        if (!errorLines.isEmpty()) {
+            if (errorLines.stream().anyMatch(
                     line -> line.contains("java.lang.OutOfMemoryError: Java heap space"))) {
                 // not enough memory
                 inputsXml.setResultType(ResultType.TM);
             } else {
-                for (String line : errLines) {
+                for (String line : errorLines) {
                     if (line.trim().isEmpty()) {
                         continue;
                     }
@@ -109,18 +106,20 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                     } else if (line.contains("ERROR TestCaseExecutor - ExecutionException")) {
                         System.out.println("==========================================");
                         // "this is likely a serious error in the framework"
-                        System.out.println(errorFile);
+                        System.out.println(outFiles.errorOutputFile);
                         System.out.println(line);
                         System.out.println("==========================================");
-                        System.out.println(new String(PathUtils.readAllBytes(errorFile.toPath())));
+                        System.out.println(
+                                new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
                         System.out.println("==========================================");
                         System.out.println("==========================================");
                     } else {
                         System.out.println("==========================================");
-                        System.out.println(errorFile);
+                        System.out.println(outFiles.errorOutputFile);
                         System.out.println(line);
                         System.out.println("==========================================");
-                        System.out.println(new String(PathUtils.readAllBytes(errorFile.toPath())));
+                        System.out.println(
+                                new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
                         System.out.println("==========================================");
                         System.out.println("==========================================");
                         throw new RuntimeException("Problematic line: " + line);
@@ -130,11 +129,10 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         }
 
         if (inputsXml.getResultType() == null) {
-            List<String> outLines = PathUtils.readAllLines(outputFile.toPath());
-            boolean computationFinished = isComputationFinished(outLines);
+            boolean computationFinished = isComputationFinished(outputLines);
 
             if (!computationFinished) {
-                throw new RuntimeException("Not finished: " + outputFile.toString());
+                throw new RuntimeException("Not finished: " + outFiles.outputFile.toString());
             }
 
             // evo: my/snippet/MySnippet_method_method
@@ -186,7 +184,9 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 //
                 CompilationUnit compilationUnit;
                 try {
+                    log.debug("Parsing with JavaParser: {}", testCasesFile);
                     compilationUnit = JavaParser.parse(testCasesFile);
+                    log.debug("Parsed with JavaParser: {}", testCasesFile);
                 } catch (Throwable t) {
                     throw new RuntimeException("Cannot parse: " + testCasesFile, t);
                 }

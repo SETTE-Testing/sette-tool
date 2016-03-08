@@ -45,9 +45,8 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
     }
 
     @Override
-    public int getTimeoutInMs() {
-        // FIXME evosuite
-        return 0;
+    public boolean shouldKillAfterTimeout() {
+        return false;
     }
 
     @Override
@@ -66,7 +65,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
         // -class=hu.bme.mit.sette.snippets._1_basic.B2_conditionals.B2a_IfElse_oneParamBoolean
         // -Dlog_goals=true
 
-        // java -jar evosuite-0.2.0.jar -projectCP bin;snippet-libs/sette-snippets-external.jar
+        // java -jar evosuite-0.2.0.jar -projectCP bin;snippet-lib/sette-snippets-external.jar
         // -prefix hu.bme.mit.sette.snippets._6_others -Dsearch_budget=30 -Dassertions=false
 
         // additional parameter: -Dtarget_method

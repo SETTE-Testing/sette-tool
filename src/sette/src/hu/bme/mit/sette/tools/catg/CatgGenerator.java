@@ -161,7 +161,8 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
 
     private void copyTool(EclipseProject eclipseProject)
             throws IOException, SetteConfigurationException {
-        PathUtils.copy(getTool().getToolDir(), getRunnerProjectSettings().getBaseDir().toPath());
+        PathUtils.copy(getTool().getToolDir().resolve("tool"),
+                getRunnerProjectSettings().getBaseDir().toPath());
 
         // edit build.xml
         // TODO make better

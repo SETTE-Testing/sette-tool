@@ -57,36 +57,21 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
+            SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = outFiles.readOutputLines();
+        List<String> errorLines = outFiles.readErrorOutputLines();
+
         // do not parse inputs
         inputsXml.setGeneratedInputs(null);
-
-        // files
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
-                snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
-                snippet);
-
-        if (!outputFile.exists()) {
-            // TODO
-            // throw new RuntimeException("output file missing: " + outputFile);
-            // FIXME
-            // extremely odd, but randoop stopped
-            File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
-                    snippet);
-            String info = new String(PathUtils.readAllBytes(infoFile.toPath()));
-            if (info.contains("Exit value: 137")) {
-                // N/A
-                inputsXml.setResultType(ResultType.NA);
-            } else {
-                throw new RuntimeException(
-                        "output file missing and not 137 exit value: " + outputFile);
-            }
+        
+        if (outputLines.isEmpty()) {
+            // FIXME extremely odd
+            throw new RuntimeException("output file empty: " + outFiles.outputFile);
         }
 
-        if (errorFile.exists()) {
-            List<String> lines = PathUtils.readAllLines(errorFile.toPath());
-            String firstLine = lines.get(0);
+        if (!errorLines.isEmpty()) {
+            String firstLine = errorLines.get(0);
 
             if (firstLine.startsWith("java.io.FileNotFoundException:")
                     && firstLine.endsWith("_Test/Test.java (No such file or directory)")) {
@@ -116,8 +101,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             inputsXml.setResultType(ResultType.S);
 
             // get how many tests were generated
-            List<String> outputFileLines = PathUtils.readAllLines(outputFile.toPath());
-            int generatedInputCount = outputFileLines.stream()
+            int generatedInputCount = outputLines.stream()
                     .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
                     .filter(m -> m.matches()).map(m -> Integer.parseInt(m.group(1))).findAny()
                     .orElse(-1);
@@ -139,7 +123,9 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
 
                     int cnt = 0;
                     for (File file : testFiles) {
+                        log.debug("Parsing with JavaParser: {}", file);
                         CompilationUnit cu = JavaParser.parse(file);
+                        log.debug("Parsed with JavaParser: {}", file);
                         ClassOrInterfaceDeclaration cls = (ClassOrInterfaceDeclaration) cu
                                 .getTypes().get(0);
                         cnt += cls.getMembers().stream()

@@ -34,11 +34,9 @@ import javax.xml.parsers.SAXParserFactory;
 
 import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
-import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
@@ -56,17 +54,13 @@ public class JPetParser extends RunResultParser<JPetTool> {
             .compile("^Top Code Coverage of '.*': (\\d+(.\\d+)?)% \\(.*\\)$");
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
-                snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
-                snippet);
+    protected void parseSnippet(Snippet snippet,SnippetOutFiles outFiles, SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = outFiles.readOutputLines();
+        List<String> errorLines = outFiles.readErrorOutputLines();
 
-        if (errorFile.exists()) {
+        if (!errorLines.isEmpty()) {
             // TODO enhance this section and make it clear
-            List<String> lines = PathUtils.readAllLines(errorFile.toPath());
-
-            String firstLine = lines.get(0);
+            String firstLine = errorLines.get(0);
 
             if (firstLine
                     .startsWith("ERROR: test_data_generator:unfold_bck/6: Undefined procedure:")) {
@@ -87,7 +81,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 System.err.println(snippet.getMethod());
                 System.err.println("=============================");
 
-                for (String line : lines) {
+                for (String line : errorLines) {
                     System.err.println(line);
                 }
                 System.err.println("=============================");
@@ -97,18 +91,16 @@ public class JPetParser extends RunResultParser<JPetTool> {
             }
         } else {
             // TODO enhance
-            List<String> lines = PathUtils.readAllLines(outputFile.toPath());
-
-            if (lines.get(lines.size() - 1).startsWith("Error loading bytecode program")) {
+            if (outputLines.get(outputLines.size() - 1).startsWith("Error loading bytecode program")) {
                 // System.err.println(snippet.getMethod().getName());
                 // System.err.println("BYTECODE PROBLEM");
                 inputsXml.setResultType(ResultType.EX);
                 // throw new RuntimeException(""
             } else {
                 // extract coverage
-                if (lines.size() >= 8) {
-                    String fullCode = lines.get(lines.size() - 3).trim();
-                    String topCode = lines.get(lines.size() - 2).trim();
+                if (outputLines.size() >= 8) {
+                    String fullCode = outputLines.get(outputLines.size() - 3).trim();
+                    String topCode = outputLines.get(outputLines.size() - 2).trim();
 
                     Matcher mFull = PATTERN_FULL_CODE.matcher(fullCode);
                     Matcher mTop = PATTERN_TOP_CODE.matcher(topCode);
@@ -162,7 +154,7 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 }
 
                 // extract inputs
-                lines = null;
+                outputLines = null;
 
                 File testCasesFile = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(),
                         snippet);

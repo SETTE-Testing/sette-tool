@@ -25,6 +25,7 @@ package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -54,6 +55,7 @@ import org.jacoco.core.instr.Instrumenter;
 import org.jacoco.core.runtime.IRuntime;
 import org.jacoco.core.runtime.LoggerRuntime;
 import org.jacoco.core.runtime.RuntimeData;
+import org.junit.Before;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
@@ -86,7 +88,6 @@ import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
 
 public final class TestSuiteRunner extends EvaluationTask<Tool> {
     private final Logger LOG = LoggerFactory.getLogger(TestSuiteRunner.class);
@@ -263,7 +264,17 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         for (Class<?> testClass : testClasses) {
             System.err.println("Test runner: Test class: " + testClass.getName());
 
-            TestCase testClassInstance = (TestCase) testClass.newInstance();
+            Object testClassInstance = testClass.newInstance();
+
+            for (Method m : testClass.getDeclaredMethods()) {
+                for (Annotation a : m.getAnnotations()) {
+                    if (a.annotationType().equals(Before.class)) {
+                        m.invoke(testClassInstance);
+                        break;
+                    }
+                }
+            }
+
             // TODO separate collect and invoke
             for (Method m : testClass.getDeclaredMethods()) {
                 if (m.isSynthetic()) {
@@ -287,7 +298,8 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
 
                         if (cause instanceof NullPointerException
                                 || cause instanceof ArrayIndexOutOfBoundsException
-                                || cause instanceof AssertionFailedError) {
+                                || cause instanceof AssertionFailedError
+                                || cause instanceof AssertionError) {
                             LOG.warn(cause.getClass().getName() + ": "
                                     + m.getDeclaringClass().getName() + "." + m.getName());
                         } else {
@@ -297,7 +309,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
                         LOG.debug(ex.getMessage(), ex);
                     }
                 } else {
-                    LOG.warn("Not test method: {}", m.getName());
+                    // NOTE LOG.warn("Not test method: {}", m.getName());
                 }
             }
         }
@@ -451,7 +463,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
     private volatile Throwable invokeException;
 
     @SuppressWarnings("deprecation")
-    private void invokeMethod(TestCase testClassInstance, Method m) throws Throwable {
+    private void invokeMethod(Object testClassInstance, Method m) throws Throwable {
         invokeException = null;
 
         Thread t = new Thread() {
@@ -501,7 +513,9 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
             File javaFile = new File(getSnippetProject().getSourceDir().toFile(), relJavaFile);
 
             // parse file
+            log.debug("Parsing with JavaParser: {}", javaFile);
             CompilationUnit compilationUnit = JavaParser.parse(javaFile);
+            log.debug("Parsed with JavaParser: {}", javaFile);
             int beginLine = compilationUnit.getBeginLine();
             int endLine = compilationUnit.getEndLine();
 

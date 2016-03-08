@@ -47,6 +47,11 @@ public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
     }
 
     @Override
+    public boolean shouldKillAfterTimeout() {
+        return true;
+    }
+
+    @Override
     protected void afterPrepare() {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);

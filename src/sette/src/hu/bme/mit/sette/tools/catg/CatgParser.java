@@ -38,11 +38,9 @@ import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
 import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
-import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class CatgParser extends RunResultParser<CatgTool> {
     private static final Pattern EXCEPTION_LINE_PATTERN;
@@ -65,14 +63,10 @@ public class CatgParser extends RunResultParser<CatgTool> {
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
-        Path outputFile = RunnerProjectUtils
-                .getSnippetOutputFile(getRunnerProjectSettings(), snippet).toPath();
-        Path errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(), snippet)
-                .toPath();
-
-        List<String> outputLines = PathUtils.readAllLinesOrEmpty(outputFile);
-        List<String> errorLines = PathUtils.readAllLinesOrEmpty(errorFile);
+    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
+            SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = outFiles.readOutputLines();
+        List<String> errorLines = outFiles.readErrorOutputLines();
 
         if (!errorLines.isEmpty()) {
             // error / warning from CATG
@@ -100,7 +94,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
                             return ResultType.EX;
                         } else {
                             System.err.println(snippet.getMethod());
-                            System.err.println(errorFile);
+                            System.err.println(outFiles.errorOutputFile);
                             System.err.println("NOT HANDLED EXCEPTION TYPE: " + exceptionType);
                             throw new RuntimeException("SETTE parser problem");
                         }
@@ -143,7 +137,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
         if (inputsXml.getResultType() == ResultType.S) {
             // collect inputs
             if (!outputLines.get(0).startsWith("Now testing ")) {
-                throw new RuntimeException("File beginning problem: " + outputFile);
+                throw new RuntimeException("File beginning problem: " + outFiles.outputFile);
             }
 
             Pattern p = Pattern.compile("\\[Input (\\d+)\\]");
@@ -160,7 +154,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
                         System.err.println("Current input should be: " + inputNumber);
                         System.err.println("Current input line: " + line);
                         throw new RuntimeException(
-                                "File input problem (" + line + "): " + outputFile);
+                                "File input problem (" + line + "): " + outFiles.outputFile);
                     }
 
                     // find end of generated input
@@ -202,7 +196,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
                             ie.getParameters().add(pe);
                         } else {
                             throw new RuntimeException(
-                                    "File input problem (" + l + "): " + outputFile);
+                                    "File input problem (" + l + "): " + outFiles.outputFile);
                         }
                     }
 
@@ -212,7 +206,8 @@ public class CatgParser extends RunResultParser<CatgTool> {
 
                     // TODO now NOT dealing with result and exception
                 } else {
-                    throw new RuntimeException("File input problem (" + line + "): " + outputFile);
+                    throw new RuntimeException(
+                            "File input problem (" + line + "): " + outFiles.outputFile);
                 }
             }
         }

@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,11 +40,9 @@ import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
 import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
-import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class SpfParser extends RunResultParser<SpfTool> {
     public SpfParser(SnippetProject snippetProject, Path outputDir, SpfTool tool,
@@ -54,19 +51,14 @@ public class SpfParser extends RunResultParser<SpfTool> {
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
-        File outputFile = RunnerProjectUtils.getSnippetOutputFile(getRunnerProjectSettings(),
-                snippet);
-        File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
-                snippet);
+    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
+            SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = outFiles.readOutputLines();
+        List<String> errorLines = outFiles.readErrorOutputLines();
 
-        if (errorFile.exists()) {
-
+        if (!errorLines.isEmpty()) {
             // TODO make this section simple and clear
-
-            List<String> lines = PathUtils.readAllLines(errorFile.toPath());
-
-            String firstLine = lines.get(0);
+            String firstLine = errorLines.get(0);
 
             if (firstLine
                     .startsWith("java.lang.RuntimeException: ## Error: Operation not supported!")) {
@@ -95,7 +87,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
                 System.err.println(snippet.getMethod());
                 System.err.println("=============================");
 
-                for (String line : lines) {
+                for (String line : errorLines) {
                     System.err.println(line);
                 }
                 System.err.println("=============================");
@@ -118,7 +110,7 @@ public class SpfParser extends RunResultParser<SpfTool> {
             // // no inputs for constant tests, just call them once
             // inputsXml.getGeneratedInputs().add(new InputElement());
             // } else {
-            Iterator<String> lines = PathUtils.readAllLines(outputFile.toPath()).iterator();
+            Iterator<String> lines = outputLines.iterator();
 
             // find input lines
 

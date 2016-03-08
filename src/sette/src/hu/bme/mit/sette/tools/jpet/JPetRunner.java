@@ -47,6 +47,11 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
     }
 
     @Override
+    public boolean shouldKillAfterTimeout() {
+        return true;
+    }
+
+    @Override
     protected void afterPrepare() throws IOException {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
