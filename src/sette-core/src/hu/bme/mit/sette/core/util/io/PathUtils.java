@@ -48,6 +48,10 @@ public final class PathUtils {
     }
 
     public static void createDir(Path dir) throws IOException {
+        if (Files.exists(dir)) {
+            return;
+        }
+
         log.info("Creating directory: {}", dir);
         Files.createDirectories(dir);
         log.debug("Created directory: {}", dir);
@@ -60,6 +64,7 @@ public final class PathUtils {
         // FIXME check that source is not part of target, etc.
 
         if (Files.isDirectory(source)) {
+            log.info("Copying directory: {} -> {}", source, target);
             Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path sDir, BasicFileAttributes attrs)
@@ -79,8 +84,11 @@ public final class PathUtils {
                     return FileVisitResult.CONTINUE;
                 }
             });
+            log.debug("Copied directory: {} -> {}", source, target);
         } else {
+            log.debug("Copying file: {} -> {}", source, target);
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            log.debug("Copied file: {} -> {}", source, target);
         }
     }
 
@@ -120,12 +128,14 @@ public final class PathUtils {
 
     public static void write(Path file, byte[] bytes) throws IOException {
         log.debug("Writing file: {}", file);
+        Files.createDirectories(file.getParent());
         Files.write(file, bytes);
         log.debug("Wrote file: {}", file);
     }
 
     public static void write(Path file, Iterable<? extends CharSequence> lines) throws IOException {
         log.debug("Writing file: {}", file);
+        Files.createDirectories(file.getParent());
         Files.write(file, lines);
         log.debug("Wrote file: {}", file);
     }
@@ -162,8 +172,8 @@ public final class PathUtils {
         return Files.walk(start);
     }
 
-    public static boolean exists(Path dir) {
-        return Files.exists(dir);
+    public static boolean exists(Path path) {
+        return Files.exists(path);
     }
 
     public static Stream<String> lines(Path path) throws IOException {
