@@ -3,7 +3,7 @@
 # Example: ./experiment-genrun-test.sh randoop
 # It will run the selected tool with a "test" tag without backing up for the sette-snippets project
 tool=$1
-PROJ=sette-snippets/sette-snippets
+PROJ=sette-snippets/java/sette-snippets
 TAG=test
 projectName="$(sed -r -e 's#.*/##g' <<< $PROJ)"
 

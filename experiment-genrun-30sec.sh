@@ -6,7 +6,7 @@ TIMEOUT="30s"
 TOOL=$1
 FROM=$2
 TO=$3
-PROJ=sette-snippets/sette-snippets
+PROJ=sette-snippets/java/sette-snippets
 projectName="$(sed -r -e 's#.*/##g' <<< $PROJ)"
 
 echo "$TOOL from $FROM to $TO"
