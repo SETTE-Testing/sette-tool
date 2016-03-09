@@ -52,7 +52,7 @@ class ArgumentParserTest {
   "baseDirs":["~/sette", "D:/SETTE"],
   "outputDir":"sette-results",
   "runnerTimeoutInMs":30000,
-  "snippetProjectDirs":["sette-snippets/sette-snippets"],
+  "snippetProjectDirs":["sette-tool/src/sette-sample-snippets"],
   "tools":[
     {
       "className":"hu.bme.mit.sette.catg.CatgTool",

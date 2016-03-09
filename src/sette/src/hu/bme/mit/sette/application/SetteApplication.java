@@ -234,6 +234,7 @@ public final class SetteApplication {
         } catch (Exception ex) {
             errorOutput.println("Exception: " + ex.getMessage());
             LOG.error("Exception", ex);
+            throw new RuntimeException(ex);
         }
     }
 
