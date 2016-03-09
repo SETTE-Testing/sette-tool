@@ -103,6 +103,8 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
         // NOTE default: cmd.add("-Dtest_format=JUNIT4"); // JUnit 3 is not working
         cmd.add("-Djunit_suffix=_" + snippet.getMethod().getName() + "_Test");
         cmd.add("-Dtest_dir=test");
+        cmd.add("-Dassertions=false");
+        cmd.add("-Dminimization_timeout=10");
 
         System.out.println("  command: " + StringUtils.join(cmd, ' '));
 
