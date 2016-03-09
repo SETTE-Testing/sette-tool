@@ -3,7 +3,8 @@
   "outputDir":"sette-results",
   "runnerTimeoutInMs":30000,
   "snippetProjectDirs":[
-    "sette-snippets/sette-snippets", 
+    "sette-snippets/sette-snippets",
+    "sette-snippets/sette-snippets-performance-time",
     "sette-snippets/sette-snippets-extra", 
     "sette-tool/src/sette-sample-snippets"
   ],

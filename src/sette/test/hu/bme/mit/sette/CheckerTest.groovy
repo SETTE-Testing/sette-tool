@@ -39,7 +39,7 @@ class CheckerTest {
         app = new SetteApplication(new BufferedReader(new InputStreamReader(System.in)),
                 System.out, System.err, Paths.get('sette.config.json'))
     }
-
+    
     @Test
     public final void test() {
         List<String> tasks = [
@@ -53,6 +53,24 @@ class CheckerTest {
 
         tasks.each { String task ->
             app.execute('--snippet-project-dir', 'sette-snippets/sette-snippets', '--backup', 'skip',
+                    '--runner-project-tag', 'test', '--task', task, '--tool', 'SnippetInputChecker')
+        }
+    }
+
+    @Test
+    public final void testPerformanceTime() {
+        List<String> tasks = [
+            'generator',
+            'runner',
+            'parser',
+            'test-generator',
+            'test-runner',
+            'export-csv'
+        ]
+
+        tasks.each { String task ->
+            app.execute('--snippet-project-dir', 'sette-snippets/sette-snippets-performance-time', 
+                    '--backup', 'skip',
                     '--runner-project-tag', 'test', '--task', task, '--tool', 'SnippetInputChecker')
         }
     }
