@@ -6,7 +6,9 @@ CWD="$(
   pwd -P 
 )"
 
+echo "Deleting sette.config.json"
+rm -rf "$CWD/sette.config.json"
 cd "$CWD/src"
-./gradlew clean build deployLocal
-echo "=> Don't forget to properly set up sette.properties"
-cd "$CWD"
+
+echo "Building SETTE (without tests)"
+./gradlew clean build deployLocal -x test
