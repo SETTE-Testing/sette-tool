@@ -256,7 +256,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         Class<?> snippetReturnType = snippet.getMethod().getReturnType();
 
         for (int j = 0; j < snippetParameterTypes.length; j++) {
-            Class<?> spt = javaClass = Primitives.wrap(snippetParameterTypes[j]);
+            Class<?> spt = Primitives.wrap(snippetParameterTypes[j]);
 
             // NOTE array parameter element is not handled since it is not used now
             ParameterElement ipt = (ParameterElement) inputElement.getParameters().get(j);

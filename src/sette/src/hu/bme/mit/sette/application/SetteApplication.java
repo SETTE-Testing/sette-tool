@@ -141,7 +141,7 @@ public final class SetteApplication {
                 if (runnerProjectTag != null) {
                     String msg = String.format("The runner project tag is specified (%s) but for "
                             + "the %s task it is not required, thus it will not affect the "
-                            + "current execution", runnerProjectTag);
+                            + "current execution", runnerProjectTag, applicationTask);
                     output.println(msg);
                     LOG.debug(msg);
                     runnerProjectTag = null;
