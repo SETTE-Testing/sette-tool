@@ -97,7 +97,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
 
         for (Path libraryFile : getSnippetProject().getLibFiles()) {
             classpath += SystemUtils.PATH_SEPARATOR
-                    + getSnippetProject().getLibDir().toString()
+                    + getRunnerProjectSettings().getSnippetLibraryDirectory().getName()
                     + SystemUtils.FILE_SEPARATOR + libraryFile.toFile().getName();
         }
 
@@ -109,7 +109,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         File methodList = new File(getRunnerProjectSettings().getBaseDir(),
                 "methodlist_" + junitPackageName + ".tmp"); // TODO better file name
         PathUtils.write(methodList.toPath(),
-                ("method : " + getMethodNameAndParameterTypesString(snippet.getMethod()) + "\n")
+                ("method : " + getMethodNameAndParameterTypesString(snippet.getMethod()))
                         .getBytes());
 
         // create command
@@ -123,13 +123,13 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         cmd.add(classpath);
         cmd.add("randoop.main.Main");
         cmd.add("gentests");
-        cmd.add("--methodlist=" + methodList.getAbsolutePath());
+        cmd.add("--methodlist=" + methodList.getAbsolutePath().replace('\\', '/'));
         cmd.add("--timelimit=" + timelimit);
-        cmd.add("--forbid-null=false");
-        cmd.add("--null-ratio=0.5");
+        // cmd.add("--forbid-null=false"); // use default false
+        // cmd.add("--null-ratio=0.5"); // use default 0.05
         cmd.add("--junit-output-dir=test");
         cmd.add("--junit-package-name=" + junitPackageName);
-        cmd.add("--junit-classname=Test");
+        // cmd.add("--junit-classname=Test"); // not available in 2.1.x
         cmd.add("--randomseed=" + seedGenerator.nextInt());
         // TODO limit strings to 50
         cmd.add("--string-maxlen=50");
@@ -146,8 +146,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         // run process
         // Randoop will stop generation at the given time limit (however, it
         // needs extra time for dumping test cases)
-        executeToolProcess(Arrays.asList(cmd.toString().split("\\s+")), infoFile, outputFile,
-                errorFile);
+        executeToolProcess(cmd, infoFile, outputFile, errorFile);
 
         // delete method list file
         PathUtils.deleteIfExists(methodList.toPath());
@@ -155,8 +154,10 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
 
     @Override
     public void cleanUp() throws IOException {
-        // TODO better search
-        ProcessUtils.searchAndTerminateProcesses("randoop.main.Main");
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            // TODO better search
+            ProcessUtils.searchAndTerminateProcesses("randoop.main.Main");
+        }
         System.gc();
     }
 
