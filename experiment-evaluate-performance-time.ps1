@@ -1,7 +1,15 @@
-﻿[CmdletBinding()]
+﻿<#
+
+.SYNOPSIS
+Runs the evaluation tasks on hard-coded performance-time results.
+
+#>
+
+[CmdletBinding()]
 
 Param(
-  [switch] $MergeCsv
+  [switch] $MergeCsv,
+  [string] $JavaHeapMemory = "4G"
 )
 
 $SNIPPET_PROJECT = "sette-snippets-performance-time"
@@ -65,10 +73,11 @@ foreach ($tool in $targets.Keys | Sort-Object) {
                     $task = $tasks[$taskNum]
 
                     Write-Verbose "$SNIPPET_PROJECT $tool $tag $task ..."
+                    #FIXME no whatif in PS 5 for scripts?
                     if (! $WhatIfPreference) {
-                        java -Xmx4G -jar sette-all.jar --snippet-project $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > "$LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log" 2>&1
+                        java -Xmx$JavaHeapMemory -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > "$LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log" 2>&1
                     } else {
-						echo "java -Xmx4G -jar sette-all.jar --snippet-project $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > $LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log 2>&1"
+						echo "java -Xmx$JavaHeapMemory -jar sette-all.jar --snippet-project $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > $LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log 2>&1"
                     }                    
                 }
             }
