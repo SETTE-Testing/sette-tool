@@ -14,7 +14,7 @@ echo "$TOOL from $FROM to $TO with $TIMEOUT on $PROJ"
 set -v
 for i in `seq $FROM $TO`;
 do
-    TAG=run-$(printf "%02d" $i)-${TIMEOUT}sec
+    TAG=run-$(printf "%02d" $i)-${TIMEOUT}ec
 	echo == Execution $i generator
 	./run-sette.sh --snippet-project-dir $PROJ --tool $TOOL --task generator --runner-project-tag $TAG --backup SKIP --runner-timeout $TIMEOUT | tee sette___${TOOL}___${TAG}___${projectName}___${TIMEOUT}___generator.log
 	echo == Execution $i runner
