@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,12 @@ public final class SetteApplicationMain {
         Thread.currentThread().setName("MAIN");
         LOG.info("main() called, arguments: {}", (Object) args);
 
+        try {
+            Locale.setDefault(new Locale("en", "GB"));
+        } catch (Exception ex) {
+            Locale.setDefault(Locale.ENGLISH);
+        }
+        
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
