@@ -156,13 +156,13 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
 
                 // skip N/A, EX, T/M
                 if (inputsXml.getResultType() != ResultType.S) {
-                    if (inputsXml.getResultType() == ResultType.NC
-                            || inputsXml.getResultType() == ResultType.C) {
+                    if (! (inputsXml.getResultType() == ResultType.NC
+                            || inputsXml.getResultType() == ResultType.C)) {
                         System.err.println("Skipping " + inputsXml.getResultType() + " file: "
                                 + inputsXmlFile.getName());
-                    }
-
-                    continue;
+                    
+                        continue;
+                    }                   
                 }
 
                 if (inputsXml.getGeneratedInputCount() == 0
