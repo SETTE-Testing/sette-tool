@@ -78,7 +78,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         lines.add("            <compilerarg value=\"UTF8\" />");
         lines.add("            <classpath>");
         lines.add("                <pathelement path=\"junit.jar\" />");
-        lines.add("                <fileset dir=\"snippet-lib\">");
+        lines.add("                <fileset dir=\"snippet-lib\" erroronmissingdir=\"no\">");
         lines.add("                    <include name=\"**/*.jar\" />");
         lines.add("                </fileset>");
         lines.add("            </classpath>");
