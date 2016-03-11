@@ -105,6 +105,9 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
         cmd.add("-Dtest_dir=test");
         cmd.add("-Dassertions=false");
         cmd.add("-Dminimization_timeout=10");
+        cmd.add("-Djunit_check_timeout=10");
+        cmd.add("-Dassertion_timeout=10");
+        cmd.add("-Dshow_progress=false");
 
         System.out.println("  command: " + StringUtils.join(cmd, ' '));
 
