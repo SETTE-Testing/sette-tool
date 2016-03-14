@@ -103,6 +103,8 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                         // skip (internal timeout, tool stops and dumps what is has)
                     } else if (line.contains("ClientNode: WRITING_TESTS")) {
                         // skip (internal timeout, tool stops and dumps what is has)
+                    } else if (line.contains("ERROR JUnitAnalyzer - Ran out of time while checking tests")) {
+                        // skip (internal timeout, tool stops and dumps what is has)
                     } else if (line.contains("ERROR TestCaseExecutor - ExecutionException")) {
                         System.out.println("==========================================");
                         // "this is likely a serious error in the framework"
