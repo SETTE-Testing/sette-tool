@@ -7,4 +7,5 @@ CWD="$(
 )"
 
 cd "$CWD"
+export ANT_OPTS=-Xmx4g
 java -jar "$CWD/sette-all.jar" "$@"
