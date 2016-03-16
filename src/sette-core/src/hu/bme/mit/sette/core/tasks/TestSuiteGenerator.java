@@ -154,15 +154,16 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
                 // set back the original class loader
                 Thread.currentThread().setContextClassLoader(originalClassLoader);
 
-                // skip N/A, EX, T/M
+                // fail if NC
+                if (inputsXml.getResultType() == ResultType.NC) {
+                    throw new RuntimeException(
+                            "Parsed result should be never NC! Snipept: " + snippet.getId());
+                }
+                // skip N/A, EX, T/M and C
                 if (inputsXml.getResultType() != ResultType.S) {
-                    if (! (inputsXml.getResultType() == ResultType.NC
-                            || inputsXml.getResultType() == ResultType.C)) {
-                        System.err.println("Skipping " + inputsXml.getResultType() + " file: "
-                                + inputsXmlFile.getName());
-                    
-                        continue;
-                    }                   
+                    System.err.println("Skipping " + inputsXml.getResultType() + " file: "
+                            + inputsXmlFile.getName());
+                    continue;
                 }
 
                 if (inputsXml.getGeneratedInputCount() == 0
