@@ -42,8 +42,8 @@ import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
@@ -144,7 +144,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
                     // }, null);
 
                     // without comment might be buggy???
-                    newCu.accept(new JavaParserFixStringVisitor(), null);
+                    newCu.accept(new EscapeSpecialCharactersVisitor(), null);
                     PathUtils.write(newSourceFile.toPath(), newCu.toString().getBytes());
                 } catch (Exception ex) {
                     throw new RuntimeException("SETTE ERROR", ex);

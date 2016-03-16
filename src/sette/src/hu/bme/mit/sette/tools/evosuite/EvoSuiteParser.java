@@ -51,8 +51,8 @@ import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.random.JavaParserFixStringVisitor;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
@@ -289,7 +289,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 //
                 // FIXME
                 // String testCasesFileString = compilationUnit.toStringWithoutComments();
-                compilationUnit.accept(new JavaParserFixStringVisitor(), null);
+                compilationUnit.accept(new EscapeSpecialCharactersVisitor(), null);
                 String testCasesFileString = compilationUnit.toString();
 
                 // this can happen in some cases, e.g. infinite

@@ -20,38 +20,40 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette.core.random;
+package hu.bme.mit.sette.core.util;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.text.translate.JavaUnicodeEscaper;
 
 import com.github.javaparser.ast.expr.CharLiteralExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-// FIXME fixes string escapes in test cases (EvoSuite)
-// usage: compilationUnit.accept(new JavaParserFixStringVisitor(), null)
-public class JavaParserFixStringVisitor extends VoidVisitorAdapter<Void> {
+/**
+ * Escapes special (non-ASCII) charaters int char and string literals using Unicode escape sequence,
+ * e.g., "Aoő" -> "Ao\u0151". After this transformation, javac and ant will not fail because of
+ * special characters (e.g., \u0016). Usage:
+ * 
+ * <pre>
+ * <code>
+ * CompilationUnit cu = JavaParser.parse(...);
+ * cu.accept(new EscapeSpecialCharactersVisitor(), null);
+ * </code>
+ * </pre>
+ */
+public class EscapeSpecialCharactersVisitor extends VoidVisitorAdapter<Void> {
+    private static final JavaUnicodeEscaper ESCAPER = JavaUnicodeEscaper.outsideOf(32, 0x7f);
+
     @Override
     public void visit(CharLiteralExpr n, Void arg) {
-        handle(n);
+        n.setValue(escape(n.getValue()));
     }
 
     @Override
     public void visit(StringLiteralExpr n, Void arg) {
-        handle(n);
+        n.setValue(escape(n.getValue()));
     }
 
-    // FIXME
-    // private static final CharSequenceTranslator MAPPING = new LookupTranslator(
-    // new String[][] { { "\\\\", "\\" },
-    // // { "\\\"", "\"" },
-    // // { "\\'", "'" },
-    // // { "\\", "" }
-    // });
-
-    private static void handle(StringLiteralExpr n) {
-        String v = StringEscapeUtils.escapeJava(n.getValue());
-        // v = MAPPING.translate(v); // do not revert back \\u0342 etc...
-        n.setValue(v);
+    public static String escape(String string) {
+        return ESCAPER.translate(string);
     }
 }
