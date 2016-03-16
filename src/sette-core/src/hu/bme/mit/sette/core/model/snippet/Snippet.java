@@ -333,4 +333,12 @@ public final class Snippet implements Comparable<Snippet> {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "Snippet [id=" + id + ", containerName=" + container.getName() + ", name=" + name
+                + ", method=" + method + ", requiredStatementCoverage=" + requiredStatementCoverage
+                + ", includedConstructors=" + includedConstructors + ", includedMethods="
+                + includedMethods + "]";
+    }
 }

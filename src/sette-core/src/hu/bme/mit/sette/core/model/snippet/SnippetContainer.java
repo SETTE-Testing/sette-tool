@@ -302,4 +302,12 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
     public int compareTo(@NonNull SnippetContainer o) {
         return ClassComparator.INSTANCE.compare(javaClass, o.javaClass);
     }
+
+    @Override
+    public String toString() {
+        return "SnippetContainer [snippetProjectName=" + snippetProject.getName() + ", name=" + name
+                + ", javaClass=" + javaClass + ", category=" + category + ", goal=" + goal
+                + ", requiredJavaVersion=" + requiredJavaVersion + "]";
+        // TODO: input factory container
+    }
 }
