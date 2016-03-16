@@ -79,13 +79,16 @@ public class SpfParser extends RunResultParser<SpfTool> {
 
                 // constant() and always() exception snippets (void return value and no parameters
                 // -> useless methods)
+            } else if (firstLine
+                    .startsWith("java.lang.RuntimeException: Arrays: symbolic index not handled")) {
+                inputsXml.setResultType(ResultType.NA);
             } else {
                 // TODO error handling
 
                 // this is debug (only if unhandled error)
                 System.err.println("=============================");
                 System.err.println(snippet.getMethod());
-                System.err.println("=============================");
+                System.err.println("== ERROR OUTPUT =============");
 
                 for (String line : errorLines) {
                     System.err.println(line);
