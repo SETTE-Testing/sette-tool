@@ -258,6 +258,10 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         // on the fly
         List<Class<?>> testClasses = loadTestClasses(testClassLoader, testClassName);
 
+        if (testClasses.isEmpty()) {
+            LOG.error("No test class was found for: " + snippet.getId());
+        }
+
         //
         // Invoke test methods in each test class
         //
@@ -678,38 +682,48 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
             testClasses.add(testClass);
         } else {
             // one package containing the test cases
-            String testPackageName = testClassName;
-            // try to load the class for the test suite (it is not used by
-            // SETTE)
-            testClassName = testPackageName + ".Test";
 
-            if (classLoader.tryLoadClass(testClassName) == null) {
-                // no test suite class
-                // TODO
-                System.err.println("No test suite class for " + testClassName);
-            }
+            testClasses.addAll(loadTestClassesForPrefix(classLoader, testClassName, "Test"));
 
-            int i = 0;
-            while (true) {
-                // load the i-th test class (i starts at zero)
-                testClass = classLoader.tryLoadClass(testClassName + i);
-
-                if (testClass != null) {
-                    testClasses.add(testClass);
-                } else {
-                    // the i-th test class does not exists
-                    if (classLoader.tryLoadClass(testClassName + (i + 1)) != null) {
-                        // but the (i+1)-th test class exists -> problem
-                        throw new RuntimeException("i-th does not, but (i+1)-th exists! i=" + i);
-                    } else {
-                        // ok, all test classes were found
-                        break;
-                    }
-                }
-
-                i++;
-            }
+            // randoop
+            testClasses
+                    .addAll(loadTestClassesForPrefix(classLoader, testClassName, "RegressionTest"));
+            testClasses.addAll(loadTestClassesForPrefix(classLoader, testClassName, "ErrorTest"));
         }
+        return testClasses;
+    }
+
+    private static List<Class<?>> loadTestClassesForPrefix(JaCoCoClassLoader classLoader,
+            String packageName, String prefix) {
+        List<Class<?>> testClasses = new ArrayList<>();
+
+        String clsBaseName = packageName + "." + prefix;
+
+        // try to load the class for the test suite (it is not used by SETTE)
+        classLoader.tryLoadClass(clsBaseName);
+
+        int i = 0;
+        while (true) {
+            // load the i-th test class (i starts at zero)
+            Class<?> testClass = classLoader.tryLoadClass(clsBaseName + i);
+
+            if (testClass != null) {
+                testClasses.add(testClass);
+            } else {
+                // the i-th test class does not exists
+                if (classLoader.tryLoadClass(clsBaseName + (i + 1)) != null) {
+                    // but the (i+1)-th test class exists -> problem
+                    throw new RuntimeException(
+                            "i-th does not, but (i+1)-th exists! i=" + i + ": " + testClass);
+                } else {
+                    // ok, all test classes were found
+                    break;
+                }
+            }
+
+            i++;
+        }
+
         return testClasses;
     }
 
