@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script downloads Randoop.
-VERSION=2.1.1
+VERSION=2.1.0
 CWD="$(
   cd "$(dirname "$(readlink "$0" || printf %s "$0")")"
   pwd -P 

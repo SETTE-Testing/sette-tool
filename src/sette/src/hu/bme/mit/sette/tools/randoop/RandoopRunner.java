@@ -23,15 +23,19 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -108,9 +112,8 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         // create method list file
         File methodList = new File(getRunnerProjectSettings().getBaseDir(),
                 "methodlist_" + junitPackageName + ".tmp"); // TODO better file name
-        PathUtils.write(methodList.toPath(),
-                ("method : " + getMethodNameAndParameterTypesString(snippet.getMethod()))
-                        .getBytes());
+
+        PathUtils.write(methodList.toPath(), createMethodListLines(snippet));
 
         // create command
         // String cmdFormat =
@@ -123,13 +126,13 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         cmd.add(classpath);
         cmd.add("randoop.main.Main");
         cmd.add("gentests");
+        // cmd.add("--classlist=" + getClassListFile().toAbsolutePath());
         cmd.add("--methodlist=" + methodList.getAbsolutePath().replace('\\', '/'));
         cmd.add("--timelimit=" + timelimit);
         // cmd.add("--forbid-null=false"); // use default false
         // cmd.add("--null-ratio=0.5"); // use default 0.05
         cmd.add("--junit-output-dir=test");
         cmd.add("--junit-package-name=" + junitPackageName);
-        // cmd.add("--junit-classname=Test"); // not available in 2.1.x
         cmd.add("--randomseed=" + seedGenerator.nextInt());
         // TODO limit strings to 50
         cmd.add("--string-maxlen=50");
@@ -149,7 +152,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         executeToolProcess(cmd, infoFile, outputFile, errorFile);
 
         // delete method list file
-        PathUtils.deleteIfExists(methodList.toPath());
+        // PathUtils.deleteIfExists(methodList.toPath());
     }
 
     @Override
@@ -170,12 +173,39 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
      *         <code>pkg.Cls.m(int[],java.lang.String[])</code>
      */
     private static String getMethodNameAndParameterTypesString(Method method) {
-        // collect and join parameter type names
-        String paramsString = Stream.of(method.getParameterTypes()).map(p -> p.getTypeName())
-                .collect(Collectors.joining(","));
-
-        // create string
+        String paramsString = createParamsString(method);
         return String.format("%s.%s(%s)", method.getDeclaringClass().getName(), method.getName(),
                 paramsString);
+    }
+
+    private static String getConstructorNameAndParameterTypesString(Constructor<?> ctor) {
+        String paramsString = createParamsString(ctor);
+        return String.format("%s.<init>(%s)", ctor.getDeclaringClass().getName(), paramsString);
+    }
+
+    private static String createParamsString(Executable executable) {
+        // collect and join parameter type names
+        return Stream.of(executable.getParameterTypes())
+                .map(p -> p.getName())
+                .collect(joining(","));
+    }
+
+    private static List<String> createMethodListLines(Snippet snippet) {
+        List<String> lines = new ArrayList<>();
+        lines.add("method : " + getMethodNameAndParameterTypesString(snippet.getMethod()));
+        lines.add("cons : java.lang.Object.<init>()");
+
+        // add constructors of non-primitive parameter types
+        Stream.of(snippet.getMethod().getParameterTypes())
+                .filter(cls -> !cls.isPrimitive())
+                .distinct()
+                .flatMap(cls -> Stream.of(cls.getConstructors()))
+                .filter(ctor -> Modifier.isPublic(ctor.getModifiers()))
+                .forEach(ctor -> {
+                    lines.add("cons : " + getConstructorNameAndParameterTypesString(ctor));
+                });
+
+        Collections.sort(lines);
+        return lines;
     }
 }

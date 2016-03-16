@@ -64,7 +64,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
 
         // do not parse inputs
         inputsXml.setGeneratedInputs(null);
-        
+
         if (outputLines.isEmpty()) {
             // FIXME extremely odd
             throw new RuntimeException("output file empty: " + outFiles.outputFile);
@@ -92,7 +92,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
                 inputsXml.setResultType(ResultType.EX);
             } else {
                 // TODO
-                throw new RuntimeException("TODO parser problem");
+                throw new RuntimeException("TODO parser problem:" + outFiles.errorOutputFile);
             }
         }
 
