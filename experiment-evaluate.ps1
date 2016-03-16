@@ -10,34 +10,42 @@ Runs the evaluation tasks on all tools for the 30sec results.
 Param(
   [int] $From = 1,
   [int] $To = 10,
-  [string] $JavaHeapMemory = "4G"
+  [string[]] $Tools = @("catg", "evosuite", "jpet", "randoop", "spf"),
+  [string[]] $Tasks = @("parser", "test-generator", "test-runner", "export-csv"),
+  [string] $JavaHeapMemory = "4G",
+  [boolean] $SkipExisting = $true,
+  [boolean] $ExportCsvBatch = $true
 )
 
 $SNIPPET_PROJECT = "sette-snippets"
 $SNIPPET_PROJECT_DIR = "sette-snippets/java/sette-snippets"
 $LOG_DIR = "explog"
 
-$tools = @("catg", "evosuite", "jpet", "randoop", "spf")
-
 $tags = @()
 for ($i = $From; $i -le $To; $i++) {  
     $tags += "run-{0:D2}-30sec" -f $i
 }
 
-$tasks = @("parser", "test-generator", "test-runner", "export-csv")
-
 mkdir $LOG_DIR -f > $null
 
-foreach ($tool in $tools) {
+foreach ($tool in $Tools) {
     foreach ($tag in $tags) {
-        $i = 3
-        foreach ($task in $tasks) {
-            echo "$tool $tag $task ..."
-            java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > "$LOG_DIR/${tool}_${tag}_${i}_${task}.log" 2>&1
-            $i++
+		$dir = "${SNIPPET_PROJECT}___${tool}___${tag}"
+		
+		if ($SkipExisting -and (Test-Path "../sette-results/$dir/sette-evaluation.csv")) {
+            Write-Warning "Skipping $tool $tag"
+        } else {
+			$i = 3
+			foreach ($task in $tasks) {
+				Write-Progress -Activity $tool -Status $tag -CurrentOperation $task
+				java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > "$LOG_DIR/${tool}_${tag}_${i}_${task}.log" 2>&1
+				$i++			
+			}
         }
     }
 }
 
-$tag = $tags -join ','
-java -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --task "export-csv-batch" --runner-project-tag $tag
+if ($ExportCsvBatch){
+	$tag = $tags -join ','
+	java -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --task "export-csv-batch" --runner-project-tag $tag
+}
