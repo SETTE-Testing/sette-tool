@@ -197,7 +197,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             }
 
             ClassFieldValidator v = new ClassFieldValidator(field);
-            v.withModifiers(Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL);
+            v.withModifiers(Modifier.STATIC);
             validator.addChildIfInvalid(v);
         }
     }
