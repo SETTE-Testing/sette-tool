@@ -193,13 +193,16 @@ public final class ProcessUtils {
         failIfWindows();
 
         List<Integer> pids = searchProcesses(searchExpression);
-        LOG.info("Terminating processes: {}", pids);
 
-        for (Integer pid : pids) {
-            terminateProcess(pid);
+        if (!pids.isEmpty()) {
+            LOG.info("Terminating processes: {}", pids);
+
+            for (Integer pid : pids) {
+                terminateProcess(pid);
+            }
+
+            LOG.info("Terminated processes: {}", pids);
         }
-
-        LOG.info("Terminated processes: {}", pids);
     }
 
     /**

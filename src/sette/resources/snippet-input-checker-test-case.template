@@ -10,7 +10,11 @@ public class @@SNIPPET_CONTAINER_NAME@@_@@SNIPPET@@_Test {
 
     @Before
     public void setUp() {
-        inputs = @@SNIPPET_INPUT_CONTAINER@@.@@SNIPPET@@();
+        try {
+            inputs = @@SNIPPET_INPUT_CONTAINER@@.@@SNIPPET@@();
+        } catch (Exception ex) {
+            throw new RuntimeException("Cannot extract inputs", ex);
+        }
 
         for (Method m : @@SNIPPET_CONTAINER_NAME@@.class.getDeclaredMethods()) {
             int mods = m.getModifiers();
