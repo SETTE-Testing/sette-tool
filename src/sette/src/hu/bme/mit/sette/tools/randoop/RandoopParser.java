@@ -61,6 +61,8 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             SnippetInputsXml inputsXml) throws Exception {
         List<String> outputLines = outFiles.readOutputLines();
         List<String> errorLines = outFiles.readErrorOutputLines();
+        File lookUpDir = new File(getRunnerProjectSettings().getBaseDir(),
+                "test/" + RunnerProjectUtils.getSnippetBaseFilename(snippet) + "_Test");
 
         // do not parse inputs
         inputsXml.setGeneratedInputs(null);
@@ -70,7 +72,14 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             throw new RuntimeException("output file empty: " + outFiles.outputFile);
         }
 
-        if (!errorLines.isEmpty()) {
+        for (String infoLine : outFiles.readInfoLines()) {
+            if (infoLine.contains("Exit value: 1")) {
+                inputsXml.setResultType(ResultType.EX);
+                break;
+            }
+        }
+
+        if (inputsXml.getResultType() == null && !lookUpDir.exists() && !errorLines.isEmpty()) {
             String firstLine = errorLines.get(0);
 
             if (firstLine.startsWith("java.io.FileNotFoundException:")
@@ -90,6 +99,9 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             } else if (firstLine.startsWith("java.lang.Error: classForName")) {
                 // exception, no output that not supported -> EX
                 inputsXml.setResultType(ResultType.EX);
+            } else if (firstLine.matches("[A-Za-z0-9: ]*") && !firstLine.contains("Error")
+                    && !firstLine.contains("Exception")) {
+                // normal text on stderr, skip
             } else {
                 // TODO
                 throw new RuntimeException("TODO parser problem:" + outFiles.errorOutputFile);
@@ -110,9 +122,6 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
                 inputsXml.setGeneratedInputCount(generatedInputCount);
             } else {
                 // NOTE randoop did not write out the result, we have to determine it :(
-                File lookUpDir = new File(getRunnerProjectSettings().getBaseDir(),
-                        "test/" + RunnerProjectUtils.getSnippetBaseFilename(snippet) + "_Test");
-
                 if (!lookUpDir.exists()) {
                     inputsXml.setGeneratedInputCount(0);
                 } else {

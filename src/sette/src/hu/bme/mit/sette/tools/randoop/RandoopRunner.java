@@ -151,6 +151,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         // needs extra time for dumping test cases)
         executeToolProcess(cmd, infoFile, outputFile, errorFile);
 
+        // TODO preserve for reproduction
         // delete method list file
         // PathUtils.deleteIfExists(methodList.toPath());
     }
