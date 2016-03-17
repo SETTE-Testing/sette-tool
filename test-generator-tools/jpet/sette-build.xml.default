@@ -22,7 +22,7 @@
 		<mkdir dir="${build.dir}" />
 		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}">
 			<classpath>
-				<fileset dir="${snippet.lib.dir}" includes="**/*.jar" />
+				<fileset dir="${snippet.lib.dir}" includes="**/*.jar" erroronmissingdir="false" />
 			</classpath>
 			<src path="${snippet-src.dir}" />
 		</javac>

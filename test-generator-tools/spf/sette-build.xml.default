@@ -23,7 +23,7 @@
 		<mkdir dir="${build.dir}" />
 		<javac destdir="${build.dir}" includeantruntime="false" source="${source}" target="${target}" debug="yes">
 			<classpath>
-				<fileset dir="${snippet.lib.dir}" includes="**/*.jar" />
+				<fileset dir="${snippet.lib.dir}" includes="**/*.jar" erroronmissingdir="false" />
 			</classpath>
 			<src path="${snippet-src.dir}" />
 			<src path="${gen.dir}" />
