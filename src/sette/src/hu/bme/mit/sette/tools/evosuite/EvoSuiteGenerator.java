@@ -32,6 +32,7 @@ import java.util.Set;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -58,7 +59,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
         createSpecialSnippetFiles();
 
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-       PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
+        PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }
 
     private void createSpecialSnippetFiles() {
@@ -79,7 +80,8 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
                         getRunnerProjectSettings().getSnippetSourceDirectory(),
                         javaPackageName.replace('.', '/') + '/' + javaClassName + ".java");
                 if (!originalSourceFile.exists()) {
-                    throw new RuntimeException("SETTE ERROR: " + originalSourceFile);
+                    throw new RuntimeException(
+                            "Original source file is missing: " + originalSourceFile);
                 }
                 File newSourceFile = new File(originalSourceFile.getParentFile(),
                         newJavaClassName + ".java");
@@ -122,9 +124,12 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
                             }
                         } else if (bodyDecl instanceof FieldDeclaration) {
                             // keep fields
+                        } else if (bodyDecl instanceof ClassOrInterfaceDeclaration) {
+                            // keep inner classes and interfaces
                         } else {
                             throw new RuntimeException(
-                                    "SETTE ERROR " + bodyDecl.getClass().getName());
+                                    "Unhandled case " + bodyDecl.getClass().getName() + " file: "
+                                            + originalSourceFile);
                         }
                     }
 
