@@ -68,6 +68,8 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
             throw new RunResultParserException("Run the tool on the runner project first", this);
         }
 
+        beforeParse();
+
         // foreach containers
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // foreach snippets
@@ -320,6 +322,11 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
 
     protected abstract void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
             SnippetInputsXml inputsXml) throws Exception;
+
+    protected void beforeParse() {
+        // can be overridden by the children
+
+    }
 
     protected void afterParse() {
         // can be overridden by the children

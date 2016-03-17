@@ -24,6 +24,7 @@
 package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,6 +60,24 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
     public EvoSuiteParser(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
+    }
+
+    @Override
+    protected void beforeParse() {
+        Path testDir = getRunnerProjectSettings().getTestDirectory().toPath();
+        Path testDirBackup = getRunnerProjectSettings().getBaseDir().toPath()
+                .resolve("test-original");
+
+        try {
+            if (PathUtils.exists(testDirBackup)) {
+                PathUtils.deleteIfExists(testDir);
+                PathUtils.copy(testDirBackup, testDir);
+            } else {
+                PathUtils.copy(testDir, testDirBackup);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
@@ -103,7 +122,8 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                         // skip (internal timeout, tool stops and dumps what is has)
                     } else if (line.contains("ClientNode: WRITING_TESTS")) {
                         // skip (internal timeout, tool stops and dumps what is has)
-                    } else if (line.contains("ERROR JUnitAnalyzer - Ran out of time while checking tests")) {
+                    } else if (line.contains(
+                            "ERROR JUnitAnalyzer - Ran out of time while checking tests")) {
                         // skip (internal timeout, tool stops and dumps what is has)
                     } else if (line.contains("ERROR TestCaseExecutor - ExecutionException")) {
                         System.out.println("==========================================");
