@@ -64,11 +64,6 @@ public class SnippetInputCheckerGenerator extends RunnerProjectGenerator<Snippet
             throws IOException, SetteException {
         Path baseDir = getRunnerProjectSettings().getBaseDir().toPath();
 
-        // delete generated snippet inputs and copy with SETTE annotations
-        Path snippetSourceDir = getRunnerProjectSettings().getSnippetSourceDirectory().toPath();
-        PathUtils.delete(snippetSourceDir);
-        PathUtils.copy(getSnippetProject().getSourceDir(), snippetSourceDir);
-
         // copy snippet input sources
         Path originalInputSourceDir = getSnippetProject().getInputSourceDir();
         String inputSourceDirname = originalInputSourceDir.getFileName().toString();
