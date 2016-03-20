@@ -12,9 +12,10 @@ Param(
   [int] $To = 10,
   [string[]] $Tools = @("catg", "evosuite", "jpet", "randoop", "spf"),
   [string[]] $Tasks = @("parser", "test-generator", "test-runner", "export-csv"),
-  [string] $JavaHeapMemory = "4G",
   [boolean] $SkipExisting = $true,
-  [boolean] $ExportCsvBatch = $true
+  [boolean] $ExportCsvBatch = $true,
+  [string] $JavaHeapMemory = "4G",
+  [string] $AntOptions = "-Xmx4g"
 )
 
 $SNIPPET_PROJECT = "sette-snippets"
@@ -22,6 +23,8 @@ $SNIPPET_PROJECT_DIR = "sette-snippets/java/sette-snippets"
 $LOG_DIR = "explog"
 
 $TASK_NUMBERS = @{ "generator" = 1; "runner" = 2; "parser" = 3; "test-generator" = 4; "test-runner" = 5; "export-csv" = 6}
+
+$Env:ANT_OPTS = $AntOptions
 
 $tags = @()
 for ($i = $From; $i -le $To; $i++) {  
@@ -35,7 +38,7 @@ foreach ($tool in $Tools) {
     $dir = "${SNIPPET_PROJECT}___${tool}___${tag}"
     
     if ($SkipExisting -and (Test-Path "../sette-results/$dir/sette-evaluation.csv")) {
-      Write-Warning "Skipping $tool $tag"
+      Write-Output "Skipping $tool $tag"
     } else {
       foreach ($task in $tasks) {
         Write-Progress -Activity $tool -Status $tag -CurrentOperation $task
