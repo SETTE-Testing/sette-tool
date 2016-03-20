@@ -51,7 +51,7 @@ import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Getter;
 import lombok.NonNull;
 
-public final class SnippetProject {
+public final class SnippetProject implements Comparable<SnippetProject> {
     /** The base directory of the snippet project */
     @Getter
     private final Path baseDir;
@@ -358,6 +358,11 @@ public final class SnippetProject {
 
     public Stream<Snippet> snippets() {
         return snippetContainers.stream().flatMap(sc -> sc.getSnippets().values().stream());
+    }
+
+    @Override
+    public int compareTo(@NonNull SnippetProject o) {
+        return getName().compareToIgnoreCase(o.getName());
     }
 
     @Override

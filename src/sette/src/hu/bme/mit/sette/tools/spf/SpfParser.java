@@ -142,8 +142,9 @@ public class SpfParser extends RunResultParser<SpfTool> {
 
             if (!inputLines.isEmpty()) {
                 String firstLine = inputLines.get(0);
-                if (!firstLine.startsWith("Inputs: "))
-                    throw new RuntimeException();
+                if (!firstLine.startsWith("Inputs:")) {
+                    throw new RuntimeException("Cannot parse: " + outFiles.outputFile);
+                }
 
                 firstLine = firstLine.substring(7).trim();
                 String[] parameterStrings = StringUtils.split(firstLine, ',');
