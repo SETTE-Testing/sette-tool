@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+  prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="hu.bme.mit.sette.runnerprojectbrowser.Controller">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" prefWidth="300" />
+    <ColumnConstraints hgrow="SOMETIMES" prefWidth="250" />
+    <ColumnConstraints hgrow="ALWAYS" />
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints vgrow="ALWAYS" />
+  </rowConstraints>
+  <children>
+    <VBox>
+      <children>
+        <ListView fx:id="snippetProjectFilter" />
+        <ListView fx:id="toolFilter" />
+        <TextField fx:id="runnerProjectTagFilter" promptText="filter tag..." />
+        <ListView fx:id="runnerProjectList" VBox.vgrow="ALWAYS" />
+      </children>
+    </VBox>
+    <VBox GridPane.columnIndex="1">
+      <children>
+        <TextField fx:id="snippetFilter" promptText="filter snippet..." />
+        <ListView fx:id="snippetList" VBox.vgrow="ALWAYS" />
+      </children>
+    </VBox>
+    <GridPane fx:id="infoPane" GridPane.columnIndex="2">
+      <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" />
+        <ColumnConstraints hgrow="SOMETIMES" />
+      </columnConstraints>
+      <rowConstraints>
+        <RowConstraints vgrow="ALWAYS" />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+      </rowConstraints>
+      <children>
+        <TextArea fx:id="snippetInfo" editable="false" wrapText="true" GridPane.columnSpan="2">
+          <font>
+            <Font name="Monospaced Regular" size="12.0" />
+          </font>
+        </TextArea>
+        <Label text="snippet code" GridPane.rowIndex="2" />
+        <Label text="snippet input code" GridPane.rowIndex="3" />
+        <Label text="info file" GridPane.rowIndex="4" />
+        <Label text="out" GridPane.rowIndex="5" />
+        <Label text="err" GridPane.rowIndex="6" />
+        <Label text="test code" GridPane.rowIndex="7" />
+        <Label text="test code - EvoSuite scaffolding" GridPane.rowIndex="8" />
+        <Label text="inputs xml" GridPane.rowIndex="9" />
+        <Label text="result xml" GridPane.rowIndex="10" />
+        <Label text="coverage xml" GridPane.rowIndex="11" />
+        <Label text="html" GridPane.rowIndex="12" />
+        <Button fx:id="openSnippetCode" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="2" />
+        <Button fx:id="openSnippetInputCode" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="3" />
+        <Button fx:id="openInfoFile" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="4" />
+        <Button fx:id="openOutFile" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="5" />
+        <Button fx:id="openErrFile" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="6" />
+        <Button fx:id="openTestCode" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="7" />
+        <Button fx:id="openTestCodeEvosuiteScaffolding" disable="true" text="Open"
+          GridPane.columnIndex="1" GridPane.rowIndex="8" />
+        <Button fx:id="openInputsXml" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="9" />
+        <Button fx:id="openResultXml" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="10" />
+        <Button fx:id="openCoverageXml" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="11" />
+        <Button fx:id="openHtml" disable="true" text="Open" GridPane.columnIndex="1"
+          GridPane.rowIndex="12" />
+      </children>
+    </GridPane>
+  </children>
+</GridPane>
