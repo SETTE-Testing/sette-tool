@@ -23,7 +23,6 @@
 package hu.bme.mit.sette.samplesnippets._2_complex.dependencies;
 
 import hu.bme.mit.sette.common.snippets.SnippetInputContainer;
-import samplesnippets.CoordinateStructure;
 
 public final class TS2_Structure_Inputs {
     private TS2_Structure_Inputs() {
