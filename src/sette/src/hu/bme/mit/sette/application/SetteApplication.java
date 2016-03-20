@@ -47,7 +47,9 @@ import hu.bme.mit.sette.core.tasks.CsvGenerator;
 import hu.bme.mit.sette.core.tasks.TestSuiteGenerator;
 import hu.bme.mit.sette.core.tasks.TestSuiteRunner;
 import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.runnerprojectbrowser.RunnerProjectBrowser;
 import hu.bme.mit.sette.snippetbrowser.SnippetBrowser;
+import javafx.application.Application;
 
 public final class SetteApplication {
     private final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -98,7 +100,8 @@ public final class SetteApplication {
             BackupPolicy backupPolicy = argParser.getBackupPolicy();
 
             // Determine the snippet project if needed
-            if (snippetProjectDir == null) {
+            if ((applicationTask == null || applicationTask.requiresSnippetProject())
+                    && snippetProjectDir == null) {
                 snippetProjectDir = selectSnippetProjectDir(configuration.getSnippetProjectDirs());
             }
 
@@ -154,17 +157,23 @@ public final class SetteApplication {
             output.println("Tool: " + tool);
             output.println("Runner project tag: " + runnerProjectTag);
             output.println("Snippet selector: " + argParser.getSnippetSelector());
-            output.println(
-                    String.format("Runner timeout: %d ms", runnerTimeoutInMs));
+            output.println(String.format("Runner timeout: %d ms", runnerTimeoutInMs));
             output.println("Backup policy: " + backupPolicy);
 
             //
             // Execute the specified task
             //
-            SnippetProject snippetProject = SnippetProject.parse(snippetProjectDir);
-            ExecutionContext context = new ExecutionContext(input, output, errorOutput,
-                    snippetProject, tool, runnerProjectTag, runnerTimeoutInMs,
-                    argParser.getSnippetSelector(), backupPolicy, configuration.getOutputDir());
+            final SnippetProject snippetProject;
+            final ExecutionContext context;
+            if (applicationTask.requiresSnippetProject()) {
+                snippetProject = SnippetProject.parse(snippetProjectDir);
+                context = new ExecutionContext(input, output, errorOutput,
+                        snippetProject, tool, runnerProjectTag, runnerTimeoutInMs,
+                        argParser.getSnippetSelector(), backupPolicy, configuration.getOutputDir());
+            } else {
+                snippetProject = null;
+                context = null;
+            }
 
             switch (applicationTask) {
                 case EXIT:
@@ -226,6 +235,10 @@ public final class SetteApplication {
                             .collect(joining(","));
                     new CsvBatchGenerator(snippetProject, configuration.getOutputDir(),
                             toolNames, runnerProjectTag).generateAll();
+                    break;
+
+                case RUNNER_PROJECT_BROWSER:
+                    Application.launch(RunnerProjectBrowser.class);
                     break;
 
                 default:

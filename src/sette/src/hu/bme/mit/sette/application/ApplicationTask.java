@@ -26,22 +26,30 @@ package hu.bme.mit.sette.application;
  * Tasks (commands) for the SETTE.
  */
 public enum ApplicationTask {
-    EXIT(false, false),
-    GENERATOR(true, true),
-    RUNNER(true, true),
-    PARSER(true, true),
-    TEST_GENERATOR(true, true),
-    TEST_RUNNER(true, true),
-    SNIPPET_BROWSER(false, false),
-    EXPORT_CSV(true, true),
-    EXPORT_CSV_BATCH(false, false);
+    EXIT(false, false, false),
+    GENERATOR(true, true, true),
+    RUNNER(true, true, true),
+    PARSER(true, true, true),
+    TEST_GENERATOR(true, true, true),
+    TEST_RUNNER(true, true, true),
+    SNIPPET_BROWSER(true, false, false),
+    EXPORT_CSV(true, true, true),
+    EXPORT_CSV_BATCH(true, false, false),
+    RUNNER_PROJECT_BROWSER(false, false, false);
 
+    private final boolean requiresSnippetProject;
     private final boolean requiresTool;
     private final boolean requiresRunnerProjectTag;
 
-    private ApplicationTask(boolean requiresTool, boolean requiresRunnerProjectTag) {
+    private ApplicationTask(boolean requiresSnippetProject, boolean requiresTool,
+            boolean requiresRunnerProjectTag) {
+        this.requiresSnippetProject = requiresSnippetProject;
         this.requiresTool = requiresTool;
         this.requiresRunnerProjectTag = requiresRunnerProjectTag;
+    }
+
+    public boolean requiresSnippetProject() {
+        return requiresSnippetProject;
     }
 
     public boolean requiresTool() {

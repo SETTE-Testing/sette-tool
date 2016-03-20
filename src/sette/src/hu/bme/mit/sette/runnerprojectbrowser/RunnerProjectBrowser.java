@@ -13,7 +13,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 public class RunnerProjectBrowser extends Application {
-
     public static void main(String[] args) {
         try {
             Locale.setDefault(new Locale("en", "GB"));

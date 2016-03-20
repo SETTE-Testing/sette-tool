@@ -262,9 +262,6 @@ public final class Controller implements Initializable {
                     testCodePath = testCodePath.resolveSibling(base + ".java");
                     testCodeEvosuiteScaffoldingPath = testCodePath
                             .resolveSibling(base + "_scaffolding.java");
-
-                    System.out.println(testCodePath);
-                    System.out.println(testCodeEvosuiteScaffoldingPath);
                 }
             }
 
