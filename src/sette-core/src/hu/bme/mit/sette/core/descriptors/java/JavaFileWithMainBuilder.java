@@ -71,24 +71,24 @@ public final class JavaFileWithMainBuilder {
     /**
      * Sets the name of the package.
      *
-     * @param packageName
+     * @param aPackageName
      *            The name of the package.
      * @return The builder instance.
      */
-    public JavaFileWithMainBuilder packageName(String packageName) {
-        this.packageName = packageName;
+    public JavaFileWithMainBuilder packageName(String aPackageName) {
+        this.packageName = aPackageName;
         return this;
     }
 
     /**
      * Sets the name of the class.
      *
-     * @param className
+     * @param aClassName
      *            The name of the class.
      * @return The builder instance.
      */
-    public void className(String className) {
-        this.className = className;
+    public void className(String aClassName) {
+        this.className = aClassName;
     }
 
     /**
