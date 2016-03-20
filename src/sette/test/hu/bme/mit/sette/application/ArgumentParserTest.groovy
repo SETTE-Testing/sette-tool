@@ -138,7 +138,8 @@ Usage:
  --task [exit | generator | runner |    : The task to execute
  parser | test-generator | test-runner
  | snippet-browser | export-csv |
- export-csv-batch]
+ export-csv-batch | runner-project-brow
+ser]
  --tool [CATG | EvoSuite | Randoop |    : The tool to use
  SPF | jPET]'''.trim().replace('\r\n', '\n').split('\n')*.trim()
 
