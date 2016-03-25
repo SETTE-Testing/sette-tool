@@ -41,6 +41,7 @@ public class SnippetInputCheckerParser extends RunResultParser<SnippetInputCheck
     protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
             SnippetInputsXml inputsXml) throws Exception {
         inputsXml.setResultType(ResultType.S);
+        inputsXml.setGeneratedInputCount(snippet.getInputFactory().getInputs().size());
         inputsXml.validate();
     }
 }

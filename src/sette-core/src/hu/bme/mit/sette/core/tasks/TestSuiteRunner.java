@@ -420,6 +420,23 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         ResultType resultType = resultTypeAndCoverage.getLeft();
         double coverage = resultTypeAndCoverage.getRight();
 
+        // FIXME hook to check snippets, but should be elsewhere
+        if (getTool().getClass().getSimpleName().equals("SnippetInputCheckerTool")) {
+            String covStr = String.format("%.2f", coverage);
+            String reqCovStr = String.format("%.2f", snippet.getRequiredStatementCoverage());
+            if (!covStr.equals(reqCovStr)) {
+                System.err
+                        .println(String.format("FAILURE for Checker, %s instead of %s, snippet: %s",
+                                covStr, reqCovStr, snippet.getId()));
+                throw new RuntimeException();
+            }
+
+            if (resultType != ResultType.C) {
+                System.err.println("FAILURE for Checker, not C: " + snippet.getId());
+                throw new RuntimeException();
+            }
+        }
+
         // create coverage XML
         SnippetCoverageXml coverageXml = new SnippetCoverageXml();
         coverageXml.setToolName(getTool().getName());
@@ -488,9 +505,10 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
 
         if (t.isAlive()) {
             // FIXME find a better way if possible (e.g. daemon thread, separate jvm, etc.)
-            System.err.println("Stopped test: " + m.getName());
+            System.err.println("Stopping test: " + m.getName());
             try {
                 t.stop();
+                System.err.println("Stopped test: " + m.getName());
             } catch (Throwable ex) {
                 System.err.println("Thread Stop...");
                 ex.printStackTrace();
