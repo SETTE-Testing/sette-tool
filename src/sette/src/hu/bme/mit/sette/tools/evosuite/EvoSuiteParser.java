@@ -86,99 +86,116 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         // do not parse inputs
         inputsXml.setGeneratedInputs(null);
 
-        // files
+        // out files
         List<String> outputLines = outFiles.readOutputLines();
         List<String> errorLines = outFiles.readErrorOutputLines();
+
+        // test files
         File testDir = getRunnerProjectSettings().getTestDirectory();
+        String classNameWithSlashes = snippet.getContainer().getJavaClass().getName()
+                .replace('.', '/');
+        String snippetName = snippet.getName();
+
+        // evo: my/snippet/MySnippet_method_method
+        // normal: my/snippet/MySnippet_method
+        String testFileBasePathEvo = String.format("%s_%s_%s_Test", classNameWithSlashes,
+                snippetName, snippetName);
+        String testFileBasePathNormal = String.format("%s_%s_Test", classNameWithSlashes,
+                snippetName);
+        File testCasesFileEvo = new File(testDir, testFileBasePathEvo + ".java");
+        File testScaffoldingFile = new File(testDir, testFileBasePathEvo + "_scaffolding.java");
+        File testCasesFile = new File(testDir, testFileBasePathNormal + ".java");
 
         if (outputLines.isEmpty()) {
-            // TODO
-            throw new RuntimeException("TODO parser problem");
-        }
+            throw new RuntimeException(
+                    "EvoSuite did not write anything to SDTOUT for " + snippet.getId());
+        } else if (PathUtils.exists(testScaffoldingFile.toPath())) {
+            // generated some tests -> S
+            inputsXml.setResultType(ResultType.S);
+        } else if (errorLines.isEmpty()) {
+            throw new RuntimeException(
+                    "EvoSuite did not generate any error output nor test file for "
+                            + snippet.getId());
+        } else {
+            // parse error output
+            List<String> skipLines = Arrays.asList(
+                    "ClientNode",
+                    "ERROR JUnitAnalyzer - 1 test cases failed",
+                    "ERROR ExternalProcessHandler - Class",
+                    // internal timeouts:
+                    "ERROR SearchStatistics",
+                    "ClientNode: MINIMIZATION",
+                    "ClientNode: WRITING_TESTS",
+                    "ERROR JUnitAnalyzer - Ran out of time while checking tests");
 
-        if (!errorLines.isEmpty()) {
-            if (errorLines.stream().anyMatch(
-                    line -> line.contains("java.lang.OutOfMemoryError: Java heap space"))) {
-                // not enough memory
-                inputsXml.setResultType(ResultType.TM);
-            } else {
-                for (String line : errorLines) {
-                    if (line.trim().isEmpty()) {
-                        continue;
-                    }
+            List<String> failLines = Arrays.asList(
+                    "ERROR TestCaseExecutor - ExecutionException"
 
-                    if (line.contains("ClientNode")) {
-                        // skip
-                    } else if (line
-                            .contains("[logback-2] ERROR JUnitAnalyzer - 1 test cases failed")) {
-                        // skip
-                    } else if (line.contains("ERROR ExternalProcessHandler - Class")) {
-                        // skip (internal timeout, tool stops and dumps what is has)
-                    } else if (line.contains("ERROR SearchStatistics")) {
-                        // skip (internal timeout, tool stops and dumps what is has)
-                    } else if (line.contains("ERROR TestGeneration - failed to write statistics")) {
-                        // skip (internal timeout, tool stops and dumps what is has)
-                    } else if (line.contains("ClientNode: MINIMIZATION")) {
-                        // skip (internal timeout, tool stops and dumps what is has)
-                    } else if (line.contains("ClientNode: WRITING_TESTS")) {
-                        // skip (internal timeout, tool stops and dumps what is has)
-                    } else if (line.contains(
-                            "ERROR JUnitAnalyzer - Ran out of time while checking tests")) {
-                        // skip (internal timeout, tool stops and dumps what is has)
-                    } else if (line.contains("ERROR TestCaseExecutor - ExecutionException")) {
-                        System.out.println("==========================================");
-                        // "this is likely a serious error in the framework"
-                        System.out.println(outFiles.errorOutputFile);
-                        System.out.println(line);
-                        System.out.println("==========================================");
-                        System.out.println(
-                                new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
-                        System.out.println("==========================================");
-                        System.out.println("==========================================");
-                    } else {
-                        System.out.println("==========================================");
-                        System.out.println(outFiles.errorOutputFile);
-                        System.out.println(line);
-                        System.out.println("==========================================");
-                        System.out.println(
-                                new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
-                        System.out.println("==========================================");
-                        System.out.println("==========================================");
-                        throw new RuntimeException("Problematic line: " + line);
-                    }
+            );
+
+            List<String> exLines = Arrays.asList(
+                    "ERROR ClientNodeImpl - Error when connecting to master via RMI");
+
+            List<String> tmLines = Arrays.asList(
+                    "java.lang.OutOfMemoryError: Java heap space");
+
+            for (String line : errorLines) {
+                if (inputsXml.getResultType() == null) {
+                    break;
+                } else if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                if (containsAny(line, failLines)) {
+                    System.out.println("==========================================");
+                    System.out.println(outFiles.errorOutputFile);
+                    System.out.println(line);
+                    System.out.println("==========================================");
+                    System.out.println(
+                            new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
+                    System.out.println("==========================================");
+                    System.out.println("==========================================");
+                    throw new RuntimeException("Problematic line: " + line);
+                } else if (containsAny(line, tmLines)) {
+                    inputsXml.setResultType(ResultType.TM);
+                } else if (containsAny(line, exLines)) {
+                    inputsXml.setResultType(ResultType.EX);
+                } else if (containsAny(line, skipLines)) {
+                    // skip
+                } else {
+                    System.out.println("==========================================");
+                    System.out.println(outFiles.errorOutputFile);
+                    System.out.println(line);
+                    System.out.println("==========================================");
+                    System.out.println(
+                            new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
+                    System.out.println("==========================================");
+                    System.out.println("==========================================");
+                    throw new RuntimeException("Problematic line: " + line);
                 }
             }
         }
 
         if (inputsXml.getResultType() == null) {
+            // no error detected, assume S
+            inputsXml.setResultType(ResultType.S);
+        }
+
+        if (inputsXml.getResultType() == ResultType.S) {
             boolean computationFinished = isComputationFinished(outputLines);
 
             if (!computationFinished) {
                 throw new RuntimeException("Not finished: " + outFiles.outputFile.toString());
             }
 
-            // evo: my/snippet/MySnippet_method_method
-            // normal: my/snippet/MySnippet_method
-            String testFileBasePathEvo = String.format("%s_%s_%s_Test",
-                    snippet.getContainer().getJavaClass().getName().replace('.', '/'),
-                    snippet.getMethod().getName(), snippet.getMethod().getName());
-            String testFileBasePathNormal = String.format("%s_%s_Test",
-                    snippet.getContainer().getJavaClass().getName().replace('.', '/'),
-                    snippet.getMethod().getName());
-            File testCasesFileEvo = new File(testDir, testFileBasePathEvo + ".java");
-            File testScaffoldingFile = new File(testDir, testFileBasePathEvo + "_scaffolding.java");
-            File testCasesFile = new File(testDir, testFileBasePathNormal + ".java");
-
             // delete scaffolding file
             PathUtils.deleteIfExists(testScaffoldingFile.toPath());
 
             if (!testCasesFileEvo.exists() && !testCasesFile.exists()) {
-                // NOTE no test case, but the tool stopped properly
-                inputsXml.setResultType(ResultType.S);
+                // no test case, but the tool stopped properly
                 inputsXml.setGeneratedInputCount(0);
             } else {
                 // handle testCases file
-                inputsXml.setResultType(ResultType.S);
 
                 //
                 // rename file if needed
@@ -186,7 +203,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 if (testCasesFileEvo.exists() && testCasesFile.exists()) {
                     System.err.println(testCasesFileEvo);
                     System.err.println(testCasesFile);
-                    throw new RuntimeException("Both evo and normal files exists");
+                    throw new RuntimeException("Both EvoSuite and normal files exists");
                 }
 
                 if (testCasesFileEvo.exists() && !testCasesFile.exists()) {
@@ -239,7 +256,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 compilationUnit.getImports().add(new ImportDeclaration(
                         new NameExpr("junit.framework.TestCase"), false, false));
 
-                // distict imports
+                // distinct imports
                 Map<String, ImportDeclaration> newImports = new HashMap<>();
                 for (ImportDeclaration id : compilationUnit.getImports()) {
                     if (!newImports.containsKey(id.toString())) {
@@ -319,14 +336,17 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 testCasesFileString = testCasesFileString.replace(
                         "} catch (TooManyResourcesException e) {",
                         "} catch (Throwable e) { throw e;");
+                testCasesFileString = testCasesFileString.replace(
+                        "assertThrownBy(",
+                        "// assertThrownBy(");
 
                 // NOTE one of the most important things, since evosuite has splitted snippets
                 String badCall = String.format("%s_%s.%s",
                         snippet.getContainer().getJavaClass().getSimpleName(),
-                        snippet.getMethod().getName(), snippet.getMethod().getName());
+                        snippetName, snippetName);
                 String goodCall = String.format("%s.%s",
                         snippet.getContainer().getJavaClass().getSimpleName(),
-                        snippet.getMethod().getName());
+                        snippetName);
 
                 testCasesFileString = testCasesFileString.replace(badCall, goodCall);
 
@@ -342,53 +362,10 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                 inputsXml.setGeneratedInputCount(testMethodCnt);
             }
         }
-        //
+    }
 
-        // if (errorFile.exists()) {
-        // List<String> lines = PathUtils.readAllLines(errorFile);
-        // String firstLine = lines.get(0);
-        //
-        // if (firstLine.startsWith("java.io.FileNotFoundException:")
-        // && firstLine.endsWith("_Test/Test.java (No such file or directory)")) {
-        // // this means that no input was generated but the generation
-        // // was successful
-        // inputsXml.setGeneratedInputCount(0);
-        //
-        // if (snippet.getRequiredStatementCoverage() <= Double.MIN_VALUE
-        // || snippet.getMethod().getParameterCount() == 0) {
-        // // C only if the required statement coverage is 0% or
-        // // the method takes no parameters
-        // inputsXml.setResultType(ResultType.C);
-        // } else {
-        // inputsXml.setResultType(ResultType.NC);
-        // }
-        // } else if (firstLine.startsWith("java.lang.Error: classForName")) {
-        // // exception, no output that not supported -> EX
-        // inputsXml.setResultType(ResultType.EX);
-        // } else {
-        // // TODO
-        // throw new RuntimeException("TODO parser problem");
-        // }
-        // }
-        //
-        // if (inputsXml.getResultType() == null) {
-        // // always S for Randoop
-        // inputsXml.setResultType(ResultType.S);
-        //
-        // // get how many tests were generated
-        // List<String> outputFileLines = PathUtils.readAllLines(outputFile);
-        // int generatedInputCount = outputFileLines.stream()
-        // .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
-        // .filter(m -> m.matches()).map(m -> Integer.parseInt(m.group(1))).findAny()
-        // .orElse(-1);
-        //
-        // Validate.isTrue(generatedInputCount >= 0, "Output file:" + outputFile);
-        // inputsXml.setGeneratedInputCount(generatedInputCount);
-        //
-        // // create input placeholders
-        // }
-        //
-        // inputsXml.validate();
+    private static boolean containsAny(String line, List<String> search) {
+        return search.stream().anyMatch(s -> line.contains(s));
     }
 
     private static boolean isComputationFinished(List<String> outLines) {

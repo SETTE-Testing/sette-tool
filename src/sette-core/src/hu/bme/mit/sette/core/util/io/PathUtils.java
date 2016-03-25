@@ -92,6 +92,12 @@ public final class PathUtils {
         }
     }
 
+    public static void move(Path source, Path target) throws IOException {
+        // FIXME check that source is not part of target, etc.
+        log.info("Moving path: {} -> {}", source, target);
+        Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+    }
+
     public static void delete(Path path) throws IOException {
         if (Files.isDirectory(path)) {
             log.info("Deleting directory recursively {}: ", path);
