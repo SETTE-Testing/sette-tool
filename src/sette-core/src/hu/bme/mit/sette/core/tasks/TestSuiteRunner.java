@@ -422,15 +422,6 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
 
         // FIXME hook to check snippets, but should be elsewhere
         if (getTool().getClass().getSimpleName().equals("SnippetInputCheckerTool")) {
-            String covStr = String.format("%.2f", coverage);
-            String reqCovStr = String.format("%.2f", snippet.getRequiredStatementCoverage());
-            if (!covStr.equals(reqCovStr)) {
-                System.err
-                        .println(String.format("FAILURE for Checker, %s instead of %s, snippet: %s",
-                                covStr, reqCovStr, snippet.getId()));
-                throw new RuntimeException();
-            }
-
             if (resultType != ResultType.C) {
                 System.err.println("FAILURE for Checker, not C: " + snippet.getId());
                 throw new RuntimeException();
