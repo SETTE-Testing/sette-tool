@@ -35,6 +35,7 @@ import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
@@ -125,6 +126,8 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
                         } else if (bodyDecl instanceof FieldDeclaration) {
                             // keep fields
                         } else if (bodyDecl instanceof ClassOrInterfaceDeclaration) {
+                            // keep inner classes and interfaces
+                        } else if (bodyDecl instanceof InitializerDeclaration) {
                             // keep inner classes and interfaces
                         } else {
                             throw new RuntimeException(
