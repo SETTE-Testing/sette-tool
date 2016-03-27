@@ -126,7 +126,7 @@ public class CatgParser extends RunResultParser<CatgTool> {
                 }
 
                 // all lines are accepted warnings
-                inputsXml.setResultType(ResultType.EX);
+                inputsXml.setResultType(ResultType.S);
             }
         } else {
             // no error file, always S
