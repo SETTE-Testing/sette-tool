@@ -154,7 +154,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
                 .relativize(getSnippetProject().getSourceDir()).toString());
 
         // add libraries used by the snippet project
-        for (Path libraryFile : getSnippetProject().getLibFiles()) {
+        for (Path libraryFile : getSnippetProject().getJavaLibFiles()) {
             cp.addEntry(EclipseClasspathEntryKind.LIBRARY,
                     getSnippetProject().getBaseDir().relativize(libraryFile).toString());
         }

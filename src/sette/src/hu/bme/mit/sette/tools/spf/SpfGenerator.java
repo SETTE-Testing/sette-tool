@@ -90,7 +90,7 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
 
                 jpfConfig.classpath = "build" + SystemUtils.FILE_SEPARATOR;
 
-                for (Path libraryFile : getSnippetProject().getLibFiles()) {
+                for (Path libraryFile : getSnippetProject().getJavaLibFiles()) {
                     jpfConfig.classpath += ','
                             + getSnippetProject().getLibDir().toString()
                             + SystemUtils.FILE_SEPARATOR + libraryFile.toFile().getName();

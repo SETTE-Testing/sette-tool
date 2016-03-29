@@ -66,8 +66,7 @@ public final class JaCoCoClassLoader extends ClassLoader {
         Class<?> javaClass = findLoadedClass(className);
 
         if (javaClass != null) {
-            // class was already loaded (and instrumented if bytecode was
-            // found)
+            // class was already loaded (and instrumented if bytecode was found)
             log.debug("{}: the class was already loaded", className);
             return javaClass;
         }
@@ -82,9 +81,13 @@ public final class JaCoCoClassLoader extends ClassLoader {
 
                 // instrument
                 byte[] instrumentedBytes = instrumenter.instrument(bytes, className);
+                log.debug("{}: instrumented class", className);
 
                 // define class
-                return defineClass(className, instrumentedBytes, 0, instrumentedBytes.length);
+                Class<?> cls = defineClass(className, instrumentedBytes, 0,
+                        instrumentedBytes.length);
+                log.debug("{}: defined class", className);
+                return cls;
             } else {
                 // was not found, try to load with the parent, but it will
                 // not be instrumented

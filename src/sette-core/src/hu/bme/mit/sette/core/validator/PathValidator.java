@@ -25,6 +25,9 @@ package hu.bme.mit.sette.core.validator;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+
+import com.google.common.base.Splitter;
 
 import lombok.NonNull;
 
@@ -98,7 +101,8 @@ public final class PathValidator extends Validator<Path> {
      *
      * @param extension
      *            The required file extension (<code>null</code> means that the filename must not
-     *            have any extension, i.e. file name must not contain '.'). Example: "jar", "tar.gz"
+     *            have any extension, i.e. file name must not contain '.'). Example: "jar",
+     *            "tar.gz", "txt|log" (latter will only accept both txt and log)
      * @return this object
      */
     public PathValidator extension(String extension) {
@@ -108,9 +112,13 @@ public final class PathValidator extends Validator<Path> {
             addErrorIfFalse("extension: the filename must not have an extension",
                     filename.indexOf('.') < 0);
         } else {
-            // extension might be complex like tar.gz
-            addErrorIfFalse("extension: the extension must be: " + extension,
-                    filename.endsWith('.' + extension));
+            // e.g.: "tar.gz|java" => accept *.tar.gz, *.java
+            List<String> exts = Splitter.on('|').splitToList(extension);
+
+            if (!exts.stream().anyMatch(ext -> filename.endsWith('.' + ext))) {
+                addError("extension: the extension must be: " + extension);
+            }
+
         }
 
         return this;
@@ -168,8 +176,7 @@ public final class PathValidator extends Validator<Path> {
      * @param executable
      *            see {@link #executable(boolean)} (<code>null</code> means no requirement)
      * @param extension
-     *            see {@link #extension(String)} (<code>null</code> means no extension is
-     *            required)
+     *            see {@link #extension(String)} (<code>null</code> means no extension is required)
      * @return a new {@link PathValidator} instance
      */
     public static PathValidator forRegularFile(Path regularFile, Boolean isReadable,

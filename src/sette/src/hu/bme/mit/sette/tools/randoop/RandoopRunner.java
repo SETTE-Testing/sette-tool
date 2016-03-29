@@ -99,7 +99,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         // create command
         String classpath = randoopJar.getCanonicalPath() + SystemUtils.PATH_SEPARATOR + "build";
 
-        for (Path libraryFile : getSnippetProject().getLibFiles()) {
+        for (Path libraryFile : getSnippetProject().getJavaLibFiles()) {
             classpath += SystemUtils.PATH_SEPARATOR
                     + getRunnerProjectSettings().getSnippetLibraryDirectory().getName()
                     + SystemUtils.FILE_SEPARATOR + libraryFile.toFile().getName();

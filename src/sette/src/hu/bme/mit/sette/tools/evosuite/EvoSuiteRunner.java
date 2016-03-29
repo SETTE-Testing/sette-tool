@@ -74,7 +74,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
 
         // create command
         String classpath = "build";
-        for (Path lib : getSnippetProject().getLibFiles()) {
+        for (Path lib : getSnippetProject().getJavaLibFiles()) {
             if (SystemUtils.IS_OS_WINDOWS) {
                 classpath += ";" + lib.toString();
             } else {

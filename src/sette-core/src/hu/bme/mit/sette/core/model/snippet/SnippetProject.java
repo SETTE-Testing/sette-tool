@@ -24,7 +24,9 @@ package hu.bme.mit.sette.core.model.snippet;
 
 import static java.util.stream.Collectors.toList;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -40,6 +42,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
 
 import hu.bme.mit.sette.common.annotations.SetteDependency;
 import hu.bme.mit.sette.common.annotations.SetteSnippetContainer;
@@ -56,24 +59,24 @@ public final class SnippetProject implements Comparable<SnippetProject> {
     @Getter
     private final Path baseDir;
 
-    /** Set of snippet source files (unmodifiable) */
+    /** Set of snippet source files */
     @Getter
     private final ImmutableSortedSet<Path> snippetFiles;
 
-    /** Set of snippet input source files (unmodifiable) */
+    /** Set of snippet input source files */
     @Getter
     private final ImmutableSortedSet<Path> snippetInputFiles;
 
-    /** Set of library files (unmodifiable) */
+    /** Set of Java library files */
     @Getter
-    private final ImmutableSortedSet<Path> libFiles;
+    private final ImmutableSortedSet<Path> javaLibFiles;
 
     @Getter
     /** Class loader to load classes of the snippet projects */
     private final ClassLoader classLoader;
 
     @Getter
-    /** Set of snippet containers (unmodifiable) */
+    /** Set of snippet containers */
     private final ImmutableList<SnippetContainer> snippetContainers;
 
     @Getter
@@ -115,7 +118,15 @@ public final class SnippetProject implements Comparable<SnippetProject> {
         Validator<SnippetProject> v = Validator.of(this);
         this.snippetFiles = collectAndValidateFiles(getSourceDir(), "java", v);
         this.snippetInputFiles = collectAndValidateFiles(getInputSourceDir(), "java", v);
-        this.libFiles = collectAndValidateFiles(getLibDir(), "jar", v);
+
+        ImmutableSortedSet<Path> libFiles = collectAndValidateFiles(getLibDir(), "jar|dll|so", v);
+        this.javaLibFiles = ImmutableSortedSet.copyOf(
+                libFiles.stream().filter(p -> p.toString().endsWith(".jar")).iterator());
+        if (libFiles.size() != javaLibFiles.size()) {
+            addLibDirToNativeLibPath(getLibDir());
+        }
+
+        v.validate();
 
         // load classes
         this.classLoader = createClassLoader();
@@ -144,6 +155,29 @@ public final class SnippetProject implements Comparable<SnippetProject> {
         v.validate();
 
         // class is ready
+    }
+
+    private static void addLibDirToNativeLibPath(Path libDir) {
+        // FIXME hack if -Djava.library.path is not specified properly
+        // based on http://stackoverflow.com/a/6408467
+        String libDirPath = libDir.toAbsolutePath().toString();
+        try {
+            Field field = ClassLoader.class.getDeclaredField("usr_paths");
+            field.setAccessible(true);
+            ArrayList<String> paths = Lists.newArrayList((String[]) field.get(null));
+            if (!paths.contains(libDirPath)) {
+                paths.add(libDirPath);
+                field.set(null, paths.toArray(new String[0]));
+
+                String propKey = "java.library.path";
+                String oldProp = System.getProperty(propKey);
+                String newProp = oldProp + File.pathSeparator + libDirPath;
+                System.setProperty(propKey, newProp);
+            }
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -218,7 +252,7 @@ public final class SnippetProject implements Comparable<SnippetProject> {
         try {
             List<URL> urls = new ArrayList<>();
             urls.add(getBuildDir().toUri().toURL());
-            for (Path libFile : libFiles) {
+            for (Path libFile : javaLibFiles) {
                 urls.add(libFile.toUri().toURL());
             }
 
@@ -294,7 +328,8 @@ public final class SnippetProject implements Comparable<SnippetProject> {
             String className = relPath.replaceAll("(\\\\|/)", ".").replaceAll("\\.java$", "");
 
             try {
-                Class<?> javaClass = classLoader.loadClass(className);
+                Class<?> javaClass = Class.forName(className, true, classLoader);
+                // Class<?> javaClass = classLoader.loadClass(className);
                 if (javaClass.getAnnotation(SetteDependency.class) != null) {
                     snippetDepClasses.add(javaClass);
                 }

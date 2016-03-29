@@ -253,6 +253,9 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
 
             v.withModifiers(Modifier.STATIC);
             v.withoutModifiers(Modifier.ABSTRACT | Modifier.FINAL | Modifier.NATIVE);
+            // reason for native: SETTE may transform the source of the snippets (e.g., Evosuite)
+            // and this would probably break behaviour - put native methods outside of the snippet
+            // container
 
             // check: public might be snippet or not, private is not snippet
             // non-snippet methods must not have any modifiers

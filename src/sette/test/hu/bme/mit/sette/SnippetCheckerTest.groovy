@@ -92,4 +92,22 @@ class SnippetCheckerTest {
                     '--runner-project-tag', 'test-auto', '--task', task, '--tool', 'SnippetInputChecker')
         }
     }
+
+    @Test
+    public final void testNative() {
+        List<String> tasks = [
+            'generator',
+            'runner',
+            'parser',
+            'test-generator',
+            'test-runner',
+            'export-csv'
+        ]
+
+        tasks.each { String task ->
+            app.execute('--snippet-project-dir', 'sette-snippets/java/sette-snippets-native',
+                    '--backup', 'skip',
+                    '--runner-project-tag', 'test-auto', '--task', task, '--tool', 'SnippetInputChecker')
+        }
+    }
 }

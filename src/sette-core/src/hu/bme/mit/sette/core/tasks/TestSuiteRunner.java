@@ -203,10 +203,10 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
                     throw new RuntimeException("Validation failed");
                 } catch (Throwable ex) {
                     // now dump and go on
-                    System.out.println("========================================================");
+                    System.err.println("========================================================");
                     ex.printStackTrace();
-                    System.out.println("========================================================");
-                    System.out.println("========================================================");
+                    System.err.println("========================================================");
+                    System.err.println("========================================================");
                     throw new RuntimeException(ex);
                 }
             }
@@ -250,9 +250,8 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         runtime.startup(data);
 
         // create class loader
-        JaCoCoClassLoader testClassLoader = new JaCoCoClassLoader(binaryDirectories, instrumenter,
-                getSnippetProject().getClassLoader());
-
+        JaCoCoClassLoader testClassLoader = new JaCoCoClassLoader(binaryDirectories,
+                instrumenter, getSnippetProject().getClassLoader());
         // load test class
         // snippet class and other dependencies will be loaded and instrumented
         // on the fly
@@ -293,11 +292,15 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
                             LOG.trace("Invoking: " + m.getName());
                             // NOTE maybe thread and kill it thread if takes too much time?
                             invokeMethod(testClassInstance, m);
+                            LOG.trace("Invoked: " + m.getName());
                         } else {
                             System.err.println("Not Invoking: " + m.getName());
                             LOG.trace("Not invoking: " + m.getName());
                         }
                     } catch (InvocationTargetException ex) {
+                        LOG.debug("Exception during invoke: " + m.getName());
+                        LOG.debug(ex.getMessage(), ex);
+
                         Throwable cause = ex.getCause();
 
                         if (cause instanceof NullPointerException
@@ -310,7 +313,6 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
                             LOG.error("Exception: " + m.getDeclaringClass().getName() + "."
                                     + m.getName());
                         }
-                        LOG.debug(ex.getMessage(), ex);
                     }
                 } else {
                     // NOTE LOG.warn("Not test method: {}", m.getName());
@@ -757,15 +759,15 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         }
 
         public int getStatus(int lineNumber) {
-            Preconditions.checkArgument(lineNumber >= beginLine);
-            Preconditions.checkArgument(lineNumber <= endLine);
+            Preconditions.checkArgument(lineNumber >= beginLine, "%s < %s", lineNumber, beginLine);
+            Preconditions.checkArgument(lineNumber <= endLine, "%s > %s", lineNumber, endLine);
 
             return lineStatuses[lineNumber - beginLine];
         }
 
         public void setStatus(int lineNumber, int status) {
-            Preconditions.checkArgument(lineNumber >= beginLine);
-            Preconditions.checkArgument(lineNumber <= endLine);
+            Preconditions.checkArgument(lineNumber >= beginLine, "%s < %s", lineNumber, beginLine);
+            Preconditions.checkArgument(lineNumber <= endLine, "%s > %s", lineNumber, endLine);
 
             lineStatuses[lineNumber - beginLine] = status;
         }
