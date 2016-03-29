@@ -65,6 +65,11 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
     @Override
     protected void beforeParse() {
         Path testDir = getRunnerProjectSettings().getTestDirectory().toPath();
+
+        if (!PathUtils.exists(testDir)) {
+            return;
+        }
+
         Path testDirBackup = getRunnerProjectSettings().getBaseDir().toPath()
                 .resolve("test-original");
 
