@@ -42,7 +42,7 @@ foreach ($tool in $Tools) {
     } else {
       foreach ($task in $tasks) {
         Write-Progress -Activity $tool -Status $tag -CurrentOperation $task
-        java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > "$LOG_DIR/${tool}_${tag}_$($TASK_NUMBERS.$task)_${task}.log" 2>&1
+        java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag 2>&1 | % {"$_"} | Out-File "$LOG_DIR/${tool}_${tag}_$($TASK_NUMBERS.$task)_${task}.log"
       }
     }
   }
