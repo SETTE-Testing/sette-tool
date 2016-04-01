@@ -8,6 +8,7 @@ Runs the evaluation tasks on hard-coded performance-time results.
 [CmdletBinding()]
 
 Param(
+  [boolean] $SkipExisting = $true,
   [switch] $MergeCsv,
   [string] $JavaHeapMemory = "4G",
   [string] $AntOptions = "-Xmx4g"
@@ -26,32 +27,30 @@ $targets = @{
         "1|15sec" = (1..10);
         "2|45sec" = (1..10);
         "3|60sec" = (1..10);
-#        "4|120sec" = (1..1);
-#        "5|180sec" = (1..1);
-        "6|300sec" = (1..10);
-    };
-    "jpet" = @{
-        "1|15sec" = (1..10);
-        "2|45sec" = (1..10);
-        "3|60sec" = (1..10);
-#        "4|120sec" = (1..1);
-#        "5|180sec" = (1..1);
         "6|300sec" = (1..10);
     };
     "evosuite" = @{
         "1|15sec" = (1..10);
         "2|45sec" = (1..10);
         "3|60sec" = (1..10);
-#        "4|120sec" = (1..1);
-#        "5|180sec" = (1..1);
+        "6|300sec" = (1..10);
+    };
+    "jpet" = @{
+        "1|15sec" = (1..10);
+        "2|45sec" = (1..10);
+        "3|60sec" = (1..10);
+        "6|300sec" = (1..10);
+    };
+    "randoop" = @{
+        "1|15sec" = (1..10);
+        "2|45sec" = (1..10);
+        "3|60sec" = (1..10);
         "6|300sec" = (1..10);
     };
     "spf" = @{
         "1|15sec" = (1..10);
         "2|45sec" = (1..10);
         "3|60sec" = (1..10);
-#        "4|120sec" = (1..1);
-#        "5|180sec" = (1..1);
         "6|300sec" = (1..10);
     }
 }
@@ -77,14 +76,14 @@ foreach ($tool in $targets.Keys | Sort-Object) {
 
             $csvs += "../sette-results/$dir/sette-evaluation.csv"
 
-            if (Test-Path "../sette-results/$dir/sette-evaluation.csv") {
+            if ( $SkipExisting -and (Test-Path "../sette-results/$dir/sette-evaluation.csv")) {
                 Write-Output "Skipping $tool $tag"
             } else {
                 foreach ($taskNum in $tasks.Keys | Sort-Object) {
                     $task = $tasks[$taskNum]
 
                     Write-Progress -Activity "$SNIPPET_PROJECT $tool" -Status $tag -CurrentOperation $task
-                    java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag > "$LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log" 2>&1                    
+                    java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag 2>&1 | % {"$_"} | Out-File "$LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log"
                 }
             }
         }
