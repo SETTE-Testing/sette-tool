@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -49,7 +50,7 @@ import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class RandoopParser extends RunResultParser<RandoopTool> {
     private final static Pattern TEST_COUNT_LINE_PATTERN = Pattern
-            .compile("^Writing (\\d+) junit tests$");
+            .compile("^Writing (-?\\d+) junit tests$");
 
     public RandoopParser(SnippetProject snippetProject, Path outputDir, RandoopTool tool,
             String runnerProjectTag) {
@@ -113,10 +114,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             inputsXml.setResultType(ResultType.S);
 
             // get how many tests were generated
-            int generatedInputCount = outputLines.stream()
-                    .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
-                    .filter(m -> m.matches()).map(m -> Integer.parseInt(m.group(1))).findAny()
-                    .orElse(-1);
+            int generatedInputCount = getGeneratedInputCountFromOutputLines(outputLines);
 
             if (generatedInputCount >= 0) {
                 inputsXml.setGeneratedInputCount(generatedInputCount);
@@ -186,6 +184,25 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
             }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * @return a numbber >= 0 if it is present in the output file, otherwise -1
+     */
+    private static int getGeneratedInputCountFromOutputLines(List<String> outputLines) {
+        IntSummaryStatistics ints = outputLines.stream()
+                .map(line -> TEST_COUNT_LINE_PATTERN.matcher(line.trim()))
+                .filter(m -> m.matches())
+                .mapToInt(m -> Integer.parseInt(m.group(1)))
+                .summaryStatistics();
+
+        if (ints.getMin() < 0) {
+            throw new RuntimeException("RANDOOP: Number of tests is negative:" + outputLines);
+        } else if (ints.getCount() > 0) {
+            return (int) ints.getSum();
+        } else {
+            return -1;
         }
     }
 }
