@@ -15,7 +15,8 @@ Param(
   [boolean] $SkipExisting = $true,
   [boolean] $ExportCsvBatch = $true,
   [string] $JavaHeapMemory = "4G",
-  [string] $AntOptions = "-Xmx4g"
+  [string] $AntOptions = "-Xmx4g",
+  [string] $SnippetSelector = ".*"
 )
 
 $SNIPPET_PROJECT = "sette-snippets"
@@ -42,7 +43,7 @@ foreach ($tool in $Tools) {
     } else {
       foreach ($task in $tasks) {
         Write-Progress -Activity $tool -Status $tag -CurrentOperation $task
-        java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag 2>&1 | % {"$_"} | Out-File "$LOG_DIR/${tool}_${tag}_$($TASK_NUMBERS.$task)_${task}.log"
+        java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag --snippet-selector $SnippetSelector 2>&1 | % {"$_"} | Out-File "$LOG_DIR/${tool}_${tag}_$($TASK_NUMBERS.$task)_${task}.log"
       }
     }
   }

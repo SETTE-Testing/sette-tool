@@ -11,7 +11,9 @@ Param(
   [boolean] $SkipExisting = $true,
   [switch] $MergeCsv,
   [string] $JavaHeapMemory = "4G",
-  [string] $AntOptions = "-Xmx4g"
+  [string] $AntOptions = "-Xmx4g",
+  [string] $SnippetSelector = ".*",
+  [string[]] $SelectedTasks
 )
 
 $SNIPPET_PROJECT = "sette-snippets-performance-time"
@@ -21,6 +23,25 @@ $LOG_DIR = "explog"
 $Env:ANT_OPTS = $AntOptions
 
 $tasks = @{"3" = "parser"; "4" =  "test-generator"; "5" = "test-runner"; "6" = "export-csv"}
+
+if ($SelectedTasks) {
+    $allTasks = $tasks
+    $tasks = @{}
+
+    foreach ($stask in $SelectedTasks) {
+        if ($stask -and $allTasks.Values -notcontains $stask) {
+            $Host.UI.WriteErrorLine("Unknown task $stask")
+            exit 1
+        }
+    }
+    
+    foreach ($taskNum in $allTasks.Keys | Sort-Object) {
+        $task = $allTasks[$taskNum]
+        if ($SelectedTasks -contains $task) {
+            $tasks[$taskNum] = $task
+        }
+    }
+}
 
 $targets = @{
     "catg" = @{
@@ -83,7 +104,7 @@ foreach ($tool in $targets.Keys | Sort-Object) {
                     $task = $tasks[$taskNum]
 
                     Write-Progress -Activity "$SNIPPET_PROJECT $tool" -Status $tag -CurrentOperation $task
-                    java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag 2>&1 | % {"$_"} | Out-File "$LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log"
+                    java "-Xmx$JavaHeapMemory" -jar sette-all.jar --snippet-project-dir $SNIPPET_PROJECT_DIR --tool $tool --task $task --runner-project-tag $tag --snippet-selector $SnippetSelector 2>&1 | % {"$_"} | Out-File "$LOG_DIR/$SNIPPET_PROJECT/${tool}_${tag}_${taskNum}_${task}.log"
                 }
             }
         }
