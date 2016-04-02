@@ -235,8 +235,16 @@ public final class SetteApplication {
                     // FIXME runnerProjectTag is a list of tags separated by ','
                     String toolNames = configuration.getToolConfigurations()
                             .stream()
-                            .map(tc -> tc.getName())
-                            .collect(joining(","));
+                            .peek(tc -> {
+                                try {
+                                    // only to register to ToolRegister
+                                    Tool.create(tc);
+                                } catch (Exception ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                            })
+                            .map(tc -> tc.getName()).collect(joining(","));
+
                     new CsvBatchGenerator(snippetProject, configuration.getOutputDir(),
                             toolNames, runnerProjectTag).generateAll();
                     break;

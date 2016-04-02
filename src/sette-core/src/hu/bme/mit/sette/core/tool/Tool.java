@@ -106,6 +106,8 @@ public abstract class Tool implements Comparable<Tool> {
             // unknown version
             this.version = "";
         }
+
+        ToolRegister.register(this);
     }
 
     /**

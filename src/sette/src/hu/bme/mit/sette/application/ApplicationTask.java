@@ -34,7 +34,7 @@ public enum ApplicationTask {
     TEST_RUNNER(true, true, true),
     SNIPPET_BROWSER(true, false, false),
     EXPORT_CSV(true, true, true),
-    EXPORT_CSV_BATCH(true, false, false),
+    EXPORT_CSV_BATCH(true, false, true), // tag is a comma-separated list for this task
     RUNNER_PROJECT_BROWSER(false, false, false);
 
     private final boolean requiresSnippetProject;

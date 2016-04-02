@@ -24,9 +24,11 @@
 package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,8 +64,13 @@ public final class CsvBatchGenerator {
                 CsvGenerator gen = new CsvGenerator(snippetProject, outputDir.toPath(), tool, tag);
                 System.err.println("CsvBatchGenerator.generate for: "
                         + gen.getRunnerProjectSettings().getProjectName());
-                gen.generate();
-                filesToMerge.add(gen.getCsvFile());
+                try {
+                    gen.generate();
+                    filesToMerge.add(gen.getCsvFile());
+                } catch (FileNotFoundException ex) {
+                    // skip
+                    System.err.println("Not found: " + ex.getMessage());
+                }
             }
         }
 
@@ -80,9 +87,6 @@ public final class CsvBatchGenerator {
 
         // write
         String mergedFilename = snippetProject.getName();
-        mergedFilename += "___";
-        mergedFilename += Stream.of(tools).map(tool -> tool.getName())
-                .collect(Collectors.joining(","));
         mergedFilename += "___";
         mergedFilename += String.join(",", runnerProjectTags);
         mergedFilename += ".csv";
