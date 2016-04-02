@@ -188,7 +188,7 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
     }
 
     /**
-     * @return a numbber >= 0 if it is present in the output file, otherwise -1
+     * @return a number >= 0 if it is present in the output file, otherwise -1
      */
     private static int getGeneratedInputCountFromOutputLines(List<String> outputLines) {
         IntSummaryStatistics ints = outputLines.stream()
