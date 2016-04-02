@@ -134,7 +134,8 @@ Usage:
  --snippet-selector [PATTERN]           : Regular expression to filter a subset
                                           of the snippets (the pattern will be
                                           matched against snippet IDs and it
-                                          will only be used by the runner task)
+                                          will only be used by the runner and
+                                          test-runner tasks)
  --task [exit | generator | runner |    : The task to execute
  parser | test-generator | test-runner
  | snippet-browser | export-csv |
@@ -279,11 +280,11 @@ ser]
             assert snippetSelector == null
         }
     }
-
+    
     @Test
     void testParsePattern() {
         argParser.with{
-            assert parse('--snippet-selector', 'pat{2}ern') : errorOutput.lines
+            assert parse('--snippet-selector', 'pat{1,2}ern') : errorOutput.lines
 
             assert backupPolicy == BackupPolicy.ASK
             assert runnerProjectTag == null
@@ -291,7 +292,46 @@ ser]
             assert snippetProjectDir == null
             assert applicationTask == null
             assert toolConfiguration == null
+            assert !snippetSelector.matcher('').matches()
+            assert snippetSelector.matcher('patern').matches()
             assert snippetSelector.matcher('pattern').matches()
+            assert !snippetSelector.matcher('apattern').matches()
+        }
+    }
+
+    @Test
+    void testParseWildcardPattern() {
+        argParser.with{
+            assert parse('--snippet-selector', '.*') : errorOutput.lines
+
+            assert backupPolicy == BackupPolicy.ASK
+            assert runnerProjectTag == null
+            assert runnerTimeoutInMs == 30000
+            assert snippetProjectDir == null
+            assert applicationTask == null
+            assert toolConfiguration == null
+            assert snippetSelector.matcher('').matches()
+            assert snippetSelector.matcher('patern').matches()
+            assert snippetSelector.matcher('pattern').matches()
+            assert snippetSelector.matcher('apattern').matches()
+        }
+    }
+
+    @Test
+    void testParseEmptyPatterMatchesOnlyEmpty() {
+        argParser.with{
+            assert parse('--snippet-selector', '') : errorOutput.lines
+
+            assert backupPolicy == BackupPolicy.ASK
+            assert runnerProjectTag == null
+            assert runnerTimeoutInMs == 30000
+            assert snippetProjectDir == null
+            assert applicationTask == null
+            assert toolConfiguration == null
+            assert snippetSelector.matcher('').matches()
+            assert !snippetSelector.matcher('patern').matches()
+            assert !snippetSelector.matcher('pattern').matches()
+            assert !snippetSelector.matcher('apattern').matches()
         }
     }
 

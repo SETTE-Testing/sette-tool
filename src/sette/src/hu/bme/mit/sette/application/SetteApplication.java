@@ -204,8 +204,12 @@ public final class SetteApplication {
                     break;
 
                 case TEST_RUNNER:
-                    new TestSuiteRunner(snippetProject, configuration.getOutputDir(), tool,
-                            runnerProjectTag).analyze();
+                    TestSuiteRunner testSuiteRunner = new TestSuiteRunner(snippetProject,
+                            configuration.getOutputDir(), tool, runnerProjectTag);
+                    if (context != null) {
+                        testSuiteRunner.setSnippetSelector(context.getSnippetSelector());
+                    }
+                    testSuiteRunner.analyze();
                     break;
 
                 case SNIPPET_BROWSER:

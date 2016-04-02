@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -88,9 +89,15 @@ import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import junit.framework.AssertionFailedError;
+import lombok.Getter;
+import lombok.Setter;
 
 public final class TestSuiteRunner extends EvaluationTask<Tool> {
     private final Logger LOG = LoggerFactory.getLogger(TestSuiteRunner.class);
+
+    @Getter
+    @Setter
+    private Pattern snippetSelector = null;
 
     public TestSuiteRunner(SnippetProject snippetProject, Path outputDir, Tool tool,
             String runnerProjectTag) {
@@ -121,6 +128,14 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
+                // FIXME duplicated in RunnerProjectRunner -> replace loop with proper iterator
+                if (snippetSelector != null
+                        && !snippetSelector.matcher(snippet.getId()).matches()) {
+                    String msg = String.format("Skipping %s (--snippet-selector)", snippet.getId());
+                    log.info(msg);
+                    continue;
+                }
+
                 File inputsXmlFile = RunnerProjectUtils
                         .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
@@ -217,6 +232,15 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
+                // FIXME duplicated in RunnerProjectRunner (and above too) -> replace loop with
+                // proper iterator
+                if (snippetSelector != null
+                        && !snippetSelector.matcher(snippet.getId()).matches()) {
+                    String msg = String.format("Skipping %s (--snippet-selector)", snippet.getId());
+                    log.info(msg);
+                    continue;
+                }
+
                 File resultXmlFile = RunnerProjectUtils
                         .getSnippetResultFile(getRunnerProjectSettings(), snippet);
 
@@ -573,52 +597,55 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
                     }
                 }
             } catch (NoSuchElementException ex) {
-                // dependency file
-                if (snippet.getIncludedConstructors().isEmpty()
-                        && snippet.getIncludedMethods().isEmpty()) {
-                    // nothing to do
-                } else {
-                    // handle included coverage
-                    List<BodyDeclaration> inclDecls = new ArrayList<>();
+                // snippet method was not found in the file => included method in dependency
+            }
 
-                    // NOTE this might be not working (ctor)
-                    for (Constructor<?> ctor : snippet.getIncludedConstructors()) {
-                        if (!ctor.getDeclaringClass().getSimpleName()
-                                .equals(compilationUnit.getTypes().get(0).getName())) {
-                            continue;
-                        }
+            if (snippet.getIncludedConstructors().isEmpty()
+                    && snippet.getIncludedMethods().isEmpty()) {
+                // nothing to do
+            } else {
+                // handle included coverage if:
+                // a) method was not found in the file (dependency file)
+                // b) there is included method in the same file as the snippet
+                List<BodyDeclaration> inclDecls = new ArrayList<>();
 
-                        BodyDeclaration decl = getCuConstructorDecl(compilationUnit,
-                                ctor.getName());
-                        // maybe default ctor not present in source
-                        if (decl != null) {
-                            inclDecls.add(decl);
-                        }
+                // NOTE this might be not working (ctor)
+                for (Constructor<?> ctor : snippet.getIncludedConstructors()) {
+                    if (!ctor.getDeclaringClass().getSimpleName()
+                            .equals(compilationUnit.getTypes().get(0).getName())) {
+                        continue;
                     }
 
-                    for (Method method : snippet.getIncludedMethods()) {
-                        if (!method.getDeclaringClass().getSimpleName()
-                                .equals(compilationUnit.getTypes().get(0).getName())) {
-                            continue;
-                        }
+                    BodyDeclaration decl = getCuConstructorDecl(compilationUnit,
+                            ctor.getName());
+                    // maybe default ctor not present in source
+                    if (decl != null) {
+                        inclDecls.add(decl);
+                    }
+                }
 
-                        BodyDeclaration decl = getCuMethodDecl(compilationUnit, method.getName());
-                        // maybe in superclass
-                        if (decl != null) {
-                            inclDecls.add(decl);
-                        }
+                for (Method method : snippet.getIncludedMethods()) {
+                    if (!method.getDeclaringClass().getSimpleName()
+                            .equals(compilationUnit.getTypes().get(0).getName())) {
+                        continue;
                     }
 
-                    for (BodyDeclaration methodDecl : inclDecls) {
-                        for (int lineNumber = methodDecl.getBeginLine(); lineNumber <= methodDecl
-                                .getEndLine(); lineNumber++) {
-                            int s = lines.getStatus(lineNumber);
+                    BodyDeclaration decl = getCuMethodDecl(compilationUnit, method.getName());
+                    // maybe in superclass
+                    if (decl != null) {
+                        inclDecls.add(decl);
+                    }
+                }
 
-                            if (s != ICounter.EMPTY) {
-                                linesToCover++;
-                                if (s == ICounter.FULLY_COVERED || s == ICounter.PARTLY_COVERED) {
-                                    linesCovered++;
-                                }
+                for (BodyDeclaration methodDecl : inclDecls) {
+                    for (int lineNumber = methodDecl.getBeginLine(); lineNumber <= methodDecl
+                            .getEndLine(); lineNumber++) {
+                        int s = lines.getStatus(lineNumber);
+
+                        if (s != ICounter.EMPTY) {
+                            linesToCover++;
+                            if (s == ICounter.FULLY_COVERED || s == ICounter.PARTLY_COVERED) {
+                                linesCovered++;
                             }
                         }
                     }

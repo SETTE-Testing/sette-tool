@@ -238,6 +238,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
+                // FIXME duplicated in TestSuiteRunner -> replace loop with proper iterator 
                 if (snippetSelector != null
                         && !snippetSelector.matcher(snippet.getId()).matches()) {
                     String msg = String.format("Skipping %s (--snippet-selector)", snippet.getId());

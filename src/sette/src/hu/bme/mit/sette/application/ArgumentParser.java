@@ -74,7 +74,8 @@ public class ArgumentParser {
     @Getter
     @Option(name = "--snippet-selector", metaVar = "[PATTERN]",
             usage = "Regular expression to filter a subset of the snippets (the pattern will be "
-                    + "matched against snippet IDs and it will only be used by the runner task)")
+                    + "matched against snippet IDs and it will only be used by the runner and "
+                    + "test-runner tasks)")
     private Pattern snippetSelector = null;
 
     @Getter
