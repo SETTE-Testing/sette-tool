@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.tasks;
+package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
 import java.io.File;
 import java.io.IOException;

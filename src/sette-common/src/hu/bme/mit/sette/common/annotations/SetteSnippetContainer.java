@@ -69,4 +69,12 @@ public @interface SetteSnippetContainer {
      * Java SE 6 (1.6).
      */
     JavaVersion requiredJavaVersion() default JavaVersion.JAVA_6;
+
+    /**
+     * <code>true</code> means that all the test cases of the snippets of this snippet container
+     * will be executed on a separate JVM. This might be needed e.g., if the snippets change JVM
+     * System.properties, start threads or open sockets. Please note that the startup time of a
+     * separate JVM during evaluation is 1-2 seconds compared to the fast 10-20 ms test cases.
+     */
+    boolean forkDuringEvaluation() default false;
 }

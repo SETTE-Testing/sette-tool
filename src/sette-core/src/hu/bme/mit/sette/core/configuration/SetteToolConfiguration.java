@@ -53,7 +53,7 @@ public final class SetteToolConfiguration implements Comparable<SetteToolConfigu
      * @param toolDir
      *            the tool directory
      */
-    SetteToolConfiguration(@NonNull String className, @NonNull String name,
+    public SetteToolConfiguration(@NonNull String className, @NonNull String name,
             @NonNull Path toolDir) {
         this.className = className;
         this.name = name.trim();

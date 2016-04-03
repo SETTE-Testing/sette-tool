@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.ClassUtils;
@@ -330,10 +331,17 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
                 }
 
                 Object returnValue;
-                if (snippet.getMethod().getName().startsWith("infinite")) {
-                    // infinite method, do not call
+                // FIXME: timeout for method call 
+                List<String> skipMethodNamePrefixes = Arrays.asList("infinite",
+                        "canInterruptSleep", "deadlock");
+
+                if (snippetReturnType == Void.class) {
+                    returnValue = null;
+                } else if (skipMethodNamePrefixes.stream()
+                        .anyMatch(prefix -> snippet.getMethod().getName().startsWith(prefix))) {
                     returnValue = RunResultParser.getDefaultParameterValue(snippetReturnType);
                 } else {
+                    System.out.println(snippet.getId());
                     returnValue = snippet.getMethod().invoke(null, methodParams);
                 }
 

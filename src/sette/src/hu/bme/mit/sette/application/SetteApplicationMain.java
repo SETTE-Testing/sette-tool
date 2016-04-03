@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public final class SetteApplicationMain {
         } catch (Exception ex) {
             Locale.setDefault(Locale.ENGLISH);
         }
-        
+
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
@@ -65,8 +66,14 @@ public final class SetteApplicationMain {
                     // required for test runner if it stops a thread with Thread.stop()
                     LOG.warn("Thread death: " + Thread.currentThread().getName(), ex);
                 } else {
-                    LOG.error("Uncaught exception, thread: " + thread.getName(), ex);
-                    System.exit(1);
+                    String stackTrace = ExceptionUtils.getStackTrace(ex);
+                    if (stackTrace.contains("at hu.bme.mit.sette.snippets")) {
+                        // FIXME ugly detection of snippet exceptions from separate threads
+                        LOG.error("Exception from a snippet, thread: " + thread.getName(), ex);
+                    } else {
+                        LOG.error("Uncaught exception, thread: " + thread.getName(), ex);
+                        System.exit(1);
+                    }
                 }
             }
         });

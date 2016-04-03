@@ -23,7 +23,7 @@
 package hu.bme.mit.sette.core.exceptions;
 
 import hu.bme.mit.sette.core.SetteException;
-import hu.bme.mit.sette.core.tasks.TestSuiteRunner;
+import hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunner;
 
 /**
  * Exception class for exceptions in connection with a test suite runner.

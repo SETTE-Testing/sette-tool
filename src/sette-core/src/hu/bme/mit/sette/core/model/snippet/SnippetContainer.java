@@ -78,6 +78,10 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
     @Getter
     private final String goal;
 
+    /** <code>true</code> means that each test case has to be executed on a separate JVM process. */
+    @Getter
+    private final boolean forkDuringEvaluation;
+
     /** The required Java version. */
     @Getter
     private final JavaVersion requiredJavaVersion;
@@ -137,6 +141,7 @@ public final class SnippetContainer implements Comparable<SnippetContainer> {
             category = containerAnnot.category();
             goal = containerAnnot.goal();
             requiredJavaVersion = containerAnnot.requiredJavaVersion();
+            forkDuringEvaluation = containerAnnot.forkDuringEvaluation();
 
             cv.addErrorIfFalse("The class name should start with the category: " + category,
                     javaClass.getSimpleName().startsWith(category));

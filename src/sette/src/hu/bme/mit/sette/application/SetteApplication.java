@@ -45,7 +45,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.CsvBatchGenerator;
 import hu.bme.mit.sette.core.tasks.CsvGenerator;
 import hu.bme.mit.sette.core.tasks.TestSuiteGenerator;
-import hu.bme.mit.sette.core.tasks.TestSuiteRunner;
+import hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunner;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.runnerprojectbrowser.RunnerProjectBrowser;
 import hu.bme.mit.sette.snippetbrowser.SnippetBrowser;

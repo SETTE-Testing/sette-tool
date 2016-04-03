@@ -40,7 +40,7 @@ import lombok.NonNull;
  * @param <T>
  *            the type of the tool
  */
-abstract class EvaluationTask<T extends Tool> {
+public abstract class EvaluationTask<T extends Tool> {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     /** The snippet project. */
