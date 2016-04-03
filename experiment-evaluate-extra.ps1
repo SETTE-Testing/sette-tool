@@ -1,7 +1,7 @@
 ﻿<#
 
 .SYNOPSIS
-Runs the evaluation tasks on hard-coded performance-time results.
+Runs the evaluation tasks on hard-coded extra snippet results.
 
 #>
 
@@ -16,8 +16,8 @@ Param(
   [string[]] $SelectedTasks
 )
 
-$SNIPPET_PROJECT = "sette-snippets-performance-time"
-$SNIPPET_PROJECT_DIR = "sette-snippets/java/sette-snippets-performance-time"
+$SNIPPET_PROJECT = "sette-snippets-extra"
+$SNIPPET_PROJECT_DIR = "sette-snippets/java/sette-snippets-extra"
 $LOG_DIR = "explog"
 
 $Env:ANT_OPTS = $AntOptions
@@ -45,34 +45,19 @@ if ($SelectedTasks) {
 
 $targets = @{
     "catg" = @{
-        "1|15sec" = (1..10);
-        "2|45sec" = (1..10);
-        "3|60sec" = (1..10);
-        "6|300sec" = (1..10);
+        "1|30sec" = (1..10);
     };
     "evosuite" = @{
-        "1|15sec" = (1..10);
-        "2|45sec" = (1..10);
-        "3|60sec" = (1..10);
-        "6|300sec" = (1..10);
+        #"1|30sec" = (1..10);
     };
     "jpet" = @{
-        "1|15sec" = (1..10);
-        "2|45sec" = (1..10);
-        "3|60sec" = (1..10);
-        "6|300sec" = (1..10);
+        "1|30sec" = (1..10);
     };
     "randoop" = @{
-        "1|15sec" = (1..10);
-        "2|45sec" = (1..10);
-        "3|60sec" = (1..10);
-        "6|300sec" = (1..10);
+        "1|30sec" = (1..10);
     };
     "spf" = @{
-        "1|15sec" = (1..10);
-        "2|45sec" = (1..10);
-        "3|60sec" = (1..10);
-        "6|300sec" = (1..10);
+        "1|30sec" = (1..10);
     }
 }
 
@@ -119,5 +104,5 @@ if ($MergeCsv) {
         $mergedCsv += Import-Csv $csv
     }
     
-    $mergedCsv | Export-Csv "performance-time.csv" -NoTypeInformation
+    $mergedCsv | Export-Csv "snippets-extra.csv" -NoTypeInformation
 }
