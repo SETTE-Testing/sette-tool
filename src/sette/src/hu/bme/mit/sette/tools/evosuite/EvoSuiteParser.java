@@ -183,10 +183,15 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
 
         if (inputsXml.getResultType() == null) {
             // no error detected, assume S
-            inputsXml.setResultType(ResultType.S);
+            if (snippet.getRequiredStatementCoverage() == 0) {
+                inputsXml.setResultType(ResultType.C);
+            } else {
+                inputsXml.setResultType(ResultType.S);
+            }
         }
 
-        if (inputsXml.getResultType() == ResultType.S) {
+        if (inputsXml.getResultType() == ResultType.S
+                || inputsXml.getResultType() == ResultType.C) {
             boolean computationFinished = isComputationFinished(outputLines);
 
             if (!computationFinished) {

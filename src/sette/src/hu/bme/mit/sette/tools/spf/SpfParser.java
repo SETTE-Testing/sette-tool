@@ -102,7 +102,11 @@ public class SpfParser extends RunResultParser<SpfTool> {
 
         if (inputsXml.getResultType() == null) {
             // TODO enhance
-            inputsXml.setResultType(ResultType.S);
+            if (snippet.getRequiredStatementCoverage() == 0) {
+                inputsXml.setResultType(ResultType.C);
+            } else {
+                inputsXml.setResultType(ResultType.S);
+            }
 
             // if (snippet.getMethod().toString().contains("_Constants")
             // || snippet.getMethod().toString().contains(".always()")) {

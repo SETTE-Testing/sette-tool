@@ -24,6 +24,7 @@
 package hu.bme.mit.sette.tools.catg;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -44,7 +45,7 @@ import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 public class CatgParser extends RunResultParser<CatgTool> {
     private static final Pattern EXCEPTION_LINE_PATTERN;
-    private static Pattern[] ACCEPTED_ERROR_LINE_PATTERNS;
+    private static final Pattern[] ACCEPTED_ERROR_LINE_PATTERNS;
 
     static {
         EXCEPTION_LINE_PATTERN = Pattern
@@ -96,7 +97,8 @@ public class CatgParser extends RunResultParser<CatgTool> {
                             System.err.println(snippet.getMethod());
                             System.err.println(outFiles.errorOutputFile);
                             System.err.println("NOT HANDLED EXCEPTION TYPE: " + exceptionType);
-                            throw new RuntimeException("SETTE parser problem");
+                            throw new RuntimeException("SETTE parser problem" + snippet.getId()
+                                    + " - " + getRunnerProjectSettings().getProjectName());
                         }
                     }).collect(Collectors.toSet());
 
@@ -110,18 +112,28 @@ public class CatgParser extends RunResultParser<CatgTool> {
                     throw new RuntimeException("SETTE parser problem");
                 }
             } else {
-                // no exception lines
-                // check whether the other lines are accepted warnings
-                for (String errorLine : errorLines) {
-                    if (StringUtils.isBlank(errorLine)) {
-                        // skip blank lines
-                    } else if (!Stream.of(ACCEPTED_ERROR_LINE_PATTERNS)
-                            .anyMatch(p -> p.matcher(errorLine.trim()).matches())) {
-                        System.err.println(
-                                ACCEPTED_ERROR_LINE_PATTERNS[0].matcher(errorLine).matches());
-                        System.err.println(String.join("\n", errorLines));
-                        System.err.println("Unknown line: " + errorLine);
-                        throw new RuntimeException("SETTE parser problem");
+                List<String> acceptIfFirstLineStartsWith = Arrays.asList(
+                        "java.io.UTFDataFormatException", "java.io.StreamCorruptedException",
+                        "java.io.OptionalDataException");
+
+                if (acceptIfFirstLineStartsWith.stream()
+                        .anyMatch(prefix -> errorLines.get(0).startsWith(prefix))) {
+                    // skip
+                } else {
+                    // no exception lines
+                    // check whether the other lines are accepted warnings
+                    for (String errorLine : errorLines) {
+                        if (StringUtils.isBlank(errorLine)) {
+                            // skip blank lines
+                        } else if (!Stream.of(ACCEPTED_ERROR_LINE_PATTERNS)
+                                .anyMatch(p -> p.matcher(errorLine.trim()).matches())) {
+                            System.err.println(
+                                    ACCEPTED_ERROR_LINE_PATTERNS[0].matcher(errorLine).matches());
+                            System.err.println(String.join("\n", errorLines));
+                            System.err.println("Unknown line: " + errorLine);
+                            throw new RuntimeException("SETTE parser problem: " + snippet.getId()
+                                    + " - " + getRunnerProjectSettings().getProjectName());
+                        }
                     }
                 }
 
@@ -130,11 +142,16 @@ public class CatgParser extends RunResultParser<CatgTool> {
             }
         } else {
             // no error file, always S
-            inputsXml.setResultType(ResultType.S);
+            if (snippet.getRequiredStatementCoverage() == 0) {
+                inputsXml.setResultType(ResultType.C);
+            } else {
+                inputsXml.setResultType(ResultType.S);
+            }
         }
 
         // collect inputs if S
-        if (inputsXml.getResultType() == ResultType.S) {
+        if (inputsXml.getResultType() == ResultType.S
+                || inputsXml.getResultType() == ResultType.C) {
             // collect inputs
             if (!outputLines.get(0).startsWith("Now testing ")) {
                 throw new RuntimeException("File beginning problem: " + outFiles.outputFile);

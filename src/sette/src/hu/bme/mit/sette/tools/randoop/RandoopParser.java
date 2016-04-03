@@ -111,7 +111,11 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
 
         if (inputsXml.getResultType() == null) {
             // always S for Randoop
-            inputsXml.setResultType(ResultType.S);
+            if (snippet.getRequiredStatementCoverage() == 0) {
+                inputsXml.setResultType(ResultType.C);
+            } else {
+                inputsXml.setResultType(ResultType.S);
+            }
 
             // get how many tests were generated
             int generatedInputCount = getGeneratedInputCountFromOutputLines(outputLines);

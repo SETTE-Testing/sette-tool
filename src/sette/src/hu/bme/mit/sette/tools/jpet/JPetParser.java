@@ -150,7 +150,11 @@ public class JPetParser extends RunResultParser<JPetTool> {
                 }
 
                 if (inputsXml.getResultType() == null) {
-                    inputsXml.setResultType(ResultType.S);
+                    if (snippet.getRequiredStatementCoverage() == 0) {
+                        inputsXml.setResultType(ResultType.C);
+                    } else {
+                        inputsXml.setResultType(ResultType.S);
+                    }
                 }
 
                 // extract inputs
