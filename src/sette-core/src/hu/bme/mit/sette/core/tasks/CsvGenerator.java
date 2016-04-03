@@ -99,8 +99,12 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
     private static final String[] HEADER_COLUMNS = new String[] { "Category", "Snippet", "Tool",
             "Coverage", "Status", "Size", "Run", "Duration" };
 
-    private static String createHeader() {
-        return String.join(FIELD_SEP, HEADER_COLUMNS);
+    private String createHeader() {
+        String header = String.join(FIELD_SEP, HEADER_COLUMNS);
+        if (getTool().getName().startsWith("SnippetInputChecker")) {
+            header += FIELD_SEP + "RequiredStatementCoverage    ";
+        }
+        return header;
     }
 
     private String createRow(Snippet snippet) throws Exception {
@@ -156,7 +160,12 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
         fields.add(getRunnerProjectSettings().getTag()); // Run = TAG
         fields.add(elapsedTime); // Duration: 43243 ms
 
-        Validate.isTrue(fields.size() == HEADER_COLUMNS.length);
+        if (getTool().getName().startsWith("SnippetInputChecker")) {
+            fields.add(String.format("%.2f", snippet.getRequiredStatementCoverage())); // coverage
+            Validate.isTrue(fields.size() == HEADER_COLUMNS.length + 1);
+        } else {
+            Validate.isTrue(fields.size() == HEADER_COLUMNS.length);
+        }
 
         // assemble and return
         return String.join(FIELD_SEP, fields);

@@ -25,7 +25,6 @@ package hu.bme.mit.sette.core.tool;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
 
 import lombok.NonNull;
@@ -68,8 +67,11 @@ public final class ToolRegister {
      *            the tool
      */
     synchronized static void register(@NonNull Tool tool) {
-        Preconditions.checkArgument(!tools.containsKey(tool.getName()),
-                "The register already contains a tool with this name: %s", tool.getName());
+        // Preconditions.checkArgument(!tools.containsKey(tool.getName()),
+        // "The register already contains a tool with this name: %s", tool.getName());
+        if (tools.containsKey(tool.getName())) {
+            System.err.println("Tool already in registry, replacing: " + tool.getName());
+        }
 
         tools.put(tool.getName(), tool);
     }
