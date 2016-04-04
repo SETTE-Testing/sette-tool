@@ -46,7 +46,6 @@ import hu.bme.mit.sette.core.tasks.CsvBatchGenerator;
 import hu.bme.mit.sette.core.tasks.CsvGenerator;
 import hu.bme.mit.sette.core.tasks.TestSuiteGenerator;
 import hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunner;
-import hu.bme.mit.sette.core.tasks.testsuiterunner2.TestSuiteRunner2;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.runnerprojectbrowser.RunnerProjectBrowser;
 import hu.bme.mit.sette.snippetbrowser.SnippetBrowser;
@@ -207,22 +206,23 @@ public final class SetteApplication {
 
                 case TEST_RUNNER:
                     // FIXME currently not working (cannot extract coverage)
-                    if (false && tool instanceof EvoSuiteTool && snippetProject != null
-                            && snippetProject.getName().equals("sette-snippets-extra")) {
-                        TestSuiteRunner2 testSuiteRunner = new TestSuiteRunner2(snippetProject,
-                                configuration.getOutputDir(), tool, runnerProjectTag);
-                        if (context != null) {
-                            testSuiteRunner.setSnippetSelector(context.getSnippetSelector());
-                        }
-                        testSuiteRunner.analyze();
-                    } else {
-                        TestSuiteRunner testSuiteRunner = new TestSuiteRunner(snippetProject,
-                                configuration.getOutputDir(), tool, runnerProjectTag);
-                        if (context != null) {
-                            testSuiteRunner.setSnippetSelector(context.getSnippetSelector());
-                        }
-                        testSuiteRunner.analyze();
+                    // if (false && tool instanceof EvoSuiteTool && snippetProject != null
+                    // && snippetProject.getName().equals("sette-snippets-extra")) {
+                    // TestSuiteRunner2 testSuiteRunner = new TestSuiteRunner2(snippetProject,
+                    // configuration.getOutputDir(), tool, runnerProjectTag);
+                    // if (context != null) {
+                    // testSuiteRunner.setSnippetSelector(context.getSnippetSelector());
+                    // }
+                    // testSuiteRunner.analyze();
+                    // } else {
+                    // FIXME update: manually parsed results are burned into Evo Parser for now
+                    TestSuiteRunner testSuiteRunner = new TestSuiteRunner(snippetProject,
+                            configuration.getOutputDir(), tool, runnerProjectTag);
+                    if (context != null) {
+                        testSuiteRunner.setSnippetSelector(context.getSnippetSelector());
                     }
+                    testSuiteRunner.analyze();
+                    // }
                     break;
 
                 case SNIPPET_BROWSER:

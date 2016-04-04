@@ -269,7 +269,7 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
     }
 
     // TODO visibility or refactor to other place
-    protected static Object getDefaultParameterValue(Class<?> javaClass) {
+    public static Object getDefaultParameterValue(Class<?> javaClass) {
         javaClass = Primitives.wrap(javaClass);
 
         if (javaClass.equals(Byte.class)) {
@@ -295,7 +295,7 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
     }
 
     // TODO visibility or refactor to other place
-    protected static String getDefaultParameterValueString(Class<?> javaClass) {
+    public static String getDefaultParameterValueString(Class<?> javaClass) {
         javaClass = Primitives.wrap(javaClass);
 
         if (javaClass.equals(Byte.class)) {
