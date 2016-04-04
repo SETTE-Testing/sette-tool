@@ -115,8 +115,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
             throw new RuntimeException(
                     "EvoSuite did not write anything to SDTOUT for " + snippet.getId());
         } else if (PathUtils.exists(testScaffoldingFile.toPath())) {
-            // generated some tests -> S
-            inputsXml.setResultType(ResultType.S);
+            // generated some tests -> S (but set later)
         } else if (errorLines.isEmpty()) {
             throw new RuntimeException(
                     "EvoSuite did not generate any error output nor test file for "
@@ -181,7 +180,53 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
             }
         }
 
+        // FIXME these are manual evaluation results for extra snippets
+        boolean deleteTestFileForExtra = false; // delete files which does not compile without
+                                                // evosuite.jar
+        if (inputsXml.getResultType() == null && getSnippetProject().getName().endsWith("-extra")) {
+            ResultType result = null;
+
+            switch (snippet.getId()) {
+                // mock sysout & syserr
+                case "Env1_writesEofToStdin":
+                case "Env1_writesOutputBack":
+                case "Env1_writesErrorOutputBack":
+                case "Env1_writesOneLineToStdin":
+
+                    // mocks network
+                    // some snippets are related to guess protocol
+                    // since they are usually NC, the easiest is to leave them
+                    // (the snippets automatically create the socket, no host and port have to be
+                    // specified)
+                case "Env3_deadlock":
+                case "Env3_guessHost":
+                case "Env3_guessPort":
+                case "Env3_guessHostAndPort":
+
+                    // mocks system
+                case "Env4_manipulatesClock":
+                case "Env4_manipulatesRandom":
+
+                    // Env4: props & and is not mocked
+                    // and nothing speacial for threading & reflection
+                    result = ResultType.C;
+                    deleteTestFileForExtra = true;
+                    break;
+
+                default:
+                    // nothing happends
+                    break;
+            }
+
+            if (result != null) {
+                log.warn("Manual result for {}: {}", snippet.getId(), result);
+                inputsXml.setResultType(result);
+            }
+        }
+        // FIXME end of manual result section
+
         if (inputsXml.getResultType() == null) {
+
             // no error detected, assume S
             if (snippet.getRequiredStatementCoverage() == 0) {
                 inputsXml.setResultType(ResultType.C);
@@ -365,9 +410,24 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                         "Future<?> future = executor.submit(new Runnable() {",
                         "Future<?> future = java.util.concurrent.Executors.newCachedThreadPool().submit(new Runnable() {");
 
-                // save file
-                PathUtils.write(testCasesFile.toPath(), testCasesFileString.getBytes());
+                // comment out things like this:
+                // "EvoSuiteRemoteAddress evoSuiteRemoteAddress0 = new
+                // EvoSuiteRemoteAddress("200.42.42.0", 4444);"
+                // "boolean boolean0 = NetworkHandling.openRemoteTcpServer(evoSuiteRemoteAddress0);"
+                testCasesFileString = testCasesFileString.replace(
+                        "EvoSuiteRemoteAddress evoSuiteRemoteAddress0 = new",
+                        "// EvoSuiteRemoteAddress evoSuiteRemoteAddress0 = new");
+                testCasesFileString = testCasesFileString.replace(
+                        "boolean boolean0 = NetworkHandling.openRemoteTcpServer(evoSuiteRemoteAddress0);",
+                        "// boolean boolean0 = NetworkHandling.openRemoteTcpServer(evoSuiteRemoteAddress0);");
 
+                // NOTE stupid, but makes sure that inputsXml initialized properly
+                if (deleteTestFileForExtra) {
+                    PathUtils.deleteIfExists(testCasesFile.toPath());
+                } else {
+                    // save file
+                    PathUtils.write(testCasesFile.toPath(), testCasesFileString.getBytes());
+                }
                 // set gen input count
                 inputsXml.setGeneratedInputCount(testMethodCnt);
             }
