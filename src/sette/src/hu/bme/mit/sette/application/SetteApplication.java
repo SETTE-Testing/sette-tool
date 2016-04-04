@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ import hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunner;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.runnerprojectbrowser.RunnerProjectBrowser;
 import hu.bme.mit.sette.snippetbrowser.SnippetBrowser;
+import hu.bme.mit.sette.tools.evosuite.EvoSuiteParserMutation;
 import hu.bme.mit.sette.tools.evosuite.EvoSuiteTool;
 import javafx.application.Application;
 
@@ -190,6 +192,13 @@ public final class SetteApplication {
 
                 case PARSER:
                     new ParserUI().execute(context);
+                    break;
+
+                case PARSER_EVOSUITE_MUTATION:
+                    Objects.requireNonNull(context);
+                    new EvoSuiteParserMutation(context.getSnippetProject(), context.getOutputDir(),
+                            (EvoSuiteTool) context.getTool(), context.getRunnerProjectTag())
+                                    .parse();
                     break;
 
                 case TEST_GENERATOR:

@@ -35,7 +35,8 @@ public enum ApplicationTask {
     SNIPPET_BROWSER(true, false, false),
     EXPORT_CSV(true, true, true),
     EXPORT_CSV_BATCH(true, false, true), // tag is a comma-separated list for this task
-    RUNNER_PROJECT_BROWSER(false, false, false);
+    RUNNER_PROJECT_BROWSER(false, false, false),
+    PARSER_EVOSUITE_MUTATION(true, true, true);
 
     private final boolean requiresSnippetProject;
     private final boolean requiresTool;
