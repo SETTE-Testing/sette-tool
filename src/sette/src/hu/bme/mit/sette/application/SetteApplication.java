@@ -24,7 +24,7 @@
 package hu.bme.mit.sette.application;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 import java.awt.EventQueue;
 import java.io.BufferedReader;
@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ import hu.bme.mit.sette.core.tasks.CsvGenerator;
 import hu.bme.mit.sette.core.tasks.TestSuiteGenerator;
 import hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunner;
 import hu.bme.mit.sette.core.tool.Tool;
+import hu.bme.mit.sette.core.tool.ToolInstantiationException;
 import hu.bme.mit.sette.runnerprojectbrowser.RunnerProjectBrowser;
 import hu.bme.mit.sette.snippetbrowser.SnippetBrowser;
 import hu.bme.mit.sette.tools.evosuite.EvoSuiteParserMutation;
@@ -255,20 +257,20 @@ public final class SetteApplication {
 
                 case EXPORT_CSV_BATCH:
                     // FIXME runnerProjectTag is a list of tags separated by ','
-                    String toolNames = configuration.getToolConfigurations()
+                    List<Tool> tools = configuration.getToolConfigurations()
                             .stream()
-                            .peek(tc -> {
+                            .map(tc -> {
                                 try {
                                     // only to register to ToolRegister
-                                    Tool.create(tc);
-                                } catch (Exception ex) {
+                                    return Tool.create(tc);
+                                } catch (ToolInstantiationException ex) {
                                     throw new RuntimeException(ex);
                                 }
                             })
-                            .map(tc -> tc.getName()).collect(joining(","));
+                            .collect(toList());
 
                     new CsvBatchGenerator(snippetProject, configuration.getOutputDir(),
-                            toolNames, runnerProjectTag).generateAll();
+                            tools, runnerProjectTag).generateAll();
                     break;
 
                 case RUNNER_PROJECT_BROWSER:
