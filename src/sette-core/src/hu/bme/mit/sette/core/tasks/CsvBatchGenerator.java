@@ -32,22 +32,20 @@ import java.util.stream.Stream;
 
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
-import hu.bme.mit.sette.core.tool.ToolRegister;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class CsvBatchGenerator {
     private final SnippetProject snippetProject;
     private final File outputDir;
-    private final Tool[] tools;
+    private final List<Tool> tools;
     private final String[] runnerProjectTags;
 
-    public CsvBatchGenerator(SnippetProject snippetProject, Path outputDir, String tools,
+    public CsvBatchGenerator(SnippetProject snippetProject, Path outputDir, List<Tool> tools,
             String runnerProjectTags) {
         this.snippetProject = snippetProject;
         this.outputDir = outputDir.toFile();
 
-        this.tools = Stream.of(tools.split(",")).sorted()
-                .map(toolName -> ToolRegister.get(toolName)).toArray(Tool[]::new);
+        this.tools = tools;
 
         this.runnerProjectTags = Stream.of(runnerProjectTags.split(",")).sorted()
                 .toArray(String[]::new);

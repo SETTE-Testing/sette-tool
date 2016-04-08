@@ -106,8 +106,6 @@ public abstract class Tool implements Comparable<Tool> {
             // unknown version
             this.version = "";
         }
-
-        ToolRegister.register(this);
     }
 
     /**
@@ -119,32 +117,20 @@ public abstract class Tool implements Comparable<Tool> {
      * @param toolConfiguration
      *            the tool configuration
      * @return the created object
-     * @throws IOException
-     *             if an I/O error occurs
-     * @throws ValidationException
-     *             if validation fails
+     * @throws ToolInstantiationException
+     *             if tool instantiation fails
      */
     public static Tool create(@NonNull SetteToolConfiguration toolConfiguration)
-            throws IOException, ValidationException {
+            throws ToolInstantiationException {
         try {
             Class<?> toolClass = Class.forName(toolConfiguration.getClassName());
             Constructor<?> ctor = toolClass.getConstructor(String.class, Path.class);
             return (Tool) ctor.newInstance(toolConfiguration.getName(),
                     toolConfiguration.getToolDir());
+        } catch (InvocationTargetException ex) {
+            throw new ToolInstantiationException(toolConfiguration, ex);
         } catch (Exception ex) {
-            if (ex instanceof InvocationTargetException) {
-                // re-throw probable exceptions caught from the ctor call
-                Throwable targetEx = ((InvocationTargetException) ex).getTargetException();
-
-                if (targetEx instanceof ValidationException) {
-                    throw (ValidationException) targetEx;
-                } else if (targetEx instanceof IOException) {
-                    throw (IOException) targetEx;
-                }
-            }
-
-            // wrap other exceptions
-            throw new RuntimeException("Cannot instatiate tool: " + toolConfiguration, ex);
+            throw new ToolInstantiationException(toolConfiguration, ex);
         }
     }
 
@@ -212,7 +198,7 @@ public abstract class Tool implements Comparable<Tool> {
             Path outputDir, String runnerProjectTag);
 
     @Override
-    public final int compareTo(@NonNull Tool o) {
+    public final int compareTo(@NonNull Tool o) { // NOSONAR: default equals() and hashCode()
         return name.compareToIgnoreCase(o.name);
     }
 
