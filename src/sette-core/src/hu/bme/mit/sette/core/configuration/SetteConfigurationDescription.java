@@ -50,7 +50,7 @@ import lombok.NonNull;
  * configuration is validated and finalised by the {@link SetteConfiguration} class.
  */
 public final class SetteConfigurationDescription {
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String NODE_BASEDIRS = "baseDirs";
     private static final String NODE_OUTPUT_DIR = "outputDir";
@@ -66,7 +66,8 @@ public final class SetteConfigurationDescription {
     private static final ImmutableSet<String> TOOL_FIELDS = ImmutableSet.of(NODE_TOOL_CLASS_NAME,
             NODE_TOOL_NAME, NODE_TOOL_DIR);
 
-    private transient final Validator<String> validator = Validator.of(getClass().getSimpleName());
+    /** Validator used during parsing */
+    private final Validator<String> validator = Validator.of(getClass().getSimpleName());
 
     /** List of possible base directory paths */
     @Getter
@@ -88,9 +89,8 @@ public final class SetteConfigurationDescription {
     /** List of the tool configuration descriptions */
     private final ImmutableList<SetteToolConfigurationDescription> toolConfigurations;
 
-    private SetteConfigurationDescription(String json)
-            throws JsonProcessingException, IOException, ValidationException {
-        LOG.debug("Parsing configuration from JSON: {}", json);
+    private SetteConfigurationDescription(String json) throws IOException, ValidationException {
+        log.debug("Parsing configuration from JSON: {}", json);
         JsonNode rootNode = new ObjectMapper().readTree(json);
 
         validateObjectFieldNames(rootNode, TOP_FIELDS);
@@ -132,7 +132,7 @@ public final class SetteConfigurationDescription {
 
         validator.validate();
 
-        LOG.debug("Parsed configuration: {}", this);
+        log.debug("Parsed configuration: {}", this);
     }
 
     private void validateObjectFieldNames(JsonNode node, Set<String> expectedFieldNames)
@@ -205,15 +205,14 @@ public final class SetteConfigurationDescription {
      *             if an I/O error occurs
      */
     public static SetteConfigurationDescription parse(@NonNull String json)
-            throws SetteConfigurationException, IOException {
+            throws SetteConfigurationException {
         try {
             return new SetteConfigurationDescription(json);
-        } catch (JsonProcessingException ex) {
+        } catch (JsonProcessingException | ValidationException ex) {
             throw new SetteConfigurationException(
-                    "The JSON has an invalid format: " + ex.getMessage());
-        } catch (ValidationException ex) {
-            throw new SetteConfigurationException(
-                    "The JSON has an invalid format: " + ex.getMessage());
+                    "The JSON has an invalid format: " + ex.getMessage(), ex);
+        } catch (IOException ex) {
+            throw new SetteConfigurationException("An I/O error occurred: " + ex.getMessage(), ex);
         }
     }
 

@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,7 @@ import lombok.NonNull;
  * An instance of this class represents a parsed configuration for SETTE.
  */
 public final class SetteConfiguration {
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     /** The base directory */
     @Getter
@@ -80,7 +79,7 @@ public final class SetteConfiguration {
      */
     private SetteConfiguration(SetteConfigurationDescription configDesc)
             throws ValidationException {
-        LOG.debug("Validating configuration: {}", configDesc);
+        log.debug("Validating configuration: {}", configDesc);
 
         Validator<SetteConfigurationDescription> v = Validator.of(configDesc);
 
@@ -96,7 +95,7 @@ public final class SetteConfiguration {
         // baseDir: select the first existing
         baseDir = configDesc.getBaseDirPaths()
                 .stream()
-                .map(p -> Paths.get(resolveTildeInPath(p)).toAbsolutePath())
+                .map(p -> Paths.get(p).toAbsolutePath())
                 .filter(Files::exists)
                 .findFirst().orElse(null);
 
@@ -111,9 +110,9 @@ public final class SetteConfiguration {
         if (!PathUtils.exists(outputDir)) {
             try {
                 PathUtils.createDir(outputDir);
-                LOG.debug("Output directory has been created: {}", outputDir);
+                log.debug("Output directory has been created: {}", outputDir);
             } catch (IOException ex) {
-                LOG.debug("Output directory creation has failed: " + outputDir, ex);
+                log.debug("Output directory creation has failed: " + outputDir, ex);
                 v.addError("The output directory cannot be created: " + ex.getMessage());
             }
         } else {
@@ -127,11 +126,9 @@ public final class SetteConfiguration {
         // snippetProjects: check if all exists
         Stream<Path> tmpSnippetProjectDirs = configDesc.getSnippetProjectDirPaths()
                 .stream()
-                .map(p -> baseDir.resolve(p))
-                .peek(p -> {
-                    v.addErrorIfFalse("The snippet project directory does not exists: " + p,
-                            PathUtils.exists(p));
-                });
+                .map(baseDir::resolve)
+                .peek(p -> v.addErrorIfFalse("The snippet project directory does not exists: " + p,
+                        PathUtils.exists(p)));
         snippetProjectDirs = ImmutableSortedSet.copyOf(tmpSnippetProjectDirs.iterator());
 
         // toolConfigurations: tool dirs must exist and tool names must be non-empty and unique
@@ -156,32 +153,7 @@ public final class SetteConfiguration {
 
         v.validate();
 
-        LOG.debug("Validated configuration: {}", this);
-    }
-
-    private String resolveTildeInPath(String path) {
-        if (!path.startsWith("~")) {
-            return path;
-        } else if (SystemUtils.IS_OS_WINDOWS) {
-            LOG.warn("Tilde (~) for home directory is not supported on Windows, "
-                    + "using path as is: " + path);
-            return path;
-        }
-
-        // resolve tilde to user home
-        if (path.equals("~") || path.charAt(1) == '/' || path.charAt(1) == '\\') {
-            // "~" or "~/something"
-            String resolvedPath = path.replaceFirst("^~", System.getProperty("user.home"));
-            LOG.debug("Path with tilde (~) '{}' was resolved to '{}'", path, resolvedPath);
-            return resolvedPath;
-        } else {
-            // NOTE "~something" is not handled (syscall to echo or ls -d in the future?)
-            LOG.warn(
-                    "Path with tilde (~) resolution is not supported for '{}' (only current "
-                            + "user's home is resolved, otherwise do not use tilde)",
-                    path);
-            return path;
-        }
+        log.debug("Validated configuration: {}", this);
     }
 
     /**
@@ -196,12 +168,12 @@ public final class SetteConfiguration {
      *             if parsing fails or the configuration is invalid
      */
     public static SetteConfiguration parse(@NonNull String json)
-            throws SetteConfigurationException, IOException {
+            throws SetteConfigurationException {
         try {
             return new SetteConfiguration(SetteConfigurationDescription.parse(json));
         } catch (ValidationException ex) {
             throw new SetteConfigurationException(
-                    "The configuration is invalid: " + ex.getMessage());
+                    "The configuration is invalid: " + ex.getMessage(), ex);
         }
     }
 
@@ -217,13 +189,15 @@ public final class SetteConfiguration {
      *             if parsing fails or the configuration is invalid
      */
     public static SetteConfiguration parse(@NonNull Path jsonFile)
-            throws SetteConfigurationException, IOException {
+            throws SetteConfigurationException {
         try {
             PathValidator.forRegularFile(jsonFile, true, null, null, "json").validate();
             String json = new String(PathUtils.readAllBytes(jsonFile));
             return parse(json);
         } catch (ValidationException ex) {
             throw new SetteConfigurationException("The file is invalid: " + jsonFile, ex);
+        } catch (IOException ex) {
+            throw new SetteConfigurationException("An I/O error occurred: " + ex.getMessage(), ex);
         }
     }
 
