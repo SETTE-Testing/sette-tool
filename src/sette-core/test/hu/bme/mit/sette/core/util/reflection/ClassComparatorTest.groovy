@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.util.reflection
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,8 +33,8 @@ import org.junit.runners.Parameterized.Parameters
 /**
  * Tests for {@link ClassComparator}.
  */
+@CompileStatic
 @RunWith(Parameterized)
-@TypeChecked
 class ClassComparatorTest {
     @Parameter(0)
     public Class<?> o1

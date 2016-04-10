@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.tools.randoop
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 import org.junit.Rule
 import org.junit.Test
@@ -32,7 +32,7 @@ import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 
-@TypeChecked
+@CompileStatic
 class RandoopParserTest {
     @RunWith(Parameterized)
     static class GetGeneratedInputCountFromOutputLinesTests {
@@ -84,7 +84,11 @@ class RandoopParserTest {
             return data.collect { List it -> [it[0], it[1..-1]] as Object[] }
         }
     }
+
+    @Test
     void testDetermineGeneratedTestCount_noInput() {
-        assert RandoopParser.getGeneratedInputCountFromOutputLines(['nothing', 'special']) == 0
+        RandoopParser.with {
+            assert getGeneratedInputCountFromOutputLines(['nothing', 'special']) == 0
+        }
     }
 }

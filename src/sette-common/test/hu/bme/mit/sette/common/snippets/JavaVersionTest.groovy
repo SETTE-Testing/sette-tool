@@ -24,12 +24,12 @@ package hu.bme.mit.sette.common.snippets
 
 import org.junit.Test
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 /**
  * Test class for {@link JavaVersion} to verify the enum values.
  */
-@TypeChecked
+@CompileStatic
 class JavaVersionTest {
     @Test
     void testEnumValues() {

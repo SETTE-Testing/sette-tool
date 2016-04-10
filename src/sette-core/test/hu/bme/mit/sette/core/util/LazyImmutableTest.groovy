@@ -22,13 +22,12 @@
  */
 package hu.bme.mit.sette.core.util
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 import org.junit.Before
 import org.junit.Test
-import org.junit.rules.ExpectedException
 
-@TypeChecked
+@CompileStatic
 class LazyImmutableTest {
     LazyImmutable<Integer> var1, var2
 
@@ -42,7 +41,7 @@ class LazyImmutableTest {
     void testBasic() {
         assert !var1.isSet()
         assert var1.get() == null
-        
+
         var1.set(1)
         assert var1.isSet()
         assert var1.get() == 1

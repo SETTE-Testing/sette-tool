@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import hu.bme.mit.sette.application.SetteApplication
 
 import java.nio.file.Paths
@@ -30,7 +30,7 @@ import java.nio.file.Paths
 import org.junit.Before
 import org.junit.Test
 
-@TypeChecked
+@CompileStatic
 class SnippetCheckerTest {
     SetteApplication app
 

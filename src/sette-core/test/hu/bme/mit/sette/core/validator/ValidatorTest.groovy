@@ -22,8 +22,7 @@
  */
 package hu.bme.mit.sette.core.validator
 
-import groovy.transform.TypeChecked
-import java.util.stream.Collectors
+import groovy.transform.CompileStatic
 
 import org.junit.Before
 import org.junit.Test
@@ -31,7 +30,7 @@ import org.junit.Test
 /**
  * Tests for {@link Validator}.
  */
-@TypeChecked
+@CompileStatic
 class ValidatorTest {
     @Test(expected = NullPointerException)
     void testConstructorThrowsExceptionIfNull() {

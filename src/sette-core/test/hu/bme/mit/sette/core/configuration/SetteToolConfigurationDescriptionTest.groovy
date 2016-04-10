@@ -22,8 +22,11 @@
  */
 package hu.bme.mit.sette.core.configuration
 
+import groovy.transform.CompileStatic
+
 import org.junit.Test
 
+@CompileStatic
 class SetteToolConfigurationDescriptionTest {
     @Test
     void test() {
@@ -34,28 +37,28 @@ class SetteToolConfigurationDescriptionTest {
             assert it.toString() == 'SetteToolConfigurationDescription [className=com.example.MyTool, name=My Tool, toolDirPath=my-tool]'
         }
     }
-    
+
     @Test
     void testTrimming() {
         // only name is trimmed
         new SetteToolConfigurationDescription(' com.example.MyTool ', ' My Tool ', ' my-tool ').with {
             assert className == ' com.example.MyTool '
-            assert name == 'My Tool' 
+            assert name == 'My Tool'
             assert toolDirPath == ' my-tool '
             assert it.toString() == 'SetteToolConfigurationDescription [className= com.example.MyTool , name=My Tool, toolDirPath= my-tool ]'
         }
     }
-    
+
     @Test(expected = NullPointerException)
     void testThrowsExceptionIfClassNameIsNull() {
         new SetteToolConfigurationDescription(null, 'My Tool', 'my-tool')
     }
-    
+
     @Test(expected = NullPointerException)
     void testThrowsExceptionIfNameIsNull() {
         new SetteToolConfigurationDescription('com.example.MyTool', null, 'my-tool')
     }
-    
+
     @Test(expected = NullPointerException)
     void testThrowsExceptionIfToolDirPathIsNull() {
         new SetteToolConfigurationDescription('com.example.MyTool', 'My Tool', null)

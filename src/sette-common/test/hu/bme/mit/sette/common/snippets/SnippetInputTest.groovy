@@ -22,6 +22,7 @@
  */
 package hu.bme.mit.sette.common.snippets
 
+import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 
 import org.junit.Test
@@ -34,7 +35,7 @@ import org.junit.runners.Parameterized.Parameters
  * Tests for {@link SnippetInput}. The {@link TestWithValidData} class contains parameterized tests
  * with valid data for the class.
  */
-@TypeChecked
+@CompileStatic
 class SnippetInputTest {
     @Test
     void testConstructorNullObjectArrayAsParameters() {

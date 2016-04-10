@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 import java.util.stream.Stream
 
@@ -30,7 +30,7 @@ import java.util.stream.Stream
  * A {@link BufferedReader} implementation for testing which stores severals lines to be returned 
  * later by {@link #readLine()}.
  */
-@TypeChecked
+@CompileStatic
 public class TestBufferedReader extends BufferedReader {
     private final LinkedList<String> data = new LinkedList<>()
 

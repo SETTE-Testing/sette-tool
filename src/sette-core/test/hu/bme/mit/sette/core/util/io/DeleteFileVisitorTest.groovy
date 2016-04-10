@@ -22,6 +22,8 @@
  */
 package hu.bme.mit.sette.core.util.io
 
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -31,13 +33,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 
-import groovy.transform.TypeChecked;
-
 /**
  * Tests to verify that {@link DeleteFileVisitor} deletes the file tree recursively when used with
  * the {@link Files} class.
  */
-@TypeChecked
+@CompileStatic
 class DeleteFileVisitorTest {
     Path tmpDir
 

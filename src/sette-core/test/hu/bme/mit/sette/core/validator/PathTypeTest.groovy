@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.validator
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -34,7 +34,7 @@ import org.junit.Test
 /**
  * Tests for {@link PathType}.
  */
-@TypeChecked
+@CompileStatic
 class PathTypeTest {
     Path nonExistent
     Path tmpDir

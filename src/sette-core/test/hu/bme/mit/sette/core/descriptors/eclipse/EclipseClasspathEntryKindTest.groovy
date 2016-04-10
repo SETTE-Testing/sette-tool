@@ -22,14 +22,14 @@
  */
 package hu.bme.mit.sette.core.descriptors.eclipse
 
-import org.junit.Test
+import groovy.transform.CompileStatic
 
-import groovy.transform.TypeChecked
+import org.junit.Test
 
 /**
  * Tests for {@link EclipseClasspathEntryKind}.
  */
-@TypeChecked
+@CompileStatic
 class EclipseClasspathEntryKindTest {
     @Test
     void test() {

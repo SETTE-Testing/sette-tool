@@ -22,12 +22,12 @@
  */
 package hu.bme.mit.sette
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 /**
  * A {@link PrintStream} implementation for testing which writes the data to its internal byte array. 
  */
-@TypeChecked
+@CompileStatic
 public class TestPrintStream extends PrintStream {
     private final ByteArrayOutputStream data
 

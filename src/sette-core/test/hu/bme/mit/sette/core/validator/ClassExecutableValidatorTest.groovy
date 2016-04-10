@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.validator
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 import java.lang.reflect.Constructor
 import java.lang.reflect.Method
@@ -33,7 +33,7 @@ import org.junit.Test
 /**
  * Tests for {@link ClassExecutableValidator}.
  */
-@TypeChecked
+@CompileStatic
 class ClassExecutableValidatorTest {
     Constructor<?> constructor = Number.class.constructors[0]
     Method method = Integer.class.declaredMethods.find { it.name.contains('toUnsignedString0') }

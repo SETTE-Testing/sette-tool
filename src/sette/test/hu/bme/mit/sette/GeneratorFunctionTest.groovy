@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import hu.bme.mit.sette.application.SetteApplication
 
 import java.nio.file.Paths
@@ -37,7 +37,7 @@ import org.junit.rules.TestWatcher
 import org.junit.rules.Timeout
 import org.junit.runner.Description
 
-@TypeChecked
+@CompileStatic
 class GeneratorFunctionTest {
     @Rule
     public Timeout globalTimeout = Timeout.builder().withLookingForStuckThread(true).withTimeout(30, TimeUnit.SECONDS).build()

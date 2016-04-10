@@ -22,8 +22,8 @@
  */
 package hu.bme.mit.sette.core.descriptors.eclipse
 
-import groovy.transform.TypeChecked
-import hu.bme.mit.sette.core.util.io.PathUtils;
+import groovy.transform.CompileStatic
+import hu.bme.mit.sette.core.util.io.PathUtils
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -35,7 +35,7 @@ import org.junit.rules.TemporaryFolder
 /**
  * Tests for {@link EclipseProjectTest}.
  */
-@TypeChecked
+@CompileStatic
 class EclipseProjectTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder()

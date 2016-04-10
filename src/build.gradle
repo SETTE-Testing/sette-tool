@@ -56,7 +56,7 @@ subprojects {
     project.targetCompatibility = 1.8
 
     dependencies {
-        testCompile 'org.codehaus.groovy:groovy-all:2.4.6'
+        testCompile 'org.codehaus.groovy:groovy-all:2.4.6:indy'
         testCompile 'junit:junit:4.12'
     }
 
@@ -69,6 +69,38 @@ subprojects {
             resources { srcDirs = ['resources']}
         }
         test { groovy { srcDirs = ['test']} }
+    }
+
+    tasks.withType(GroovyCompile) {
+        groovyOptions.optimizationOptions.indy = true
+    }
+
+    task checkGroovyCompileStatic {
+        group = 'Verification'
+        description = 'Checks all .groovy files to have the @CompileStatic annotation'
+
+        doLast {
+            boolean error = false
+            project.projectDir.eachFileRecurse (groovy.io.FileType.FILES) { File file ->
+                if (file.name.endsWith('.groovy')) {
+                    file.withReader { Reader reader ->
+                        while (true) {
+                            String line = reader.readLine()
+                            if (line == null) {
+                                break
+                            } else if(line.startsWith('@CompileStatic')) {
+                                return
+                            }
+                        }
+                        logger.error "Missing @CompileStatic: $file"
+                        error = true
+                    }
+                }
+            }
+            if (error) {
+                throw new Exception('Please apply @CompileStatic to all .groovy files')
+            }
+        }
     }
 }
 

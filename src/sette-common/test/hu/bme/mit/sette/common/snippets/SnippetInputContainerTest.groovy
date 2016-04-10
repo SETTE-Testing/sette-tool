@@ -24,13 +24,13 @@ package hu.bme.mit.sette.common.snippets
 
 import org.junit.Test
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 /**
  * Tests for {@link SnippetInputContainer}. The {@link TestWithValidData} class contains
  * parameterized tests with valid data for the class.
  */
-@TypeChecked
+@CompileStatic
 class SnippetInputContainerTest {
     @Test
     void testConstructor() {

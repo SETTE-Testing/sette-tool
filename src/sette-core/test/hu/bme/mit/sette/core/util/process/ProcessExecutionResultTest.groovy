@@ -22,14 +22,14 @@
  */
 package hu.bme.mit.sette.core.util.process
 
-import org.junit.Test
+import groovy.transform.CompileStatic
 
-import groovy.transform.TypeChecked
+import org.junit.Test
 
 /**
  * Tests for {@link ProcessExecutionResult}.
  */
-@TypeChecked
+@CompileStatic
 class ProcessExecutionResultTest {
     @Test
     void test() {
@@ -50,10 +50,10 @@ class ProcessExecutionResultTest {
         assert per2 != per3
         assert per1 != per4
         assert per1 != per5
-        
+
         Set<String> set = [per1, per2, per3] as Set<String>
         assert set.size() == 2
-        
+
         assert per1.toString() == 'ProcessExecutionResult [exitValue=0, destroyed=false, elapsedTimeInMs=100]'
     }
 }

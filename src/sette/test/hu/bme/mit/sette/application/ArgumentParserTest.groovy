@@ -22,8 +22,7 @@
  */
 package hu.bme.mit.sette.application
 
-import groovy.transform.TypeChecked
-import groovy.transform.TypeChecked.*
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import hu.bme.mit.sette.TestPrintStream
 import hu.bme.mit.sette.core.configuration.SetteConfiguration
@@ -38,8 +37,8 @@ import org.junit.Before.*
 /**
  * Tests for {@link SetteArgumentParser}.
  */
+@CompileStatic
 @Slf4j
-@TypeChecked
 class ArgumentParserTest {
     static SetteConfiguration config
     ArgumentParser argParser
@@ -148,9 +147,9 @@ ser]
                 println '== ACTUAL HELP BEGIN'
                 println errorOutput.lines.join('\n')
                 println '== ACTUAL HELP END'
-                
+
                 assert actualLines == expectedLines
-            } 
+            }
         }
     }
 
@@ -280,7 +279,7 @@ ser]
             assert snippetSelector == null
         }
     }
-    
+
     @Test
     void testParsePattern() {
         argParser.with{

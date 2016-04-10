@@ -22,8 +22,8 @@
  */
 package hu.bme.mit.sette.core.util.process
 
-import groovy.transform.TypeChecked
-import hu.bme.mit.sette.core.util.io.PathUtils;
+import groovy.transform.CompileStatic
+import hu.bme.mit.sette.core.util.io.PathUtils
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -35,11 +35,11 @@ import org.junit.rules.Timeout
 /**
  * Integration tests for {@link ProcessExecutor}.
  */
-@TypeChecked
+@CompileStatic
 class ProcessExecutorTest {
     // the tests must finish end even if the class is buggy and execute() never returns
     @Rule
-    public Timeout globalTimeout= new Timeout(5000)
+    public Timeout globalTimeout = new Timeout(5000)
 
     @Test(expected = IllegalArgumentException)
     void testConstructor_invalidTimeout() {

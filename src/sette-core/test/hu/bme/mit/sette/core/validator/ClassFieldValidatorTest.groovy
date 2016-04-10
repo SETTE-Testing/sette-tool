@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.validator
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -32,7 +32,7 @@ import org.junit.Test
 /**
  * Tests for {@link ClassFieldValidator}.
  */
-@TypeChecked
+@CompileStatic
 class ClassFieldValidatorTest {
     Field field = Integer.class.declaredFields.find { it.name.contains('value') }
 

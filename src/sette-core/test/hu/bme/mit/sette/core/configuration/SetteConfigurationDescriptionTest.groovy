@@ -22,14 +22,14 @@
  */
 package hu.bme.mit.sette.core.configuration
 
-import groovy.transform.TypeChecked
-
 import org.junit.Test
+
+import groovy.transform.CompileStatic
 
 /**
  * Tests for {@link SetteConfiguration}.
  */
-@TypeChecked
+@CompileStatic
 class SetteConfigurationDescriptionTest {
     @Test
     void testParse() {

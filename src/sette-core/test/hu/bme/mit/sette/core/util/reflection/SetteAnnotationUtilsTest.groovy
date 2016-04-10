@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.util.reflection
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import hu.bme.mit.sette.common.annotations.SetteIncludeCoverage
 import hu.bme.mit.sette.common.annotations.SetteRequiredStatementCoverage
 import hu.bme.mit.sette.common.annotations.SetteSnippetContainer
@@ -39,13 +39,8 @@ import com.google.common.collect.ClassToInstanceMap
 /**
  * Tests for {@link SetteAnnotationUtils}.
  */
-@TypeChecked
+@CompileStatic
 class SetteAnnotationUtilsTest {
-    @Test(expected = UnsupportedOperationException)
-    void testInstantiationThrowsException() {
-        new SetteAnnotationUtils()
-    }
-
     @Test(expected = NullPointerException)
     void testGetSetteAnnotations_throwsExceptionIfNull() {
         SetteAnnotationUtils.getSetteAnnotations(null)
