@@ -142,7 +142,7 @@ project(':sette-core') {
     }
 
     dependencies {
-        provided 'org.projectlombok:lombok:1.16.6'
+        provided 'org.projectlombok:lombok:1.16.8'
 
         compile project(':sette-common')
 
