@@ -136,10 +136,10 @@ Usage:
                                           will only be used by the runner and
                                           test-runner tasks)
  --task [exit | generator | runner |    : The task to execute
- parser | test-generator | test-runner
- | snippet-browser | export-csv |
- export-csv-batch | runner-project-brow
-ser]
+ parser | test-generator | test-runner     
+ | snippet-browser | export-csv |          
+ export-csv-batch | runner-project-brow    
+ ser | parser-evosuite-mutation]           
  --tool [CATG | EvoSuite | Randoop |    : The tool to use
  SPF | jPET]'''.trim().replace('\r\n', '\n').split('\n')*.trim()
 

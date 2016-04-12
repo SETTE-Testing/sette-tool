@@ -34,6 +34,13 @@ import org.junit.runners.Parameterized.Parameters
 
 @CompileStatic
 class RandoopParserTest {
+    @Test
+    void testDetermineGeneratedTestCount_noInput() {
+        RandoopParser.with {
+            assert getGeneratedInputCountFromOutputLines(['nothing', 'special']) == -1
+        }
+    }
+
     @RunWith(Parameterized)
     static class GetGeneratedInputCountFromOutputLinesTests {
         @Rule
@@ -82,13 +89,6 @@ class RandoopParserTest {
 
             // convert for JUnit
             return data.collect { List it -> [it[0], it[1..-1]] as Object[] }
-        }
-    }
-
-    @Test
-    void testDetermineGeneratedTestCount_noInput() {
-        RandoopParser.with {
-            assert getGeneratedInputCountFromOutputLines(['nothing', 'special']) == 0
         }
     }
 }

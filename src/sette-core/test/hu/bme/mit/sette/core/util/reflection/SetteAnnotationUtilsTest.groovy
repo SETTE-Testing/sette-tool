@@ -62,12 +62,16 @@ class SetteAnnotationUtilsTest {
     @Test
     void testGetSetteAnnotations_findsAnnotationsforMethod() {
         AnnotatedElement elem = Container.getMethod('snippet')
-        ClassToInstanceMap<Annotation> annots = SetteAnnotationUtils.getSetteAnnotations(elem)
+        List<Annotation> setteAnnots = SetteAnnotationUtils.getSetteAnnotations(elem).values() as List
         List<Annotation> elemAnnots = elem.annotations as List
-        elemAnnots.sort { Annotation annot -> annot.annotationType().simpleName }
 
-        assert annots.values()[0] == elem.annotations[1] // @SetteIncludeCoverage
-        assert annots.values()[1] == elem.annotations[2] // @SetteRequiredStatementCoverage
+        // sorting is required for determinacy
+        Closure annotSorter = { Annotation annot -> annot.annotationType().simpleName }
+        setteAnnots.sort(annotSorter)
+        elemAnnots.sort(annotSorter)
+
+        assert setteAnnots[0] == elem.annotations[1] // @SetteIncludeCoverage
+        assert setteAnnots[1] == elem.annotations[2] // @SetteRequiredStatementCoverage
     }
 
     @Test

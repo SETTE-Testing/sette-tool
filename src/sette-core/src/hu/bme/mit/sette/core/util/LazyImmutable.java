@@ -42,19 +42,19 @@ import lombok.NonNull;
  *            the wrapped type
  */
 public final class LazyImmutable<T> {
+    private volatile T value;
+
+    private LazyImmutable() {
+        this.value = null;
+    }
+
     /**
      * @param <T>
      *            the wrapped type
      * @return a new {@link LazyImmutable} instance whose value is not set
      */
     public static <T> LazyImmutable<T> of() {
-        return new LazyImmutable<T>();
-    }
-
-    private volatile T value;
-
-    private LazyImmutable() {
-        this.value = null;
+        return new LazyImmutable<>();
     }
 
     /**
@@ -88,9 +88,7 @@ public final class LazyImmutable<T> {
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
+        } else if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
 
