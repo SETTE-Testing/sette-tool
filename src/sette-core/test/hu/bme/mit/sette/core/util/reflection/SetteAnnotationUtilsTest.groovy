@@ -41,6 +41,11 @@ import com.google.common.collect.ClassToInstanceMap
  */
 @CompileStatic
 class SetteAnnotationUtilsTest {
+    @Test(expected = UnsupportedOperationException)
+    void testStaticClass() {
+        SetteAnnotationUtils.class.newInstance()
+    }
+
     @Test(expected = NullPointerException)
     void testGetSetteAnnotations_throwsExceptionIfNull() {
         SetteAnnotationUtils.getSetteAnnotations(null)
@@ -58,10 +63,11 @@ class SetteAnnotationUtilsTest {
     void testGetSetteAnnotations_findsAnnotationsforMethod() {
         AnnotatedElement elem = Container.getMethod('snippet')
         ClassToInstanceMap<Annotation> annots = SetteAnnotationUtils.getSetteAnnotations(elem)
+        List<Annotation> elemAnnots = elem.annotations as List
+        elemAnnots.sort { Annotation annot -> annot.annotationType().simpleName }
 
-        assert annots.size() == 2
-        assert annots.values()[0] == elem.annotations[2] // @SetteIncludeCoverage
-        assert annots.values()[1] == elem.annotations[1] // @SetteRequiredStatementCoverage
+        assert annots.values()[0] == elem.annotations[1] // @SetteIncludeCoverage
+        assert annots.values()[1] == elem.annotations[2] // @SetteRequiredStatementCoverage
     }
 
     @Test
@@ -72,6 +78,7 @@ class SetteAnnotationUtilsTest {
         assert annots.isEmpty()
     }
 
+    @Test
     void testIsSetteAnnotation() {
         // @OtherAnnotation
         assert !SetteAnnotationUtils.isSetteAnnotation(Container.annotations[0])
@@ -90,7 +97,7 @@ class SetteAnnotationUtilsTest {
      */
     @OtherAnnotation
     @SetteSnippetContainer(category = "C", goal = "G", inputFactoryContainer = Void.class)
-    private static class Container {
+    private static final class Container {
         @OtherAnnotation
         @SetteRequiredStatementCoverage(value = 50d)
         @SetteIncludeCoverage(classes = [], methods = [])

@@ -24,7 +24,9 @@ package hu.bme.mit.sette.core.util.reflection
 
 import groovy.transform.CompileStatic
 
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
@@ -36,31 +38,43 @@ import org.junit.runners.Parameterized.Parameters
 @CompileStatic
 @RunWith(Parameterized)
 class ClassComparatorTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none()
+
     @Parameter(0)
-    public Class<?> o1
+    public Class o1
 
     @Parameter(1)
-    public Class<?> o2
+    public Class o2
 
     @Parameter(2)
     public int expectedSign
 
     @Test
     void testCompare() {
-        // tests in both orders
-        ClassComparator cmp =  ClassComparator.INSTANCE
+        if (o1 == null || o2 == null) {
+            thrown.expect(NullPointerException)
+        }
 
-        assert Math.signum(cmp.compare(o1, o2)) == expectedSign
-        assert Math.signum(cmp.compare(o2, o1)) == -expectedSign
+        assert Math.signum(ClassComparator.INSTANCE.compare(o1, o2)) == expectedSign
     }
 
-    @Parameters
+    @Test
+    void testCompareReversed() {
+        if (o1 == null || o2 == null) {
+            thrown.expect(NullPointerException)
+        }
+
+        assert Math.signum(ClassComparator.INSTANCE.compare(o2, o1)) == -expectedSign
+    }
+
+    @Parameters(name = "{index}: {0} <=> {1} = {2}")
     static Collection<Object[]> data() {
-        List<List<?>> values = []
+        List<List> values = []
 
         // null or same
         values << [null, null, 0]
-        values << [null, String, -1]
+        values << [null, String, 0]
         values << [String, String, 0]
 
         // same package
@@ -72,6 +86,19 @@ class ClassComparatorTest {
         values << [List, String, 1]
         values << [Integer, List, -1]
         values << [String, Map, -1]
+
+        // primitives
+        values << [int, int, 0]
+        values << [int, Integer, -1]
+        values << [int, Double, -1]
+
+        // arrays
+        values << [int[], int[], 0]
+        values << [int, int[], -1]
+        values << [Object, Object[], -1]
+        values << [int[], String, -1]
+        values << [int[][], String, -1]
+        values << [int[], int[][], -1]
 
         return values.collect { it as Object[] }
     }

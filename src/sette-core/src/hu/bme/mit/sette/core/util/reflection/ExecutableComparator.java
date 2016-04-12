@@ -22,12 +22,25 @@
  */
 package hu.bme.mit.sette.core.util.reflection;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+
+import com.google.common.collect.ComparisonChain;
+
+import lombok.NonNull;
 
 /**
- * Comparator to order {@link Class} objects by their full names ({@link Class#getName()}).
+ * Comparator to sort {@link Executable} objects by:
+ * <ol>
+ * <li>Declaring class (using {@link ClassComparator})
+ * <li>{@link Constructor}s before {@link Method}s
+ * <li>Method name
+ * <li>Method argument list (using {@link ClassListComparator})
+ * </ol>
  */
 public final class ExecutableComparator implements Comparator<Executable> {
     public static final ExecutableComparator INSTANCE = new ExecutableComparator();
@@ -37,49 +50,22 @@ public final class ExecutableComparator implements Comparator<Executable> {
     }
 
     @Override
-    public int compare(Executable o1, Executable o2) {
+    public int compare(@NonNull Executable o1, @NonNull Executable o2) {
         if (o1 == o2) {
             return 0;
-        } else if (o1 == null) {
-            return -1;
-        } else if (o2 == null) {
-            return 1;
         }
 
-        // compare class
-        int cmp = ClassComparator.INSTANCE.compare(o1.getDeclaringClass(), o2.getDeclaringClass());
+        ComparisonChain cmp = ComparisonChain.start()
+                .compare(o1.getDeclaringClass(), o2.getDeclaringClass(), ClassComparator.INSTANCE)
+                .compareTrueFirst(o1 instanceof Constructor, o2 instanceof Constructor)
+                .compare(o1.getName(), o2.getName());
 
-        if (cmp == 0) {
-            // same class, constructors should be before methods
-            cmp = Boolean.compare(o1 instanceof Method, o2 instanceof Method);
-
-            if (cmp == 0) {
-                // same type, compare name (for constructors it is the same)
-                cmp = o1.getName().compareTo(o2.getName());
-                if (cmp == 0) {
-                    // same name, compare parameter names
-                    for (int i = 0; i < Math.min(o1.getParameterCount(),
-                            o2.getParameterCount()); i++) {
-                        Class<?> p1 = o1.getParameterTypes()[i];
-                        Class<?> p2 = o2.getParameterTypes()[i];
-                        cmp = ClassComparator.INSTANCE.compare(p1, p2);
-
-                        if (cmp != 0) {
-                            // different parameter, done
-                            return cmp;
-                        }
-                    }
-
-                    // same beginning of the parameter list, shorter should be before longer
-                    return Integer.compare(o1.getParameterCount(), o2.getParameterCount());
-                } else {
-                    return cmp;
-                }
-            } else {
-                return cmp;
-            }
+        if (cmp.result() == 0) {
+            List<Class<?>> params1 = Arrays.asList(o1.getParameterTypes());
+            List<Class<?>> params2 = Arrays.asList(o2.getParameterTypes());
+            return cmp.compare(params1, params2, ClassListComparator.INSTANCE).result();
         } else {
-            return cmp;
+            return cmp.result();
         }
     }
 }

@@ -24,8 +24,10 @@ package hu.bme.mit.sette.core.util.reflection;
 
 import java.util.Comparator;
 
+import lombok.NonNull;
+
 /**
- * Comparator to order {@link Class} objects by their full names ({@link Class#getName()}).
+ * Comparator to sort {@link Class} objects by their full names ({@link Class#getName()}).
  */
 public final class ClassComparator implements Comparator<Class<?>> {
     public static final ClassComparator INSTANCE = new ClassComparator();
@@ -35,15 +37,7 @@ public final class ClassComparator implements Comparator<Class<?>> {
     }
 
     @Override
-    public int compare(Class<?> o1, Class<?> o2) {
-        if (o1 == o2) {
-            return 0;
-        } else if (o1 == null) {
-            return -1;
-        } else if (o2 == null) {
-            return 1;
-        } else {
-            return o1.getName().compareTo(o2.getName());
-        }
+    public int compare(@NonNull Class<?> o1, @NonNull Class<?> o2) {
+        return o1 == o2 ? 0 : o1.getCanonicalName().compareTo(o2.getCanonicalName());
     }
 }
