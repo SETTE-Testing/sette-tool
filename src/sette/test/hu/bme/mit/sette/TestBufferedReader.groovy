@@ -32,7 +32,7 @@ import java.util.stream.Stream
  */
 @CompileStatic
 public class TestBufferedReader extends BufferedReader {
-    private final LinkedList<String> data = new LinkedList<>()
+    final LinkedList<String> data = new LinkedList<>()
 
     public TestBufferedReader() {
         // superclass is not used but a valid parameter is needed for its ctor

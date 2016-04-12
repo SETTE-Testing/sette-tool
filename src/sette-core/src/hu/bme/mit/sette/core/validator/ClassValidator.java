@@ -47,8 +47,9 @@ public final class ClassValidator extends ReflectionValidator<Class<?>> {
      * @return this object
      */
     public ClassValidator isRegular() {
-        if (getSubject().isPrimitive() || getSubject().isArray() || getSubject().isEnum()
-                || getSubject().isAnnotation() || getSubject().isInterface()) {
+        boolean primitiveOrArray = getSubject().isPrimitive() || getSubject().isArray();
+        boolean enumOrInterface = getSubject().isEnum() || getSubject().isInterface();
+        if (primitiveOrArray || enumOrInterface || getSubject().isAnnotation()) {
             addError("The class must be a regular class");
         }
         return this;

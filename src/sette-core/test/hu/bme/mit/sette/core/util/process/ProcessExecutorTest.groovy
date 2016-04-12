@@ -100,8 +100,10 @@ class ProcessExecutorTest {
         }
 
         ProcessExecutor executor = createProcessExecutor(1, 2, 0)
-        executor.processBuilder.redirectOutput(outFile.toFile())
-        executor.processBuilder.redirectError(errFile.toFile())
+        executor.with{
+            processBuilder.redirectOutput(outFile.toFile())
+            processBuilder.redirectError(errFile.toFile())
+        }
         SimpleProcessExecutorListener listener = new SimpleProcessExecutorListener()
         ProcessExecutionResult result = executor.execute(listener)
 

@@ -42,7 +42,7 @@ public final class ValidationException extends SetteException {
 
     /** The validator. */
     @Getter
-    private final Validator<?> validator;
+    private final transient Validator<?> validator;
 
     /**
      * Instantiates a new validation exception.

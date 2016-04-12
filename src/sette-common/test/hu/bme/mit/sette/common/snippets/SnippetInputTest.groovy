@@ -81,7 +81,7 @@ class SnippetInputTest {
 
         @Parameters
         static def data() {
-            List<List<?>> values = []
+            List<List> values = []
             values << [null, []]
             values << [null, [1]]
             values << [null, [1, '1']]
