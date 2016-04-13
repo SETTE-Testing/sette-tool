@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.descriptors.eclipse
 
-import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
 import hu.bme.mit.sette.core.util.io.PathUtils
 
 import java.nio.file.Files
@@ -35,7 +35,7 @@ import org.junit.rules.TemporaryFolder
 /**
  * Tests for {@link EclipseProjectTest}.
  */
-@CompileStatic
+@TypeChecked
 class EclipseProjectTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder()
@@ -74,7 +74,7 @@ class EclipseProjectTest {
         List<Path> files = Files.newDirectoryStream(dir).collect() as List
         assert files*.fileName*.toString() == ['.project']
 
-        List<String> projectLines = PathUtils.readAllLines(dir.resolve('.project')) *.trim()
+        List<String> projectLines = PathUtils.readAllLines(dir.resolve('.project'))*.trim()
         assert projectLines == expectedProjectLines
     }
 

@@ -88,7 +88,10 @@ subprojects {
                             String line = reader.readLine()
                             if (line == null) {
                                 break
-                            } else if(line.startsWith('@CompileStatic')) {
+                            } else if (line.startsWith('@CompileStatic')) {
+                                return
+                            } else if (line.startsWith('@TypeChecked')) {
+                                logger.warn("@TypeChecked detected: $file")
                                 return
                             }
                         }

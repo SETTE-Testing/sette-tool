@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.descriptors.eclipse
 
-import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
 
 import org.junit.Test
 import org.w3c.dom.Document
@@ -30,7 +30,7 @@ import org.w3c.dom.Document
 /**
  * Tests for {@link EclipseClasspathDescriptor}.
  */
-@CompileStatic
+@TypeChecked
 class EclipseClasspathDescriptorTest {
     @Test(expected = NullPointerException)
     void testAddEntryThrowsExceptionIfNull() {

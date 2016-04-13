@@ -22,11 +22,11 @@
  */
 package hu.bme.mit.sette.core.configuration
 
-import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
 
 import org.junit.Test
 
-@CompileStatic
+@TypeChecked
 class SetteToolConfigurationDescriptionTest {
     @Test
     void test() {
