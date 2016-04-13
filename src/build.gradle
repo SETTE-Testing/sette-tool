@@ -34,13 +34,26 @@ apply plugin: 'org.sonarqube'
 sonarqube {
     properties { property 'sonar.sourceEncoding', 'UTF-8' }
 }
+tasks.sonarqube.group = 'Verification'
+
+
+task allTasks (dependsOn: ['sonarqube', ':sette:build', ':sette:deployLocal']) {
+    group = 'Build'
+    description = 'Equivalent with "sonarqube build deployLocal"'
+}
 
 // Apply same group, version and repos for all projects
 allprojects {
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+
     project.group = 'hu.bme.mit.sette'
     project.version = '2.0.0-SNAPSHOT'
 
     repositories {  jcenter() }
+
+    tasks.eclipse.dependsOn tasks.cleanEclipse
+    tasks.idea.dependsOn tasks.cleanIdea
 }
 
 // Set up projects
@@ -48,8 +61,6 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
-    apply plugin: 'eclipse'
-    apply plugin: 'idea'
 
     project.archivesBaseName = project.name
     project.sourceCompatibility = 1.8
@@ -59,9 +70,6 @@ subprojects {
         testCompile 'org.codehaus.groovy:groovy-all:2.4.6:indy'
         testCompile 'junit:junit:4.12'
     }
-
-    tasks.eclipse.dependsOn tasks.cleanEclipse
-    tasks.idea.dependsOn tasks.cleanIdea
 
     sourceSets {
         main {
@@ -146,8 +154,8 @@ project(':sette') {
          * Gradle copy task creates MD5 hash of the target directory. In this case it is very
          * large and the copy would take several minutes.
          */
-        group = 'Deploy'
-        description = 'Deploys SETTE to ' + deployTarget.path
+        group = 'Build'
+        description = 'Copies SETTE to ' + deployTarget.path
 
         doLast {
             File setteJar = new File(deployTarget, 'sette-all.jar')
