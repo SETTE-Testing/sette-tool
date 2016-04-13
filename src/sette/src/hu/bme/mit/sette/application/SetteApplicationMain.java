@@ -26,6 +26,8 @@ package hu.bme.mit.sette.application;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
@@ -52,9 +54,29 @@ public final class SetteApplicationMain {
         Thread.currentThread().setName("MAIN");
         LOG.info("main() called, arguments: {}", (Object) args);
 
+        // check charset (usually ok on Linux, but might be a problem on Windows)
+        Charset utf8Charset = Charset.forName("UTF-8");
+        String notUtfFileEncodingMsg = "Please set the 'file.encoding' system property to 'UTF-8' "
+                + "(tip: set the JAVA_TOOL_OPTIONS environment variable to '-Dfile.encoding=UTF-8' "
+                + "since it may be required )";
+        try {
+            Charset fileEncodingCharset = Charset.forName(System.getProperty("file.encoding", ""));
+            if (utf8Charset != fileEncodingCharset) {
+                LOG.error(notUtfFileEncodingMsg);
+            }
+        } catch (IllegalCharsetNameException ex) { // NOSONAR
+            LOG.error(notUtfFileEncodingMsg);
+        }
+
+        if (utf8Charset != Charset.defaultCharset()) {
+            LOG.error("Please set the default charset to UTF-8 from the current "
+                    + Charset.defaultCharset().name());
+        }
+
+        // set locale
         try {
             Locale.setDefault(new Locale("en", "GB"));
-        } catch (Exception ex) {
+        } catch (Exception ex) { // NOSONAR
             Locale.setDefault(Locale.ENGLISH);
         }
 

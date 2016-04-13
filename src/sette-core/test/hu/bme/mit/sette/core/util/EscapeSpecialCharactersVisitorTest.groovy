@@ -1,7 +1,9 @@
 package hu.bme.mit.sette.core.util
 
 import groovy.transform.CompileStatic
+import java.nio.charset.Charset
 
+import org.junit.BeforeClass
 import org.junit.Test
 
 import com.github.javaparser.JavaParser
@@ -9,6 +11,17 @@ import com.github.javaparser.ast.CompilationUnit
 
 @CompileStatic
 class EscapeSpecialCharactersVisitorTest {
+    @BeforeClass
+    static void setUpClass() {
+        Charset utf8Charset = Charset.forName('UTF-8')
+
+        assert Charset.forName(System.getProperty('file.encoding')) == utf8Charset :
+        'Please set the "file.encoding" system property to "UTF-8" ' +
+        '(tip: set the JAVA_TOOL_OPTIONS environment variable to "-Dfile.encoding=UTF-8")'
+
+        assert Charset.defaultCharset() == utf8Charset : 'Please set your default charset to UTF-8'
+    }
+
     @Test
     void testNothingToEscape() {
         EscapeSpecialCharactersVisitor.with {
