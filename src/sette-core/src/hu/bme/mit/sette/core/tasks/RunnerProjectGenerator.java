@@ -121,7 +121,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
             String message = String.format(
                     "The runner project generation has failed (phase: [%s], tool: [%s])", phase,
                     getTool().getName());
-            throw new RunnerProjectGeneratorException(message, this, ex);
+            throw new RunnerProjectGeneratorException(message, ex);
         }
     }
 

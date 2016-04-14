@@ -113,8 +113,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
     public final void analyze() throws Exception {
         if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
             throw new TestSuiteRunnerException(
-                    "Run the tool on the runner project first (and then parse and generate tests)",
-                    this);
+                    "Run the tool on the runner project first (and then parse and generate tests)");
         }
 
         // ant build

@@ -167,11 +167,11 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
             log.info("== Phase: {}", phase);
         } catch (Exception ex) {
             String message = String.format(
-                    "The runner project run has failed\n(phase: [%s])\n(tool: [%s])", phase,
+                    "The runner project run has failed%n(phase: [%s])%n(tool: [%s])", phase,
                     getTool().getName());
-            throw new RunnerProjectRunnerException(message, this, ex);
+            throw new RunnerProjectRunnerException(message, ex);
         } finally {
-            // todo try to eliminate with a try-resources block
+            // TODO try to eliminate with a try-resources block
             if (runnerLogger != null) {
                 runnerLogger.close();
             }

@@ -65,7 +65,7 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
 
     public final void parse() throws Exception {
         if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
-            throw new RunResultParserException("Run the tool on the runner project first", this);
+            throw new RunResultParserException("Run the tool on the runner project first");
         }
 
         beforeParse();

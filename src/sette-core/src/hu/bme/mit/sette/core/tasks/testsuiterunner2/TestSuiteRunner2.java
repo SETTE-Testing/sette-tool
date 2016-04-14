@@ -154,8 +154,7 @@ public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
     public final void analyze() throws Exception {
         if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
             throw new TestSuiteRunner2Exception(
-                    "Run the tool on the runner project first (and then parse and generate tests)",
-                    this);
+                    "Run the tool on the runner project first (and then parse and generate tests)");
         }
 
         // create build file

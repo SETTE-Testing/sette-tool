@@ -101,7 +101,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
     public void generate() throws Exception {
         if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
             throw new TestSuiteGeneratorException(
-                    "Run the tool on the runner project first (and then parse)", this);
+                    "Run the tool on the runner project first (and then parse)");
         }
 
         File testDir = getRunnerProjectSettings().getTestDirectory();
@@ -331,7 +331,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
                 }
 
                 Object returnValue;
-                // FIXME: timeout for method call 
+                // FIXME: timeout for method call
                 List<String> skipMethodNamePrefixes = Arrays.asList("infinite",
                         "canInterruptSleep", "deadlock");
 
