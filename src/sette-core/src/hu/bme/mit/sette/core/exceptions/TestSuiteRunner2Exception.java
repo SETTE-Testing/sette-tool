@@ -23,28 +23,22 @@
 package hu.bme.mit.sette.core.exceptions;
 
 import hu.bme.mit.sette.core.SetteException;
-import hu.bme.mit.sette.core.tasks.testsuiterunner2.TestSuiteRunner2;
 
 /**
  * Exception class for exceptions in connection with a test suite runner.
  */
 public final class TestSuiteRunner2Exception extends SetteException {
     /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = -3524104888740157450L;
-
-    /** The test suite runner. */
-    private final TestSuiteRunner2 testSuiteRunner2;
+    private static final long serialVersionUID = 1905137966713677270L;
 
     /**
      * Instantiates a new test suite runner exception.
      *
      * @param message
      *            the message
-     * @param runner
-     *            the test suite runner
      */
-    public TestSuiteRunner2Exception(String message, TestSuiteRunner2 runner) {
-        this(message, runner, null);
+    public TestSuiteRunner2Exception(String message) {
+        super(message);
     }
 
     /**
@@ -52,22 +46,10 @@ public final class TestSuiteRunner2Exception extends SetteException {
      *
      * @param message
      *            the message
-     * @param runner
-     *            the test suite runner
      * @param cause
      *            the cause
      */
-    public TestSuiteRunner2Exception(String message, TestSuiteRunner2 runner, Throwable cause) {
+    public TestSuiteRunner2Exception(String message, Throwable cause) {
         super(message, cause);
-        testSuiteRunner2 = runner;
-    }
-
-    /**
-     * Gets the test suite runner.
-     *
-     * @return the test suite runner
-     */
-    public TestSuiteRunner2 getTestSuiteRunner2() {
-        return testSuiteRunner2;
     }
 }

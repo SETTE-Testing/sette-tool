@@ -23,28 +23,22 @@
 package hu.bme.mit.sette.core.exceptions;
 
 import hu.bme.mit.sette.core.SetteException;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
 
 /**
  * Exception class for exceptions in connection with a run result parser.
  */
 public final class RunResultParserException extends SetteException {
     /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = -2529488744850644042L;
-
-    /** The runner project runner. */
-    private final RunResultParser<?> runResultParser;
+    private static final long serialVersionUID = -6945458989221697918L;
 
     /**
      * Instantiates a new run result parser exception.
      *
      * @param message
      *            the message
-     * @param parser
-     *            the run result parser
      */
-    public RunResultParserException(String message, RunResultParser<?> parser) {
-        this(message, parser, null);
+    public RunResultParserException(String message) {
+        super(message);
     }
 
     /**
@@ -52,22 +46,10 @@ public final class RunResultParserException extends SetteException {
      *
      * @param message
      *            the message
-     * @param parser
-     *            the run result parser
      * @param cause
      *            the cause
      */
-    public RunResultParserException(String message, RunResultParser<?> parser, Throwable cause) {
+    public RunResultParserException(String message, Throwable cause) {
         super(message, cause);
-        runResultParser = parser;
-    }
-
-    /**
-     * Gets the run result parser.
-     *
-     * @return the run result parser
-     */
-    public RunResultParser<?> getRunResultParser() {
-        return runResultParser;
     }
 }

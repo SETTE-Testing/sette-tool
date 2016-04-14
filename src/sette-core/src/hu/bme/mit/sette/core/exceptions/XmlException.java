@@ -36,7 +36,7 @@ public class XmlException extends Exception {
      *            the message
      */
     public XmlException(String message) {
-        this(message, null);
+        super(message);
     }
 
     /**

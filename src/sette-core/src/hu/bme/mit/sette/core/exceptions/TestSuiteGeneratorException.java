@@ -23,28 +23,22 @@
 package hu.bme.mit.sette.core.exceptions;
 
 import hu.bme.mit.sette.core.SetteException;
-import hu.bme.mit.sette.core.tasks.TestSuiteGenerator;
 
 /**
  * Exception class for exceptions in connection with a test suite generator.
  */
 public final class TestSuiteGeneratorException extends SetteException {
     /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = -4598835732709549861L;
-
-    /** The runner project runner. */
-    private final TestSuiteGenerator testSuiteGenerator;
+    private static final long serialVersionUID = -2458028615375248454L;
 
     /**
      * Instantiates a new test suite generator exception.
      *
      * @param message
      *            the message
-     * @param generator
-     *            the test suite generator
      */
-    public TestSuiteGeneratorException(String message, TestSuiteGenerator generator) {
-        this(message, generator, null);
+    public TestSuiteGeneratorException(String message) {
+        super(message);
     }
 
     /**
@@ -52,23 +46,10 @@ public final class TestSuiteGeneratorException extends SetteException {
      *
      * @param message
      *            the message
-     * @param generator
-     *            the test suite generator
      * @param cause
      *            the cause
      */
-    public TestSuiteGeneratorException(String message, TestSuiteGenerator generator,
-            Throwable cause) {
+    public TestSuiteGeneratorException(String message, Throwable cause) {
         super(message, cause);
-        testSuiteGenerator = generator;
-    }
-
-    /**
-     * Gets the test suite generator.
-     *
-     * @return the test suite generator
-     */
-    public TestSuiteGenerator getTestSuiteGenerator() {
-        return testSuiteGenerator;
     }
 }

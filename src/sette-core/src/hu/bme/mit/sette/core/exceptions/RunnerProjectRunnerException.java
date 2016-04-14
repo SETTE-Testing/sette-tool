@@ -23,28 +23,22 @@
 package hu.bme.mit.sette.core.exceptions;
 
 import hu.bme.mit.sette.core.SetteException;
-import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
 
 /**
  * Exception class for exceptions in connection with a runner project runner.
  */
 public final class RunnerProjectRunnerException extends SetteException {
     /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = 3488315983289061614L;
-
-    /** The runner project runner. */
-    private final RunnerProjectRunner<?> runnerProjectRunner;
+    private static final long serialVersionUID = 8167368097767030539L;
 
     /**
      * Instantiates a new runner project runner exception.
      *
      * @param message
      *            the message
-     * @param runner
-     *            the runner project runner
      */
-    public RunnerProjectRunnerException(String message, RunnerProjectRunner<?> runner) {
-        this(message, runner, null);
+    public RunnerProjectRunnerException(String message) {
+        super(message);
     }
 
     /**
@@ -52,23 +46,10 @@ public final class RunnerProjectRunnerException extends SetteException {
      *
      * @param message
      *            the message
-     * @param runner
-     *            the runner project runner
      * @param cause
      *            the cause
      */
-    public RunnerProjectRunnerException(String message, RunnerProjectRunner<?> runner,
-            Throwable cause) {
+    public RunnerProjectRunnerException(String message, Throwable cause) {
         super(message, cause);
-        runnerProjectRunner = runner;
-    }
-
-    /**
-     * Gets the runner project runner.
-     *
-     * @return the runner project runner
-     */
-    public RunnerProjectRunner<?> getRunnerProjectRunner() {
-        return runnerProjectRunner;
     }
 }
