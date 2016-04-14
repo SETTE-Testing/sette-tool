@@ -22,31 +22,22 @@
  */
 package hu.bme.mit.sette.test
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
+import hu.bme.mit.sette.core.configuration.SetteConfiguration
 
-/**
- * A {@link PrintStream} implementation for testing which writes the data to its internal byte array. 
- */
+import java.nio.file.Path
+import java.nio.file.Paths
+
 @CompileStatic
-public class TestPrintStream extends PrintStream {
-    private final ByteArrayOutputStream data
+public class TestConfiguration {
+    public static SetteConfiguration create() {
+        Path jsonFile = Paths.get('sette.config.default.json')
+        Map json = (Map) new JsonSlurper().parse(jsonFile.toFile())
+        json['outputDir'] = 'sette-results-test'
 
-    public TestPrintStream(ByteArrayOutputStream data = new ByteArrayOutputStream()) {
-        // a little bit ugly Groovy "trick" but simple ctor call is possible
-        super(data)
-        this.data = data
-    }
-
-    public List<String> getLines() {
-        if (data.size()) {
-            // preserves empty lines except the ones at the end of the data (String.split(String))
-            return data.toString().replace('\r\n', '\n').split('\n') as List<String>
-        } else {
-            return []
-        }
-    }
-    
-    public void reset() {
-        data.reset()
+        String jsonString =  JsonOutput.with { prettyPrint(toJson(json)) }
+        return SetteConfiguration.parse(jsonString)
     }
 }

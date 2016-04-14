@@ -36,6 +36,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+
 /**
  * Contains the entry point for the application.
  */
@@ -103,8 +105,13 @@ public final class SetteApplicationMain {
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
         Path configFile = Paths.get("sette.config.json");
 
-        SetteApplication app = new SetteApplication(input, System.out, System.err, configFile);
-        app.execute(args);
+        SetteApplication app;
+        try {
+            app = new SetteApplication(input, System.out, System.err, configFile); // NOSONAR
+            app.execute(args);
+        } catch (SetteConfigurationException ex) {
+            LOG.error("Invalid configuration", ex);
+        }
 
         LOG.info("main() has finished");
     }

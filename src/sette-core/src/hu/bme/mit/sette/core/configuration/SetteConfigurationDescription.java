@@ -49,7 +49,7 @@ import lombok.NonNull;
  * class is to verify that the format of the JSON is correct and parse the data into objects. The
  * configuration is validated and finalised by the {@link SetteConfiguration} class.
  */
-public final class SetteConfigurationDescription {
+final class SetteConfigurationDescription {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String NODE_BASEDIRS = "baseDirs";

@@ -22,13 +22,13 @@
  */
 package hu.bme.mit.sette.core.configuration;
 
-import static java.util.stream.Collectors.toList;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public final class SetteConfiguration {
     @Getter
     private final Path baseDir;
 
-    /** The output directory, relative to the base directory. */
+    /** The output directory. */
     @Getter
     private final Path outputDir;
 
@@ -61,13 +61,42 @@ public final class SetteConfiguration {
     @Getter
     private final int runnerTimeoutInMs;
 
-    /** Set of snippet project directories, relative to the base directory (read-only). */
+    /** The snippet project directories (read-only). */
     @Getter
     private final ImmutableSortedSet<Path> snippetProjectDirs;
 
-    /** Tool name and location pairs, relative to the base directory (read-only). */
+    /** The tool configurations (read-only). */
     @Getter
     private final ImmutableSortedSet<SetteToolConfiguration> toolConfigurations;
+
+    /**
+     * Instantiates a new SETTE configuration.
+     *
+     * @param baseDir
+     *            the base directory
+     * @param outputDir
+     *            the output directory
+     * @param runnerTimeoutInMs
+     *            the runner timeout in milliseconds (always-positive)
+     * @param snippetProjectDirs
+     *            the snippet project directories
+     * @param toolConfigurations
+     *            the tool configurations
+     * @throws ValidationException
+     *             if validation fails
+     */
+    public SetteConfiguration(@NonNull Path baseDir, @NonNull Path outputDir, int runnerTimeoutInMs,
+            @NonNull Collection<Path> snippetProjectDirs,
+            @NonNull Collection<SetteToolConfiguration> toolConfigurations)
+                    throws ValidationException {
+        this.baseDir = baseDir;
+        this.outputDir = outputDir;
+        this.runnerTimeoutInMs = runnerTimeoutInMs;
+        this.snippetProjectDirs = ImmutableSortedSet.copyOf(snippetProjectDirs);
+        this.toolConfigurations = ImmutableSortedSet.copyOf(toolConfigurations);
+
+        validate();
+    }
 
     /**
      * Instantiates a new SETTE configuration.
@@ -79,7 +108,8 @@ public final class SetteConfiguration {
      */
     private SetteConfiguration(SetteConfigurationDescription configDesc)
             throws ValidationException {
-        log.debug("Validating configuration: {}", configDesc);
+        // Parse and validate configuration description
+        log.debug("Validating configuration description: {}", configDesc);
 
         Validator<SetteConfigurationDescription> v = Validator.of(configDesc);
 
@@ -101,59 +131,58 @@ public final class SetteConfiguration {
 
         if (baseDir == null) {
             v.addError("None of the possible base directories exist");
-        } else {
-            PathValidator.forDirectory(baseDir, true, null, true).validate();
+            v.validate();
         }
 
-        // outputDir: try to create if does not exists
-        outputDir = baseDir.resolve(configDesc.getOutputDirPath());
-        if (!PathUtils.exists(outputDir)) {
-            try {
-                PathUtils.createDir(outputDir);
-                log.debug("Output directory has been created: {}", outputDir);
-            } catch (IOException ex) {
-                log.debug("Output directory creation has failed: " + outputDir, ex);
-                v.addError("The output directory cannot be created: " + ex.getMessage());
-            }
-        } else {
-            PathValidator.forDirectory(outputDir, true, true, true);
-        }
-
-        // runnerTimeoutInMs: must be positive
+        this.outputDir = baseDir.resolve(configDesc.getOutputDirPath());
         this.runnerTimeoutInMs = configDesc.getRunnerTimeoutInMs();
-        v.addErrorIfFalse("The timeout for the runner must be positive", runnerTimeoutInMs > 0);
 
-        // snippetProjects: check if all exists
         Stream<Path> tmpSnippetProjectDirs = configDesc.getSnippetProjectDirPaths()
-                .stream()
-                .map(baseDir::resolve)
-                .peek(p -> v.addErrorIfFalse("The snippet project directory does not exists: " + p,
-                        PathUtils.exists(p)));
-        snippetProjectDirs = ImmutableSortedSet.copyOf(tmpSnippetProjectDirs.iterator());
+                .stream().map(baseDir::resolve);
+        this.snippetProjectDirs = ImmutableSortedSet.copyOf(tmpSnippetProjectDirs.iterator());
 
-        // toolConfigurations: tool dirs must exist and tool names must be non-empty and unique
         Stream<SetteToolConfiguration> tmpToolConfigurations = configDesc.getToolConfigurations()
                 .stream()
                 .map(t -> {
                     Path toolDir = baseDir.resolve(t.getToolDirPath());
-                    v.addErrorIfFalse("The tool directory does not exists: " + toolDir,
-                            PathUtils.exists(toolDir));
                     return new SetteToolConfiguration(t.getClassName(), t.getName(), toolDir);
                 });
         toolConfigurations = ImmutableSortedSet.copyOf(tmpToolConfigurations.iterator());
 
-        List<String> toolNames = toolConfigurations
-                .stream()
-                .map(tc -> tc.getName().toLowerCase())
-                .distinct()
-                .collect(toList());
+        // Validate configuration
+        validate();
+    }
+
+    private void validate() throws ValidationException {
+        log.debug("Validating configuration: {}", this);
+        Validator<SetteConfiguration> v = Validator.of(this);
+
+        // baseDir: non-null, exists, 07x7
+        PathValidator.forDirectory(baseDir, true, null, true).addToIfInvalid(v);
+
+        // outputDir: exists, 0777
+        PathValidator.forDirectory(outputDir, true, true, true).addToIfInvalid(v);
+
+        // runnerTimeoutInMs: must be positive
+        v.addErrorIfFalse("The timeout for the runner must be positive", runnerTimeoutInMs > 0);
+
+        // snippetProjectDirs: exists, 07x7
+        for (Path dir : snippetProjectDirs) {
+            PathValidator.forDirectory(dir, true, null, true).addToIfInvalid(v);
+        }
+
+        // toolsConfigrations: unique names are required, tools dirs exist, 07x7
+        Set<String> toolNames = new HashSet<>();
+        for (SetteToolConfiguration tc : toolConfigurations) {
+            PathValidator.forDirectory(tc.getToolDir(), true, null, true).addToIfInvalid(v);
+            toolNames.add(tc.getName().toLowerCase());
+        }
+
         v.addErrorIfFalse("The tools must have a unique name (case-insensitive)",
                 toolNames.size() == toolConfigurations.size());
-        v.addErrorIfTrue("The tool names must not be blank", toolNames.contains(""));
+        v.addErrorIfTrue("A tool name must not be blank", toolNames.contains(""));
 
         v.validate();
-
-        log.debug("Validated configuration: {}", this);
     }
 
     /**

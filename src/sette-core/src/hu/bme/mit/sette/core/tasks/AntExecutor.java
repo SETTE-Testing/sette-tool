@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.tasks;
 
-  import java.io.File;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,11 +75,11 @@ public class AntExecutor {
             System.out.println("========================================");
             System.out.println(listener.getStderrData().toString());
             System.out.println("========================================");
-            System.out.println("Terminating");
         }
 
-        if (listener.getStderrData().length() > 0) {
-            // TODO enchance error handling
+        if (result.getExitValue() != 0) {
+            System.out.println("Ant failure: " + result.getExitValue());
+            System.out.println("Terminating");
             throw new RuntimeException("ant build has failed");
         }
     }

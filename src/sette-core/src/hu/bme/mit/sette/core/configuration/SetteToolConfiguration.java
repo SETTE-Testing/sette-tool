@@ -61,7 +61,7 @@ public final class SetteToolConfiguration implements Comparable<SetteToolConfigu
     }
 
     @Override
-    public int compareTo(@NonNull SetteToolConfiguration o) {
+    public int compareTo(@NonNull SetteToolConfiguration o) { // NOSONAR: only to sort by name
         return name.compareTo(o.name);
     }
 

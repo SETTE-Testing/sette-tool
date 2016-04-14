@@ -28,7 +28,7 @@ import lombok.NonNull;
 /**
  * Class for parsed JSON tool configuration description.
  */
-public final class SetteToolConfigurationDescription {
+final class SetteToolConfigurationDescription {
     /** The class name of the tool, e.g, <code>com.example.MyTool</code> */
     @Getter
     private final String className;

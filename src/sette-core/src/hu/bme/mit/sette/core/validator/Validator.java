@@ -53,18 +53,8 @@ import lombok.NonNull;
  *            Type of the subject which will be validated.
  */
 public class Validator<T> {
-    /**
-     * Creates a new {@link Validator} instance.
-     *
-     * @param <T>
-     *            the type of the subject
-     * @param subject
-     *            the subject
-     * @return a new {@link Validator} instance
-     */
-    public static <T> Validator<T> of(@NonNull T subject) {
-        return new Validator<>(subject);
-    }
+    /** Indentation to use in toString(...) methods. */
+    private static final String TO_STRING_INDENT = "    ";
 
     /** The subject under validation. */
     @Getter
@@ -74,7 +64,7 @@ public class Validator<T> {
     private final List<ValidationError> errors = new LinkedList<>();
 
     /** The parent of this validator (only can be set once). */
-    private final LazyImmutable<Validator<?>> parent = LazyImmutable.of();
+    private final LazyImmutable<Validator<?>> parentValidator = LazyImmutable.of();
 
     /** List of children validators. */
     private final List<Validator<?>> children = new LinkedList<>();
@@ -88,6 +78,19 @@ public class Validator<T> {
      */
     Validator(@NonNull T subject) {
         this.subject = subject;
+    }
+
+    /**
+     * Creates a new {@link Validator} instance.
+     *
+     * @param <T>
+     *            the type of the subject
+     * @param subject
+     *            the subject
+     * @return a new {@link Validator} instance
+     */
+    public static <T> Validator<T> of(@NonNull T subject) {
+        return new Validator<>(subject);
     }
 
     /**
@@ -200,7 +203,7 @@ public class Validator<T> {
      * @return the parent of this validator or <code>null</code> if not present
      */
     public final Validator<?> getParent() {
-        return parent.get();
+        return parentValidator.get();
     }
 
     /**
@@ -208,7 +211,7 @@ public class Validator<T> {
      */
     public final Validator<?> getRoot() {
         Validator<?> v = this;
-        while (v.parent.isSet()) {
+        while (v.parentValidator.isSet()) {
             v = v.getParent();
         }
         return v;
@@ -232,7 +235,7 @@ public class Validator<T> {
 
     /**
      * Adds the specified validator to the hierarchy. The validator to add must not be the same
-     * instance, must not belont to anywhere and most not be the root of the hierarchy.
+     * instance, must not belong to anywhere and most not be the root of the hierarchy.
      * 
      * @param child
      *            The validator to add
@@ -240,16 +243,16 @@ public class Validator<T> {
     public final void addChild(@NonNull Validator<?> child) {
         // child: not this, no parents, not the root
         checkArgument(this != child, "The child must not be the same validator");
-        checkArgument(!child.parent.isSet(), "The child must not belong anywhere");
+        checkArgument(!child.parentValidator.isSet(), "The child must not belong anywhere");
         checkArgument(getRoot() != child, "The child must not bee the root if this hierarchy");
 
         children.add(child);
-        child.parent.set(this);
+        child.parentValidator.set(this);
     }
 
     /**
      * Adds the specified validator to the hierarchy if it invalidates its subject. The validator to
-     * add must not be the same instance, must not belont to anywhere and most not be the root of
+     * add must not be the same instance, must not belong to anywhere and most not be the root of
      * the hierarchy.
      * <p>
      * Note: only add validators using this method if you they will not be used after the addition.
@@ -261,6 +264,30 @@ public class Validator<T> {
         if (!child.isValid()) {
             addChild(child);
         }
+    }
+
+    /**
+     * Adds the validator to the specified validator hierarchy as a child. This validator must not
+     * be the same instance as the parameter, must not belong to anywhere and most not be the root
+     * of the hierarchy.
+     * 
+     * @param parent
+     *            The validator to add to
+     */
+    public final void addTo(@NonNull Validator<?> parent) {
+        parent.addChild(this);
+    }
+
+    /**
+     * Adds the validator to the specified validator hierarchy as a child if it invalidates the
+     * subject. This validator must not be the same instance as the parameter, must not belong to
+     * anywhere and most not be the root of the hierarchy.
+     * 
+     * @param parent
+     *            The validator to add to
+     */
+    public final void addToIfInvalid(@NonNull Validator<?> parent) {
+        parent.addChildIfInvalid(this);
     }
 
     /**
@@ -302,8 +329,6 @@ public class Validator<T> {
         checkArgument(stackTraceDepth >= 0);
         return toStringLines(stackTraceDepth).collect(joining("\n"));
     }
-
-    private static final String TO_STRING_INDENT = "    ";
 
     /**
      * Returns a stream of the lines of the string representation of the validator, containing all

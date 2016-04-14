@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Function;
 
 import hu.bme.mit.sette.core.configuration.SetteConfiguration;
+import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.configuration.SetteToolConfiguration;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.CsvBatchGenerator;
@@ -62,23 +63,23 @@ public final class SetteApplication {
     private final BufferedReader input;
     private final PrintStream output;
     private final PrintStream errorOutput;
-    private final Path configurationFile;
+    private final SetteConfiguration configuration;
 
     public SetteApplication(BufferedReader input, PrintStream output, PrintStream errorOutput,
-            Path configurationFile) {
+            SetteConfiguration configuration) {
         this.input = input;
         this.output = output;
         this.errorOutput = errorOutput;
-        this.configurationFile = configurationFile;
+        this.configuration = configuration;
+    }
+
+    public SetteApplication(BufferedReader input, PrintStream output, PrintStream errorOutput,
+            Path configurationFile) throws SetteConfigurationException {
+        this(input, output, errorOutput, SetteConfiguration.parse(configurationFile));
     }
 
     public void execute(String... args) {
         try {
-            //
-            // Parse configuration
-            //
-            SetteConfiguration configuration = SetteConfiguration.parse(configurationFile);
-
             //
             // Determine what to do in this execution
             //
