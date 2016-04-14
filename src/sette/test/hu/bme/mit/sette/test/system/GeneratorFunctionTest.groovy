@@ -20,10 +20,12 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette
+package hu.bme.mit.sette.test.system
 
 import groovy.transform.CompileStatic
 import hu.bme.mit.sette.application.SetteApplication
+import hu.bme.mit.sette.test.TestBufferedReader
+import hu.bme.mit.sette.test.TestPrintStream
 
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit

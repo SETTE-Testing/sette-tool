@@ -37,9 +37,9 @@ sonarqube {
 tasks.sonarqube.group = 'Verification'
 
 
-task allTasks (dependsOn: ['sonarqube', ':sette:build', ':sette:deployLocal']) {
+task allTasks (dependsOn: ['sonarqube', ':sette:testAll', ':sette:build', ':sette:deployLocal']) {
     group = 'Build'
-    description = 'Equivalent with "sonarqube build deployLocal"'
+    description = 'Assembles and tests this project, including system tests and SonarQube analysis'
 }
 
 // Apply same group, version and repos for all projects
@@ -81,6 +81,15 @@ subprojects {
 
     tasks.withType(GroovyCompile) {
         groovyOptions.optimizationOptions.indy = true
+    }
+    
+    test {
+        exclude '**/test/system/**'
+    }
+
+    task testAll (type: Test) {
+        group = 'Verification'
+        description = 'Runs all the tests'
     }
 
     task checkGroovyCompileStatic {

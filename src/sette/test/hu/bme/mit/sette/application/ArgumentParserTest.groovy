@@ -24,8 +24,8 @@ package hu.bme.mit.sette.application
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import hu.bme.mit.sette.TestPrintStream
 import hu.bme.mit.sette.core.configuration.SetteConfiguration
+import hu.bme.mit.sette.test.TestPrintStream
 
 import java.io.ByteArrayOutputStream.*
 
