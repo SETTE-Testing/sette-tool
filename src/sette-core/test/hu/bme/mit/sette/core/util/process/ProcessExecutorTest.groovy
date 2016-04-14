@@ -56,8 +56,11 @@ class ProcessExecutorTest {
         assert !result.destroyed
         assert result.elapsedTimeInMs >= 500
 
-        assert listener.stdoutData.tokenize('\n').size() == 3
-        assert listener.stderrData.tokenize('\n').size() == 5
+        List<String> stdout = getLines(listener.stdoutData)
+        List<String> stderr = getLines(listener.stderrData)
+
+        assert stdout.size() == 3
+        assert stderr.size() == 5
     }
 
     @Test
@@ -70,8 +73,11 @@ class ProcessExecutorTest {
         assert !result.destroyed
         assert result.elapsedTimeInMs >= 500
 
-        assert listener.stdoutData.tokenize('\n').size() == 3
-        assert listener.stderrData.tokenize('\n').size() == 5
+        List<String> stdout = getLines(listener.stdoutData)
+        List<String> stderr = getLines(listener.stderrData)
+
+        assert stdout.size() == 3
+        assert stderr.size() == 5
     }
 
     @Test
@@ -85,8 +91,11 @@ class ProcessExecutorTest {
         // hopefully it will be enough
         assert result.elapsedTimeInMs <= 2500
 
-        assert listener.stdoutData.tokenize('\n').size() in 1..3
-        assert listener.stderrData.tokenize('\n').size() in 1..3
+        List<String> stdout = getLines(listener.stdoutData)
+        List<String> stderr = getLines(listener.stderrData)
+
+        assert stdout.size() in 1..3
+        assert stderr.size() in 1..3
     }
 
     @Test
@@ -99,11 +108,11 @@ class ProcessExecutorTest {
             Files.deleteIfExists(errFile)
         }
 
-        ProcessExecutor executor = createProcessExecutor(1, 2, 0)
-        executor.with{
-            processBuilder.redirectOutput(outFile.toFile())
-            processBuilder.redirectError(errFile.toFile())
-        }
+        ProcessExecutor executor = createProcessExecutor(1, 2, 0, { ProcessBuilder pb ->
+            pb.redirectOutput(outFile.toFile())
+            pb.redirectError(errFile.toFile())
+        })
+
         SimpleProcessExecutorListener listener = new SimpleProcessExecutorListener()
         ProcessExecutionResult result = executor.execute(listener)
 
@@ -114,7 +123,7 @@ class ProcessExecutorTest {
         assert listener.stdoutData.length() == 0
         assert listener.stderrData.length() == 0
         assert PathUtils.readAllLines(outFile).size() == 1
-        assert PathUtils.readAllLines(errFile).size() == 2
+        assert PathUtils.readAllLines(errFile).findAll { !skipLine(it) }.size() == 2
     }
 
     @Test
@@ -155,7 +164,8 @@ class ProcessExecutorTest {
         assert events[1..-2] == ['read']* (events.size()-2)
     }
 
-    private ProcessExecutor createProcessExecutor(int stdoutMax, int stdinMax, int timeoutInMs) {
+    private static ProcessExecutor createProcessExecutor(int stdoutMax, int stdinMax, int timeoutInMs,
+            Closure extraConfig = null) {
         List<String> command = [
             'java',
             '-cp',
@@ -165,6 +175,21 @@ class ProcessExecutorTest {
             String.valueOf(stdoutMax),
             String.valueOf(stdinMax)
         ]
-        return new ProcessExecutor(new ProcessBuilder(command), timeoutInMs)
+
+        ProcessBuilder pb = new ProcessBuilder(command)
+        if (extraConfig) {
+            extraConfig(pb)
+        }
+        return new ProcessExecutor(pb, timeoutInMs)
+    }
+
+    private static List<String> getLines(CharSequence data) {
+        List<String> lines = data.tokenize('\n')
+        lines.removeAll { skipLine(it) }
+        return lines
+    }
+
+    private static boolean skipLine(String line) {
+        return line.startsWith('Picked up JAVA_TOOL_OPTIONS')
     }
 }

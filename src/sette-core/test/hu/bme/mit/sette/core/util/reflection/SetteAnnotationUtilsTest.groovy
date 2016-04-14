@@ -70,8 +70,8 @@ class SetteAnnotationUtilsTest {
         setteAnnots.sort(annotSorter)
         elemAnnots.sort(annotSorter)
 
-        assert setteAnnots[0] == elem.annotations[1] // @SetteIncludeCoverage
-        assert setteAnnots[1] == elem.annotations[2] // @SetteRequiredStatementCoverage
+        assert setteAnnots[0] == elemAnnots[1] // @SetteIncludeCoverage
+        assert setteAnnots[1] == elemAnnots[2] // @SetteRequiredStatementCoverage
     }
 
     @Test
