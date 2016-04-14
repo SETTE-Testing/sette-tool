@@ -92,6 +92,67 @@ subprojects {
         description = 'Runs all the tests'
     }
 
+
+    task checkLicense {
+        group = 'Verification'
+        description = 'Checks all .java and .groovy files to have the license header'
+
+        doLast {
+            boolean error = false
+            File licFile = file('LICENSE')
+            if (!licFile.exists()) {
+                error = true
+                logger.error "Missing LICENSE file: $licFile"
+            }
+
+            // etalon: this files header
+            List<String> licLines = []
+            file("$rootProject.projectDir/build.gradle").withReader { Reader reader ->
+                while (true) {
+                    String line = reader.readLine()
+                    if (line == null) {
+                        throw new Exception('Could not find the end of the license comment')
+                    }
+
+                    licLines << line
+
+                    if (line == ' */') {
+                        return
+                    }
+                }
+            }
+
+            // check files
+            project.projectDir.eachFileRecurse (groovy.io.FileType.FILES) { File file ->
+                if (file.name == 'package-info.java') {
+                    return
+                } else if (file.name.endsWith('.java') || file.name.endsWith('.groovy')) {
+                    file.withReader { Reader reader ->
+                        int i = 0
+                        while (i < licLines.size()) {
+                            String line = reader.readLine()
+                            if (line == null) {
+                                error = true
+                                logger.error "EOF before license comment ending: $file"
+                                return
+                            } else if (line != licLines[i]) {
+                                error = true
+                                logger.error "License comment mismatch (line: ${i+1}): $file"
+                                return
+                            }
+
+                            i++
+                        }
+                    }
+                }
+            }
+
+            if (error) {
+                throw new Exception('Please fix license related issues')
+            }
+        }
+    }
+
     task checkGroovyCompileStatic {
         group = 'Verification'
         description = 'Checks all .groovy files to have the @CompileStatic annotation'
@@ -108,7 +169,7 @@ subprojects {
                             } else if (line.startsWith('@CompileStatic')) {
                                 return
                             } else if (line.startsWith('@TypeChecked')) {
-                                logger.warn("@TypeChecked detected: $file")
+                                logger.warn "@TypeChecked detected: $file"
                                 return
                             }
                         }
@@ -122,6 +183,9 @@ subprojects {
             }
         }
     }
+
+    tasks.check.dependsOn checkLicense
+    tasks.check.dependsOn checkGroovyCompileStatic
 }
 
 //
