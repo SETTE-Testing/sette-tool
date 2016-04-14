@@ -27,8 +27,6 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.Validate;
 
-  
-
 enum XmlTagType {
     /** The &lt;pet&gt; (root) tag. */
     PET("pet", (XmlTagType) null),

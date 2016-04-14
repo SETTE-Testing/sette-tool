@@ -28,8 +28,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.Validate;
 
-  
-
 abstract class HeapElement {
     private String num;
 
@@ -50,11 +48,11 @@ abstract class HeapElement {
     }
 
     public final boolean isArray() {
-        return (this instanceof HeapArray);
+        return this instanceof HeapArray;
     }
 
     public final boolean isObject() {
-        return (this instanceof HeapObject);
+        return this instanceof HeapObject;
     }
 
     public final HeapArray asHeapArray() {
@@ -67,7 +65,7 @@ abstract class HeapElement {
         return (HeapObject) this;
     }
 
-    final static class HeapArray extends HeapElement {
+    static final class HeapArray extends HeapElement {
         private String type;
         private String numElems;
         private final List<DataOrRef> args;
@@ -102,7 +100,7 @@ abstract class HeapElement {
         }
     }
 
-    final static class HeapObject extends HeapElement {
+    static final class HeapObject extends HeapElement {
         private String className;
         private final List<HeapObjectField> fields;
 
@@ -127,12 +125,9 @@ abstract class HeapElement {
             return fields;
         }
 
-        final static class HeapObjectField {
+        static final class HeapObjectField {
             private String fieldName;
             private DataOrRef dataOrRef;
-
-            public HeapObjectField() {
-            }
 
             public String getFieldName() {
                 return fieldName;

@@ -51,9 +51,6 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
     private List<XmlTag> xmlTagHistory = new ArrayList<>();
     private Deque<XmlTag> xmlTagStack = new ArrayDeque<>();
 
-    public JPetTestCaseXmlParser() {
-    }
-
     @Override
     public void startDocument() {
         testCases = new ArrayList<>();
@@ -129,7 +126,8 @@ public final class JPetTestCaseXmlParser extends DefaultHandler {
     public void endElement(String uri, String localName, String qName) {
         XmlTag openingTag = xmlTagStack.peek();
 
-        if (openingTag.getType() == XmlTagType.TRACE && !XmlTagType.TRACE.getTagName().equals(qName)) {
+        if (openingTag.getType() == XmlTagType.TRACE
+                && !XmlTagType.TRACE.getTagName().equals(qName)) {
             // parent tag is <trace> (or child) and current tag is not
             // </trace>, simply skip
             return;

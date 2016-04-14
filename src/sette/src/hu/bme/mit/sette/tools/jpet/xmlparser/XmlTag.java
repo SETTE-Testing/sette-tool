@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-  
 
 final class XmlTag {
     private final XmlTagType type;

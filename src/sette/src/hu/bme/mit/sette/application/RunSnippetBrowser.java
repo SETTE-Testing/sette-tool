@@ -24,11 +24,11 @@
 package hu.bme.mit.sette.application;
 
 public final class RunSnippetBrowser {
-    public static void main(String[] args) throws Exception {
-        SetteApplicationMain.main("--task", "snippet-browser");
-    }
-
     private RunSnippetBrowser() {
         throw new UnsupportedOperationException("Static class");
+    }
+
+    public static void main(String[] args) throws Exception {
+        SetteApplicationMain.main("--task", "snippet-browser");
     }
 }

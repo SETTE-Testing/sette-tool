@@ -38,7 +38,7 @@ public class TimeInMsOptionHandler extends OneArgumentOptionHandler<Integer> {
     }
 
     @Override
-    protected Integer parse(@NonNull String time) throws NumberFormatException, CmdLineException {
+    protected Integer parse(@NonNull String time) throws CmdLineException {
         if (time.endsWith("ms")) {
             return Integer.parseInt(time.substring(0, time.length() - 2));
         } else if (time.endsWith("s")) {

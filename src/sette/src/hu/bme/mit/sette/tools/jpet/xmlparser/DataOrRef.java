@@ -50,11 +50,11 @@ abstract class DataOrRef {
     }
 
     public final boolean isData() {
-        return (this instanceof Data);
+        return this instanceof Data;
     }
 
     public final boolean isRef() {
-        return (this instanceof Ref);
+        return this instanceof Ref;
     }
 
     public final Data asData() {
@@ -67,7 +67,7 @@ abstract class DataOrRef {
         return (Ref) this;
     }
 
-    final static class Data extends DataOrRef {
+    static final class Data extends DataOrRef {
         public Data() {
             this(null);
         }
@@ -77,7 +77,7 @@ abstract class DataOrRef {
         }
     }
 
-    final static class Ref extends DataOrRef {
+    static final class Ref extends DataOrRef {
         public Ref() {
             this(null);
         }
