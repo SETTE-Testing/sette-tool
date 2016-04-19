@@ -24,7 +24,6 @@ package hu.bme.mit.sette.core.tool;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
@@ -69,13 +68,10 @@ public abstract class Tool implements Comparable<Tool> {
      *            the name of the tool
      * @param toolDir
      *            the tool directory
-     * @throws IOException
-     *             if an I/O error occurs
      * @throws ValidationException
      *             if validation fails
      */
-    public Tool(@NonNull String name, @NonNull Path toolDir)
-            throws IOException, ValidationException {
+    public Tool(@NonNull String name, @NonNull Path toolDir) throws ValidationException {
         checkArgument(!name.trim().isEmpty());
         PathValidator.forDirectory(toolDir, true, null, true).validate();
 

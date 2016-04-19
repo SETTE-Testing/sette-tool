@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,15 +72,11 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
         Path testDirBackup = getRunnerProjectSettings().getBaseDir().toPath()
                 .resolve("test-original");
 
-        try {
-            if (PathUtils.exists(testDirBackup)) {
-                PathUtils.deleteIfExists(testDir);
-                PathUtils.copy(testDirBackup, testDir);
-            } else {
-                PathUtils.copy(testDir, testDirBackup);
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        if (PathUtils.exists(testDirBackup)) {
+            PathUtils.deleteIfExists(testDir);
+            PathUtils.copy(testDirBackup, testDir);
+        } else {
+            PathUtils.copy(testDir, testDirBackup);
         }
     }
 

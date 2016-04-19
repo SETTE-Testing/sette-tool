@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
@@ -40,7 +39,7 @@ public final class RandoopTool extends Tool {
     @Getter
     private final Path defaultBuildXml;
 
-    public RandoopTool(String name, Path dir) throws IOException, ValidationException {
+    public RandoopTool(String name, Path dir) throws ValidationException {
         super(name, dir);
 
         toolJar = dir.resolve("randoop.jar");

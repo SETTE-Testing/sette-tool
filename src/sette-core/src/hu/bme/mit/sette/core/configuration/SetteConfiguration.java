@@ -22,7 +22,6 @@
  */
 package hu.bme.mit.sette.core.configuration;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -191,8 +190,6 @@ public final class SetteConfiguration {
      * @param json
      *            the JSON string
      * @return the parsed SETTE configuration
-     * @throws IOException
-     *             if an I/O error occurs
      * @throws SetteConfigurationException
      *             if parsing fails or the configuration is invalid
      */
@@ -212,8 +209,6 @@ public final class SetteConfiguration {
      * @param json
      *            the JSON file
      * @return the parsed SETTE configuration
-     * @throws IOException
-     *             if an I/O error occurs
      * @throws SetteConfigurationException
      *             if parsing fails or the configuration is invalid
      */
@@ -225,8 +220,6 @@ public final class SetteConfiguration {
             return parse(json);
         } catch (ValidationException ex) {
             throw new SetteConfigurationException("The file is invalid: " + jsonFile, ex);
-        } catch (IOException ex) {
-            throw new SetteConfigurationException("An I/O error occurred: " + ex.getMessage(), ex);
         }
     }
 

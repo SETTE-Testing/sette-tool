@@ -25,7 +25,6 @@ package hu.bme.mit.sette.core.model.snippet;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -90,11 +89,8 @@ public final class SnippetProject implements Comparable<SnippetProject> {
      * @return the parsed {@link SnippetProject}
      * @throws ValidationException
      *             if validation of the project fails
-     * @throws IOException
-     *             if an I/O exception occurs
      */
-    public static SnippetProject parse(@NonNull Path baseDir)
-            throws ValidationException, IOException {
+    public static SnippetProject parse(@NonNull Path baseDir) throws ValidationException {
         return new SnippetProject(baseDir);
     }
 
@@ -105,13 +101,11 @@ public final class SnippetProject implements Comparable<SnippetProject> {
      *            the base directory of the snippet project
      * @throws ValidationException
      *             if validation of the project fails
-     * @throws IOException
-     *             if an I/O exception occurs
      */
-    private SnippetProject(@NonNull Path baseDir) throws ValidationException, IOException {
+    private SnippetProject(@NonNull Path baseDir) throws ValidationException {
         // parse and validate directory layout
         PathValidator.forDirectory(baseDir, true, null, true).validate();
-        this.baseDir = baseDir.toRealPath();
+        this.baseDir = PathUtils.toRealPath(baseDir);
         validateDirs();
 
         // collect and validate source & lib files
@@ -119,7 +113,8 @@ public final class SnippetProject implements Comparable<SnippetProject> {
         this.snippetFiles = collectAndValidateFiles(getSourceDir(), "java", v);
         this.snippetInputFiles = collectAndValidateFiles(getInputSourceDir(), "java", v);
 
-        ImmutableSortedSet<Path> libFiles = collectAndValidateFiles(getLibDir(), "jar|dll|so", v);
+        ImmutableSortedSet<Path> libFiles = collectAndValidateFiles(getLibDir(), "jar|dll|so",
+                v);
         this.javaLibFiles = ImmutableSortedSet.copyOf(
                 libFiles.stream().filter(p -> p.toString().endsWith(".jar")).iterator());
         if (libFiles.size() != javaLibFiles.size()) {
@@ -192,12 +187,9 @@ public final class SnippetProject implements Comparable<SnippetProject> {
      *            the {@link Validator} to which errors will be added
      * @return set of collected files (note: it will contain all the files regardless if some of
      *         them does not have the specified extension)
-     * @throws IOException
-     *             if an I/O exception occurs
      */
     private static ImmutableSortedSet<Path> collectAndValidateFiles(@NonNull Path dir,
-            String extension,
-            @NonNull Validator<?> validator) throws IOException {
+            String extension, @NonNull Validator<?> validator) {
         if (PathUtils.exists(dir)) {
             SortedSet<Path> files = PathUtils.walk(dir).filter(Files::isRegularFile).sorted()
                     .collect(Collectors.toCollection(TreeSet<Path>::new));
@@ -216,10 +208,8 @@ public final class SnippetProject implements Comparable<SnippetProject> {
      * 
      * @throws ValidationException
      *             if directory validation fails
-     * @throws IOException
-     *             if an I/O error had occurred
      */
-    private void validateDirs() throws ValidationException, IOException {
+    private void validateDirs() throws ValidationException {
         Validator<String> v = Validator.of("SnippetProject directories: " + baseDir);
 
         v.addChild(PathValidator.forDirectory(getSourceDir(), true, null, true));

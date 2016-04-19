@@ -22,7 +22,6 @@
  */
 package hu.bme.mit.sette.runnerprojectbrowser;
 
-import java.io.IOException;
 import java.util.Locale;
 
 import com.google.common.io.Resources;
@@ -50,12 +49,12 @@ public class RunnerProjectBrowser extends Application {
         try {
             root = (GridPane) FXMLLoader
                     .load(Resources.getResource("RunnerProjectBrowser.fxml"));
-        } catch (IOException ex) {
+            Scene scene = new Scene(root);
+            primaryStage.setScene(scene);
+            primaryStage.setTitle("SETTE Runner Project Browser");
+            primaryStage.show();
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-        Scene scene = new Scene(root);
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("SETTE Runner Project Browser");
-        primaryStage.show();
     }
 }

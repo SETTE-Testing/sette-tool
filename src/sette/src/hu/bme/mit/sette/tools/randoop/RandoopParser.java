@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.randoop;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.IntSummaryStatistics;
@@ -165,29 +164,25 @@ public class RandoopParser extends RunResultParser<RandoopTool> {
     @Override
     protected void afterParse() {
         // fix compilation error in test suite files
-        try {
-            File testDir = getRunnerProjectSettings().getTestDirectory();
+        File testDir = getRunnerProjectSettings().getTestDirectory();
 
-            Iterator<File> it = PathUtils.walk(testDir.toPath()).filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java")).map(Path::toFile).sorted()
-                    .collect(Collectors.toList()).iterator();
+        Iterator<File> it = PathUtils.walk(testDir.toPath()).filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java")).map(Path::toFile).sorted()
+                .collect(Collectors.toList()).iterator();
 
-            while (it.hasNext()) {
-                File testFile = it.next();
-                if (!testFile.getName().endsWith("Test.java")) {
-                    continue;
-                }
-
-                List<String> lines = PathUtils.readAllLines(testFile.toPath());
-                for (int i = 0; i < lines.size(); i++) {
-                    String line = lines.get(i).replace("public static Test suite() {",
-                            "public static TestSuite suite() {");
-                    lines.set(i, line);
-                }
-                PathUtils.write(testFile.toPath(), lines);
+        while (it.hasNext()) {
+            File testFile = it.next();
+            if (!testFile.getName().endsWith("Test.java")) {
+                continue;
             }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+
+            List<String> lines = PathUtils.readAllLines(testFile.toPath());
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i).replace("public static Test suite() {",
+                        "public static TestSuite suite() {");
+                lines.set(i, line);
+            }
+            PathUtils.write(testFile.toPath(), lines);
         }
     }
 

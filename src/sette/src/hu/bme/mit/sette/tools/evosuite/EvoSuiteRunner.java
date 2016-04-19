@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,14 +49,14 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
     }
 
     @Override
-    protected void afterPrepare() throws IOException {
+    protected void afterPrepare() {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
     }
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, SetteConfigurationException {
+            throws SetteConfigurationException {
         // TODO make better
         // e.g.
 
@@ -116,7 +115,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
     }
 
     @Override
-    public void cleanUp() throws IOException {
+    public void cleanUp() {
         // NOTE not needed to handle processes, only try gc
         System.gc();
     }

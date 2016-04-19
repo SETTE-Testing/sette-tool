@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.evosuite;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
@@ -55,8 +54,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
     }
 
     @Override
-    protected void afterWriteRunnerProject(EclipseProject eclipseProject)
-            throws IOException, SetteException {
+    protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         createSpecialSnippetFiles();
 
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");

@@ -26,6 +26,7 @@ package hu.bme.mit.sette.core.tasks;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Path;
@@ -560,8 +561,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         try {
             return url.openStream();
         } catch (IOException ex) {
-            // NOTE make it better
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
         }
     }
 }

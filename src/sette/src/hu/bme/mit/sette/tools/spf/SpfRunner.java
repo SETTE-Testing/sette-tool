@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.spf;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -33,6 +32,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
@@ -47,14 +47,14 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
     }
 
     @Override
-    protected void afterPrepare() throws IOException {
+    protected void afterPrepare() {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
     }
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, SetteConfigurationException {
+            throws SetteConfigurationException {
         // TODO make better
         /*
          * e.g.:
@@ -69,7 +69,7 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
         String filenameBase = snippet.getContainer().getJavaClass().getName().replace('.', '/')
                 + "_" + snippet.getMethod().getName();
         File configFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
-                filenameBase + ".jpf").getCanonicalFile();
+                filenameBase + ".jpf").getAbsoluteFile();
 
         // create command
         StringBuilder cmd = new StringBuilder();
@@ -77,10 +77,10 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
         cmd.append("java -jar").append(' ');
         // cmd.append('"').append(runJPFJar.getCanonicalPath()).append('"').append(' ');
         // TODO if whitespace in jpf path?
-        cmd.append(runJPFJar.getCanonicalPath()).append(' ');
+        cmd.append(runJPFJar.getAbsolutePath()).append(' ');
 
         cmd.append("+shell.port=4242 ");
-        cmd.append(configFile.getCanonicalPath());
+        cmd.append(configFile.getAbsolutePath());
 
         System.out.println("  command: " + cmd.toString());
 
@@ -90,7 +90,7 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
     }
 
     @Override
-    public void cleanUp() throws IOException {
+    public void cleanUp() throws ProcessExecutionException {
         // TODO better search expression!
         ProcessUtils.searchAndTerminateProcesses("RunJPF.jar");
         System.gc();

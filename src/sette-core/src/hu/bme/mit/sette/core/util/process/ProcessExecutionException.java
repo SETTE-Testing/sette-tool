@@ -21,26 +21,18 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.tools.jpet;
-
-import java.io.File;
-import java.nio.file.Path;
+package hu.bme.mit.sette.core.util.process;
 
 import hu.bme.mit.sette.core.SetteException;
-import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
-import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class JPetGenerator extends RunnerProjectGenerator<JPetTool> {
-    public JPetGenerator(SnippetProject snippetProject, Path outputDir, JPetTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+public final class ProcessExecutionException extends SetteException {
+    private static final long serialVersionUID = -5289673290146663133L;
+
+    public ProcessExecutionException(String message) {
+        super(message);
     }
 
-    @Override
-    protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
-        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
+    public ProcessExecutionException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

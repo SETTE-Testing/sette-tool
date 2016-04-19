@@ -28,9 +28,9 @@ import static java.util.stream.Collectors.toList;
 
 import java.awt.EventQueue;
 import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -288,7 +288,7 @@ public final class SetteApplication {
         }
     }
 
-    private Path selectSnippetProjectDir(Collection<Path> snippetProjectDirs) throws IOException {
+    private Path selectSnippetProjectDir(Collection<Path> snippetProjectDirs) {
         // automatically select if only one is present
         Path[] items = snippetProjectDirs.toArray(new Path[0]);
         if (items.length > 1) {
@@ -301,13 +301,13 @@ public final class SetteApplication {
         }
     }
 
-    private ApplicationTask selectApplicationTask() throws IOException {
+    private ApplicationTask selectApplicationTask() {
         return selectItemFromArray("Please select a task:", ApplicationTask.values(), 0,
                 t -> t.toString());
     }
 
     private SetteToolConfiguration selectToolConfiguration(
-            Collection<SetteToolConfiguration> toolConfigurations) throws IOException {
+            Collection<SetteToolConfiguration> toolConfigurations) {
         SetteToolConfiguration[] items = toolConfigurations.toArray(new SetteToolConfiguration[0]);
         return selectItemFromArray("Please select a tool:", items, 1, tc -> tc.getName());
     }
@@ -350,12 +350,9 @@ public final class SetteApplication {
      *            selection and this will be used to determine the selection, which is
      *            case-insensitive)
      * @return The selected value.
-     * @throws IOException
-     *             if an I/O exception occurs
      */
     private <T> T selectItemFromArray(String prompt, T[] items, int firstIndex,
-            Function<T, String> toString)
-                    throws IOException {
+            Function<T, String> toString) {
         checkArgument(items.length > 0);
         T selected = null;
 
@@ -400,19 +397,21 @@ public final class SetteApplication {
      * application.
      * 
      * @return The read line
-     * @throws IOException
-     *             if an I/O error occurs
      */
-    private String readLineOrExitIfEOF() throws IOException {
-        String line = input.readLine();
+    private String readLineOrExitIfEOF() {
+        try {
+            String line = input.readLine();
 
-        if (line == null) {
-            String msg = "EOF detected, exiting";
-            errorOutput.println(msg);
-            LOG.debug(msg);
-            throw new EOFException();
-        } else {
-            return line.trim();
+            if (line == null) {
+                String msg = "EOF detected, exiting";
+                errorOutput.println(msg);
+                LOG.debug(msg);
+                throw new RuntimeException("Stop application");
+            } else {
+                return line.trim();
+            }
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 }

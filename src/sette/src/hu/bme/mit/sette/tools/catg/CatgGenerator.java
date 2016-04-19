@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.catg;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -67,13 +66,12 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
     }
 
     @Override
-    protected void afterWriteRunnerProject(EclipseProject eclipseProject)
-            throws IOException, SetteException {
+    protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         createGeneratedFiles();
         copyTool(eclipseProject);
     }
 
-    private void createGeneratedFiles() throws IOException {
+    private void createGeneratedFiles() {
         // generate main() for each snippet
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             if (container.getRequiredJavaVersion()
@@ -159,8 +157,7 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
         }
     }
 
-    private void copyTool(EclipseProject eclipseProject)
-            throws IOException, SetteConfigurationException {
+    private void copyTool(EclipseProject eclipseProject) throws SetteConfigurationException {
         PathUtils.copy(getTool().getToolDir().resolve("tool"),
                 getRunnerProjectSettings().getBaseDir().toPath());
 

@@ -26,7 +26,6 @@ package hu.bme.mit.sette.tools.randoop;
 import static java.util.stream.Collectors.joining;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
@@ -47,6 +46,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
 import hu.bme.mit.sette.core.util.io.PathUtils;
+import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
@@ -64,14 +64,14 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
     }
 
     @Override
-    protected void afterPrepare() throws IOException {
+    protected void afterPrepare() {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
     }
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, SetteConfigurationException {
+            throws SetteConfigurationException {
         // TODO make better
         /*
          * e.g.:
@@ -97,7 +97,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         // + "_" + snippet.getMethod().getName();
 
         // create command
-        String classpath = randoopJar.getCanonicalPath() + SystemUtils.PATH_SEPARATOR + "build";
+        String classpath = randoopJar.getAbsolutePath() + SystemUtils.PATH_SEPARATOR + "build";
 
         for (Path libraryFile : getSnippetProject().getJavaLibFiles()) {
             classpath += SystemUtils.PATH_SEPARATOR
@@ -157,7 +157,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
     }
 
     @Override
-    public void cleanUp() throws IOException {
+    public void cleanUp() throws ProcessExecutionException {
         if (!SystemUtils.IS_OS_WINDOWS) {
             // TODO better search
             ProcessUtils.searchAndTerminateProcesses("randoop.main.Main");

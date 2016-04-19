@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.spf;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 
@@ -54,15 +53,14 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
     }
 
     @Override
-    protected void afterWriteRunnerProject(EclipseProject eclipseProject)
-            throws IOException, SetteException {
+    protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         createGeneratedFiles();
 
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
         PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }
 
-    private void createGeneratedFiles() throws IOException {
+    private void createGeneratedFiles() {
         // generate main() for each snippet
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // skip container with higher java version than supported

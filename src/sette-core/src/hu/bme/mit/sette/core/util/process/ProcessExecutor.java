@@ -81,11 +81,11 @@ public final class ProcessExecutor {
      *            complete.
      * @return The result of the execution (exit code, whether the process was destroyed and the
      *         elapsed time).
-     * @throws IOException
-     *             If an I/O error occurs.
+     * @throws ProcessExecutionException
+     *             if process execution fails
      */
     public ProcessExecutionResult execute(@NonNull ProcessExecutorListener listener)
-            throws IOException {
+            throws ProcessExecutionException {
         try {
             LOG.debug("execute() called");
             LOG.debug("  command: {}", processBuilder.command());
@@ -97,7 +97,13 @@ public final class ProcessExecutor {
 
             // start process
             long start = System.currentTimeMillis();
-            Process process = processBuilder.start();
+            Process process;
+            try {
+                process = processBuilder.start();
+            } catch (IOException ex) {
+                throw new ProcessExecutionException(
+                        "Could not start the process: " + processBuilder.command(), ex);
+            }
 
             LOG.debug("notifying listener start()");
             listener.onStart();
@@ -171,7 +177,7 @@ public final class ProcessExecutor {
             LOG.debug("execute() result: {}", result);
             return result;
         } catch (InterruptedException ex) {
-            throw new IllegalStateException("The process execution was interrupted", ex);
+            throw new ProcessExecutionException("The process execution was interrupted", ex);
         }
     }
 

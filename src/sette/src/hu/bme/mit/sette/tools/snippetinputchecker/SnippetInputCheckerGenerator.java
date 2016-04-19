@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.snippetinputchecker;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import com.google.common.io.Resources;
@@ -60,8 +59,7 @@ public class SnippetInputCheckerGenerator extends RunnerProjectGenerator<Snippet
     }
 
     @Override
-    protected void afterWriteRunnerProject(EclipseProject eclipseProject)
-            throws IOException, SetteException {
+    protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         Path baseDir = getRunnerProjectSettings().getBaseDir().toPath();
 
         // copy snippet input sources
@@ -70,9 +68,9 @@ public class SnippetInputCheckerGenerator extends RunnerProjectGenerator<Snippet
         PathUtils.copy(originalInputSourceDir, baseDir.resolve(inputSourceDirname));
 
         // copy build.xml
-        PathUtils.copy(Resources.getResource("snippet-input-checker-build.xml").openStream(),
+        PathUtils.copy(Resources.getResource("snippet-input-checker-build.xml"),
                 baseDir.resolve("build.xml"));
-        PathUtils.copy(Resources.getResource("snippet-input-checker-build-test.xml").openStream(),
+        PathUtils.copy(Resources.getResource("snippet-input-checker-build-test.xml"),
                 baseDir.resolve("build-test.xml"));
     }
 }

@@ -23,7 +23,6 @@
 package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,7 +44,7 @@ public final class HtmlGenerator {
         this.testSuiteRunner = testSuiteRunner;
     }
 
-    public void generate(Snippet snippet, SnippetCoverageXml coverageXml) throws IOException {
+    public void generate(Snippet snippet, SnippetCoverageXml coverageXml) {
         File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(
                 this.testSuiteRunner.getRunnerProjectSettings(),
                 snippet);

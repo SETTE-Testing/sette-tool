@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.jpet;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
@@ -45,7 +44,7 @@ public final class JPetTool extends Tool {
     @Getter
     private final Path defaultBuildXml;
 
-    public JPetTool(String name, Path dir) throws IOException, ValidationException {
+    public JPetTool(String name, Path dir) throws ValidationException {
         super(name, dir);
 
         petExecutable = dir.resolve("pet");

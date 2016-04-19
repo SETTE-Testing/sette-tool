@@ -22,16 +22,8 @@
  */
 package hu.bme.mit.sette.core.model.csv;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
@@ -71,28 +63,5 @@ public final class ResultCsvEntry {
     public static CsvSchema createSchema() {
         CsvMapper csv = new CsvMapper();
         return csv.schemaFor(ResultCsvEntry.class).withHeader();
-    }
-
-    public static void main(String[] args) throws IOException {
-        CsvMapper csv = new CsvMapper();
-        CsvSchema schema = csv.schemaFor(ResultCsvEntry.class).withHeader();
-        ObjectWriter writer = csv.writerFor(ResultCsvEntry.class).with(schema);
-
-        List<ResultCsvEntry> data = new ArrayList<>();
-        data.add(new ResultCsvEntry());
-        data.add(new ResultCsvEntry());
-        data.add(new ResultCsvEntry());
-        data.get(1).setCategory("B2");
-        data.get(1).setDuration("x");
-        data.get(2).setCategory("B3");
-        data.get(2).setDuration("x");
-        data.get(2).setRequiredStatementCoverage("12");
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (SequenceWriter ww = writer.writeValues(out)) {
-            ww.writeAll(data);
-        }
-
-        System.out.println(new String(out.toByteArray()));
     }
 }

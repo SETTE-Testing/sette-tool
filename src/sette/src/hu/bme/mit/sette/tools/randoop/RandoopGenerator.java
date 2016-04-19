@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.randoop;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.core.SetteException;
@@ -40,8 +39,7 @@ public class RandoopGenerator extends RunnerProjectGenerator<RandoopTool> {
     }
 
     @Override
-    protected void afterWriteRunnerProject(EclipseProject eclipseProject)
-            throws IOException, SetteException {
+    protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
         PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
     }

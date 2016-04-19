@@ -25,7 +25,6 @@ package hu.bme.mit.sette.runnerprojectbrowser;
 import static java.util.stream.Collectors.toList;
 
 import java.awt.Desktop;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -247,11 +246,7 @@ public final class Controller implements Initializable {
 
             Path infoFile = runnerProject.getInfoFile(snippet);
             if (PathUtils.exists(infoFile)) {
-                try {
-                    infoLines.addAll(PathUtils.readAllLines(infoFile));
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+                infoLines.addAll(PathUtils.readAllLines(infoFile));
             } else {
                 infoLines.add("No .info file");
             }
@@ -303,32 +298,28 @@ public final class Controller implements Initializable {
     }
 
     private static void updateButton(Button button, Path path) {
-        try {
-            if (path != null && PathUtils.exists(path)) {
-                if (Files.isDirectory(path)) {
-                    // TODO
-                    button.setText("Open directory");
+        if (path != null && PathUtils.exists(path)) {
+            if (Files.isDirectory(path)) {
+                // TODO
+                button.setText("Open directory");
+                button.setDisable(false);
+                button.setOnAction(event -> updateButtonAction(path));
+            } else {
+                long size = PathUtils.size(path);
+                if (size == 0) {
+                    button.setText("Empty file");
+                    button.setDisable(true);
+                    button.setOnAction(null);
+                } else {
+                    button.setText(String.format("Open file (%.2f kiB)", (double) size / 1024));
                     button.setDisable(false);
                     button.setOnAction(event -> updateButtonAction(path));
-                } else {
-                    long size = Files.size(path);
-                    if (size == 0) {
-                        button.setText("Empty file");
-                        button.setDisable(true);
-                        button.setOnAction(null);
-                    } else {
-                        button.setText(String.format("Open file (%.2f kiB)", (double) size / 1024));
-                        button.setDisable(false);
-                        button.setOnAction(event -> updateButtonAction(path));
-                    }
                 }
-            } else {
-                button.setText("Does not exist");
-                button.setDisable(true);
-                button.setOnAction(null);
             }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } else {
+            button.setText("Does not exist");
+            button.setDisable(true);
+            button.setOnAction(null);
         }
     }
 

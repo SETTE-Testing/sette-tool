@@ -25,6 +25,7 @@ package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -167,14 +168,12 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
     /**
      * Writes the runner project out.
      *
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      * @throws ParseException
      *             If the source code has parser errors.
      * @throws XmlException
      *             If an XML related exception occurs.
      */
-    private void writeRunnerProject() throws IOException, XmlException, ParseException {
+    private void writeRunnerProject() throws XmlException, ParseException {
         // TODO revise whole method
         // TODO now using a newer JAPA (suuports java 8), -> maybe ANTLR supports better
 
@@ -188,7 +187,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
         writeInfoFile();
 
         // remove SETTE annotations and imports from file
-        Collection<File> filesWritten = Files
+        Collection<File> filesWritten = PathUtils
                 .walk(getRunnerProjectSettings().getSnippetSourceDirectory().toPath())
                 .filter(Files::isRegularFile).map(Path::toFile).sorted()
                 .collect(Collectors.toList());
@@ -196,7 +195,12 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
         for (File file : filesWritten) {
             // parse source with JavaParser
             log.debug("Parsing with JavaParser: {}", file);
-            CompilationUnit compilationUnit = JavaParser.parse(file);
+            CompilationUnit compilationUnit;
+            try {
+                compilationUnit = JavaParser.parse(file);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
             log.debug("Parsed with JavaParser: {}", file);
 
             // extract type
@@ -268,7 +272,7 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
         this.eclipseProject.save(getRunnerProjectSettings().getBaseDir().toPath());
     }
 
-    private void writeInfoFile() throws IOException {
+    private void writeInfoFile() {
         // TODO later maybe use an XML file!!!
         File infoFile = new File(getRunnerProjectSettings().getBaseDir(), "SETTE-INFO");
 
@@ -329,27 +333,22 @@ public abstract class RunnerProjectGenerator<T extends Tool> extends EvaluationT
     /**
      * This method is called after preparation but before writing.
      *
-     * @param eclipseProject
+     * @param anEclipseProject
      *            the Eclipse project
      */
-    protected void afterPrepareRunnerProject(
-            @SuppressWarnings("hiding") EclipseProject eclipseProject) {
+    protected void afterPrepareRunnerProject(EclipseProject anEclipseProject) {
         // to be implemented by the subclass if needed
     }
 
     /**
      * This method is called after writing.
      *
-     * @param eclipseProject
+     * @param anEclipseProject
      *            the Eclipse project
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      * @throws SetteException
      *             if a SETTE problem occurred
      */
-    protected void afterWriteRunnerProject(
-            @SuppressWarnings("hiding") EclipseProject eclipseProject)
-                    throws IOException, SetteException {
+    protected void afterWriteRunnerProject(EclipseProject anEclipseProject) throws SetteException {
         // to be implemented by the subclass if needed
     }
 

@@ -24,7 +24,6 @@ package hu.bme.mit.sette.tools.intellitest;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -132,9 +131,9 @@ public class IntellitestParser {
         }
     }
 
-    private void parseOne(Path csFile, Snippet snippet) throws IOException {
+    private void parseOne(Path csFile, Snippet snippet) {
         // note the charset
-        List<String> csLines = Files.readAllLines(csFile, Charsets.UTF_16LE);
+        List<String> csLines = PathUtils.readAllLines(csFile, Charsets.UTF_16LE);
         // remove BOM if needed
         if (csLines.get(0).charAt(0) == 65279) {
             csLines.set(0, csLines.get(0).substring(1));

@@ -26,7 +26,6 @@
 package hu.bme.mit.sette.application;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -95,12 +94,12 @@ public final class GeneratorUI implements BaseUI {
         }
     }
 
-    private static void doBackup(File runnerProjectDir, PrintStream out) throws IOException {
+    private static void doBackup(File runnerProjectDir, PrintStream out) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
         File backup = new File(runnerProjectDir.getParentFile(),
                 runnerProjectDir.getName() + "___backup_" + dateFormat.format(new Date()))
-                        .getCanonicalFile();
+                        .getAbsoluteFile();
 
         if (runnerProjectDir.renameTo(backup)) {
             out.println("Backup location: " + backup);

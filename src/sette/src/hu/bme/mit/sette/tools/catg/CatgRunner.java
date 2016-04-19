@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.catg;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -59,10 +58,10 @@ public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, ValidationException {
+            throws ValidationException {
         // TODO make better
         File concolic = new File(getRunnerProjectSettings().getBaseDir(), "concolic")
-                .getCanonicalFile();
+                .getAbsoluteFile();
         concolic.setExecutable(true);
 
         new PathValidator(concolic.toPath()).type(PathType.REGULAR_FILE).executable(true)
@@ -74,10 +73,10 @@ public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
         String filename = methodName.replace('.', '/') + ".java";
 
         File file = new File(getRunnerProjectSettings().getGeneratedDirectory(), filename)
-                .getCanonicalFile();
+                .getAbsoluteFile();
 
         if (!file.exists()) {
-            System.err.println("Not found: " + file.getCanonicalPath());
+            System.err.println("Not found: " + file.getAbsolutePath());
             System.err.println("Skipping: " + methodName);
             return;
         }
@@ -102,7 +101,7 @@ public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
     }
 
     @Override
-    public void cleanUp() throws IOException, SetteException {
+    public void cleanUp() throws SetteException {
         // TODO better search expression!
         ProcessUtils.searchAndTerminateProcesses("Djanala.conf");
         System.gc();

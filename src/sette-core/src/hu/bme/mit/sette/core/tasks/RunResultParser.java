@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Parameter;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -215,7 +214,7 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
         return inputsXml;
     }
 
-    public final static class SnippetOutFiles {
+    public static final class SnippetOutFiles {
         public final Path infoFile;
         public final Path outputFile;
         public final Path errorOutputFile;
@@ -229,15 +228,15 @@ public abstract class RunResultParser<T extends Tool> extends EvaluationTask<T> 
                     snippet).toPath();
         }
 
-        public List<String> readInfoLines() throws IOException {
+        public List<String> readInfoLines() {
             return PathUtils.readAllLinesOrEmpty(infoFile);
         }
 
-        public List<String> readOutputLines() throws IOException {
+        public List<String> readOutputLines() {
             return PathUtils.readAllLinesOrEmpty(outputFile);
         }
 
-        public List<String> readErrorOutputLines() throws IOException {
+        public List<String> readErrorOutputLines() {
             return PathUtils.readAllLinesOrEmpty(errorOutputFile);
         }
     }

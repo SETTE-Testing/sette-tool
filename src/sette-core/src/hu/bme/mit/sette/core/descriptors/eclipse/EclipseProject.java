@@ -22,7 +22,6 @@
  */
 package hu.bme.mit.sette.core.descriptors.eclipse;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -57,13 +56,10 @@ public final class EclipseProject {
      *
      * @param dir
      *            The directory. If it does not exist, it will be created.
-     * @throws IOException
-     *             If the directory cannot be created or the file already exists but is not a
-     *             directory.
      * @throws XmlException
      *             If an XML related exception occurs.
      */
-    public void save(@NonNull Path dir) throws IOException, XmlException {
+    public void save(@NonNull Path dir) throws XmlException {
         PathUtils.createDir(dir); // create directory if not exists
 
         try {

@@ -24,7 +24,6 @@
 package hu.bme.mit.sette.tools.jpet;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +36,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
 import hu.bme.mit.sette.core.util.io.PathUtils;
+import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
@@ -52,7 +52,7 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
     }
 
     @Override
-    protected void afterPrepare() throws IOException {
+    protected void afterPrepare() {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
 
@@ -68,7 +68,7 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, SetteConfigurationException {
+            throws SetteConfigurationException {
         // TODO extract, make more clear
         File pet = getTool().getPetExecutable().toFile();
 
@@ -133,7 +133,7 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
         cmd.add("yes");
 
         cmd.add("-xml");
-        cmd.add(testCaseXml.getCanonicalPath());
+        cmd.add(testCaseXml.getAbsolutePath());
 
         System.out.println("  command: " + StringUtils.join(cmd, ' '));
 
@@ -142,7 +142,7 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
     }
 
     @Override
-    public void cleanUp() throws IOException {
+    public void cleanUp() throws ProcessExecutionException {
         // TODO better search
         ProcessUtils.searchAndTerminateProcesses("jpet/pet");
         System.gc();

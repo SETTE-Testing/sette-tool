@@ -25,6 +25,7 @@ package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.Validate;
@@ -71,34 +72,33 @@ public final class JaCoCoClassLoader extends ClassLoader {
             return javaClass;
         }
 
-        try {
-            // first try to load from one of the binary directories and
-            // instrument the class
-            byte[] bytes = readBytes(className);
+        // first try to load from one of the binary directories and
+        // instrument the class
+        byte[] bytes = readBytes(className);
 
-            if (bytes != null) {
-                log.debug("{}: instrumenting and defining class", className);
+        if (bytes != null) {
+            log.debug("{}: instrumenting and defining class", className);
 
-                // instrument
-                byte[] instrumentedBytes = instrumenter.instrument(bytes, className);
-                log.debug("{}: instrumented class", className);
-
-                // define class
-                Class<?> cls = defineClass(className, instrumentedBytes, 0,
-                        instrumentedBytes.length);
-                log.debug("{}: defined class", className);
-                return cls;
-            } else {
-                // was not found, try to load with the parent, but it will
-                // not be instrumented
-                log.debug("{}: calling super.loadClass() (corresponding file was not found)",
-                        className);
-                return super.loadClass(className, resolve);
+            // instrument
+            byte[] instrumentedBytes;
+            try {
+                instrumentedBytes = instrumenter.instrument(bytes, className);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
             }
-        } catch (IOException ex) {
-            log.error(className + ": An IOException was thrown", ex);
-            // TODO some better handling
-            throw new RuntimeException(ex);
+            log.debug("{}: instrumented class", className);
+
+            // define class
+            Class<?> cls = defineClass(className, instrumentedBytes, 0,
+                    instrumentedBytes.length);
+            log.debug("{}: defined class", className);
+            return cls;
+        } else {
+            // was not found, try to load with the parent, but it will
+            // not be instrumented
+            log.debug("{}: calling super.loadClass() (corresponding file was not found)",
+                    className);
+            return super.loadClass(className, resolve);
         }
     }
 
@@ -140,10 +140,8 @@ public final class JaCoCoClassLoader extends ClassLoader {
      * @param className
      *            the name of the class
      * @return the bytes in the corresponding binary file or null if the file was not found
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      */
-    public byte[] readBytes(String className) throws IOException {
+    public byte[] readBytes(String className) {
         Validate.notBlank(className, "The class name must not be blank");
 
         File file = findBinaryFile(className);

@@ -23,8 +23,6 @@
 package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
@@ -74,8 +72,8 @@ final class TestSuiteRunnerHelper {
                     return socket;
                 }
             });
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 
@@ -122,8 +120,8 @@ final class TestSuiteRunnerHelper {
                     log.info("Closing: " + socket);
                     socket.close();
                     jvmSockets.remove(sock);
-                } catch (IOException ex) {
-                    log.warn("Cannot close: " + socket);
+                } catch (Exception ex) {
+                    log.warn("Cannot close: " + socket, ex);
                 }
                 socket = getSocket(sock);
             }
@@ -137,8 +135,8 @@ final class TestSuiteRunnerHelper {
                 try {
                     log.info("Closing: " + socket);
                     socket.close();
-                } catch (IOException ex) {
-                    log.warn("Cannot close: " + socket);
+                } catch (Exception ex) {
+                    log.warn("Cannot close: " + socket, ex);
                 }
                 socket = getServerSocket(sock);
             }

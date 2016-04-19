@@ -26,8 +26,6 @@ package hu.bme.mit.sette.tools.evosuite;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -111,18 +109,13 @@ public class EvoSuiteParserMutation extends EvaluationTask<EvoSuiteTool> {
         PathValidator.forDirectory(testDir, true, true, true).validate();
         PathValidator.forDirectory(testDirBackup, true, true, true).validate();
 
-        try {
+        Path testDirMutation = getRunnerProjectSettings().getBaseDir().toPath()
+                .resolve("test-mutation");
 
-            Path testDirMutation = getRunnerProjectSettings().getBaseDir().toPath()
-                    .resolve("test-mutation");
-
-            if (PathUtils.exists(testDirMutation)) {
-                PathUtils.delete(testDirMutation);
-            }
-            PathUtils.copy(testDir, testDirMutation);
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+        if (PathUtils.exists(testDirMutation)) {
+            PathUtils.delete(testDirMutation);
         }
+        PathUtils.copy(testDir, testDirMutation);
     }
 
     private void parseOne(Snippet snippet) throws Exception {

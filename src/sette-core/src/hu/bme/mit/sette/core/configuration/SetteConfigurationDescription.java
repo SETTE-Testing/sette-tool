@@ -25,6 +25,7 @@ package hu.bme.mit.sette.core.configuration;
 import static java.lang.String.format;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -89,10 +90,17 @@ final class SetteConfigurationDescription {
     /** List of the tool configuration descriptions */
     private final ImmutableList<SetteToolConfigurationDescription> toolConfigurations;
 
-    private SetteConfigurationDescription(String json) throws IOException, ValidationException {
+    private SetteConfigurationDescription(String json)
+            throws JsonProcessingException, ValidationException {
         log.debug("Parsing configuration from JSON: {}", json);
-        JsonNode rootNode = new ObjectMapper().readTree(json);
-
+        JsonNode rootNode;
+        try {
+            rootNode = new ObjectMapper().readTree(json);
+        } catch (JsonProcessingException ex) {
+            throw ex;
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
         validateObjectFieldNames(rootNode, TOP_FIELDS);
 
         baseDirPaths = parseStringArray(rootNode, NODE_BASEDIRS);
@@ -123,6 +131,7 @@ final class SetteConfigurationDescription {
 
         // no spaces and control chars in minified JSON
         String minifiedJson = new ObjectMapper().writer().writeValueAsString(rootNode);
+
         final CharMatcher allowedChars = CharMatcher.inRange((char) 0x20, (char) 0x7E);
         if (!allowedChars.matchesAllOf(minifiedJson)) {
             String msg = "All the characters of the minified JSON must be in the 0x20-0x7E range"
@@ -199,10 +208,7 @@ final class SetteConfigurationDescription {
      *            the JSON string
      * @return the parsed JSON object
      * @throws SetteConfigurationException
-     * @throws SetteConfigurationException
      *             if parsing fails or the configuration is invalid
-     * @throws IOException
-     *             if an I/O error occurs
      */
     public static SetteConfigurationDescription parse(@NonNull String json)
             throws SetteConfigurationException {
@@ -211,8 +217,6 @@ final class SetteConfigurationDescription {
         } catch (JsonProcessingException | ValidationException ex) {
             throw new SetteConfigurationException(
                     "The JSON has an invalid format: " + ex.getMessage(), ex);
-        } catch (IOException ex) {
-            throw new SetteConfigurationException("An I/O error occurred: " + ex.getMessage(), ex);
         }
     }
 

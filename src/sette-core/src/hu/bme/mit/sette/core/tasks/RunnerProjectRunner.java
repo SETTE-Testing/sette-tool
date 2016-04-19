@@ -25,7 +25,6 @@ package hu.bme.mit.sette.core.tasks;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -192,11 +191,8 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
     /**
      * Prepares the running of the runner project, i.e. make everything ready for the execution.
-     *
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      */
-    private void prepare() throws IOException {
+    private void prepare() {
         // delete previous outputs
         if (getRunnerProjectSettings().getRunnerOutputDirectory().exists()) {
             Path dir = getRunnerProjectSettings().getRunnerOutputDirectory().toPath();
@@ -209,7 +205,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
     @FunctionalInterface
     public static interface CheckedFunction<T> {
-        void apply(T t) throws IOException;
+        void apply(T t);
     }
 
     /**
@@ -217,10 +213,8 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
      *
      * @param runnerLoggerOut
      *            the {@link PrintStream} of the logger
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      */
-    private void runAll(PrintStream runnerLoggerOut) throws IOException {
+    private void runAll(PrintStream runnerLoggerOut) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         // foreach containers
@@ -238,7 +232,7 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
-                // FIXME duplicated in TestSuiteRunner -> replace loop with proper iterator 
+                // FIXME duplicated in TestSuiteRunner -> replace loop with proper iterator
                 if (snippetSelector != null
                         && !snippetSelector.matcher(snippet.getId()).matches()) {
                     String msg = String.format("Skipping %s (--snippet-selector)", snippet.getId());
@@ -285,23 +279,18 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
     /**
      * This method is called after preparation but before writing.
-     *
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      */
-    protected void afterPrepare() throws IOException {
+    protected void afterPrepare() {
         // to be implemented by the subclass
     }
 
     /**
      * This method is called after running.
      *
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      * @throws SetteException
      *             if a SETTE problem occurred
      */
-    protected void afterRunAll() throws IOException, SetteException {
+    protected void afterRunAll() throws SetteException {
         // to be implemented by the subclass
     }
 
@@ -316,23 +305,19 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
      *            the output file for the snippet
      * @param errorFile
      *            the error file for the snippet
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      * @throws SetteException
      *             if a SETTE problem occurred
      */
     protected abstract void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, SetteException;
+            throws SetteException;
 
     /**
      * Cleans up the processes, i.e. kills undesired and stuck processes.
      *
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
      * @throws SetteException
      *             if a SETTE problem occurred
      */
-    public abstract void cleanUp() throws IOException, SetteException;
+    public abstract void cleanUp() throws SetteException;
 
     protected static final String getFilenameBase(Snippet snippet) {
         return snippet.getContainer().getJavaClass().getName().replace('.', '/') + "_"
@@ -371,13 +356,8 @@ public abstract class RunnerProjectRunner<T extends Tool> extends EvaluationTask
 
                     infoData.append("Elapsed time: ").append(result.getElapsedTimeInMs())
                             .append(" ms\n");
-                    try {
-                        PathUtils.write(infoFile.toPath(), infoData.toString().getBytes());
-                    } catch (IOException ex) {
-                        // TODO Auto-generated catch block
-                        ex.printStackTrace();
-                        throw new RuntimeException(ex);
-                    }
+
+                    PathUtils.write(infoFile.toPath(), infoData.toString().getBytes());
                 }
             });
         } catch (Exception ex) {

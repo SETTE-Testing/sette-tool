@@ -75,7 +75,7 @@ public final class ProcessUtils {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    public static void terminateProcess(int pid) throws IOException {
+    public static void terminateProcess(int pid) throws ProcessExecutionException {
         failIfWindows();
 
         List<String> command = Arrays.asList("kill", "-9", String.valueOf(pid));
@@ -87,7 +87,10 @@ public final class ProcessUtils {
             new ProcessBuilder(command).start().waitFor();
             LOG.info("Terminated process {}", pid);
         } catch (InterruptedException ex) {
-            throw new IllegalStateException("The process execution was interrupted", ex);
+            throw new ProcessExecutionException("The process execution was interrupted", ex);
+        } catch (IOException ex) {
+            throw new ProcessExecutionException("Could not terminate processes using: " + command,
+                    ex);
         }
     }
 
@@ -98,11 +101,11 @@ public final class ProcessUtils {
      * @param searchExpression
      *            the search expression
      * @return the list of found process PIDs
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
+     * @throws ProcessExecutionException
+     *             if process execution fails
      */
     public static List<Integer> searchProcesses(@NonNull String searchExpression)
-            throws IOException {
+            throws ProcessExecutionException {
         failIfWindows();
         Preconditions.checkArgument(!searchExpression.trim().isEmpty());
 
@@ -134,12 +137,13 @@ public final class ProcessUtils {
 
         // zero exit value is expected
         if (result.getExitValue() != 0) {
-            throw new IOException("The command has exited with " + result.getExitValue());
+            throw new ProcessExecutionException(
+                    "The command has exited with " + result.getExitValue());
         }
 
         // empty stderr is expected
         if (stderr.length() > 0) {
-            throw new IOException("The command has produced unexpected error output");
+            throw new ProcessExecutionException("The command has produced unexpected error output");
         }
 
         // parse stdout lines
@@ -164,11 +168,13 @@ public final class ProcessUtils {
                     try {
                         pids.add(Integer.parseInt(pid));
                     } catch (NumberFormatException ex) {
-                        throw new IOException("The PID cannot be parsed as an integer: " + pid);
+                        throw new ProcessExecutionException(
+                                "The PID cannot be parsed as an integer: " + pid);
                     }
                 }
             } else {
-                throw new IOException("A line from stdout does not match the pattern: " + line);
+                throw new ProcessExecutionException(
+                        "A line from stdout does not match the pattern: " + line);
             }
         }
 
@@ -185,11 +191,11 @@ public final class ProcessUtils {
      *
      * @param searchExpression
      *            the search expression
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
+     * @throws ProcessExecutionException
+     *             if process execution fails
      */
     public static void searchAndTerminateProcesses(@NonNull String searchExpression)
-            throws IOException {
+            throws ProcessExecutionException {
         failIfWindows();
 
         List<Integer> pids = searchProcesses(searchExpression);

@@ -22,7 +22,6 @@
  */
 package hu.bme.mit.sette.tools.snippetinputchecker;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
@@ -36,8 +35,7 @@ import hu.bme.mit.sette.core.validator.ValidationException;
  */
 public final class SnippetInputCheckerTool extends Tool {
 
-    public SnippetInputCheckerTool(String name, Path toolDir)
-            throws IOException, ValidationException {
+    public SnippetInputCheckerTool(String name, Path toolDir) throws ValidationException {
         super(name, toolDir);
     }
 

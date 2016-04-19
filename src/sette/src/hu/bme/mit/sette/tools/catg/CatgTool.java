@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
@@ -33,7 +32,7 @@ import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
 public final class CatgTool extends Tool {
-    public CatgTool(String name, Path dir) throws IOException, ValidationException {
+    public CatgTool(String name, Path dir) throws ValidationException {
         super(name, dir);
     }
 

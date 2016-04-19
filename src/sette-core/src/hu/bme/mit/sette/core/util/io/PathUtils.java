@@ -24,15 +24,13 @@ package hu.bme.mit.sette.core.util.io;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystemException;
-import java.nio.file.FileVisitResult;
+import java.io.UncheckedIOException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -40,6 +38,11 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Helper class for {@link Path}s and IO wrapping JDK NIO {@link Files} by adding logging and
+ * wrapping {@link IOException}s into {@link UncheckedIOException}s. (SETTE should always fail if an
+ * IO operation fails).
+ */
 public final class PathUtils {
     private static final Logger log = LoggerFactory.getLogger(PathUtils.class);
 
@@ -47,146 +50,177 @@ public final class PathUtils {
         throw new UnsupportedOperationException("Static class");
     }
 
-    public static void createDir(Path dir) throws IOException {
+    public static void createDir(Path dir) {
         if (Files.exists(dir)) {
             return;
         }
 
-        log.info("Creating directory: {}", dir);
-        Files.createDirectories(dir);
-        log.debug("Created directory: {}", dir);
+        try {
+            log.info("Creating directory: {}", dir);
+            Files.createDirectories(dir);
+            log.debug("Created directory: {}", dir);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
-    public static void copy(Path source, Path target) throws IOException {
+    public static void copy(Path source, Path target) {
         // This is not good (e.g. target already exists and need to merge):
         // Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 
         // FIXME check that source is not part of target, etc.
 
-        if (Files.isDirectory(source)) {
-            log.info("Copying directory: {} -> {}", source, target);
-            Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path sDir, BasicFileAttributes attrs)
-                        throws IOException {
-                    Path tDir = target.resolve(source.relativize(sDir));
-                    Files.createDirectories(tDir);
-
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFile(Path sFile, BasicFileAttributes attrs)
-                        throws IOException {
-                    Path tFile = target.resolve(source.relativize(sFile));
-                    Files.copy(sFile, tFile, StandardCopyOption.REPLACE_EXISTING);
-
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-            log.debug("Copied directory: {} -> {}", source, target);
-        } else {
-            log.debug("Copying file: {} -> {}", source, target);
-            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-            log.debug("Copied file: {} -> {}", source, target);
+        try {
+            if (Files.isDirectory(source)) {
+                log.info("Copying directory: {} -> {}", source, target);
+                // FIXME extract to copy file visitor
+                Files.walkFileTree(source, new CopyFileVisitor(source, target));
+                log.debug("Copied directory: {} -> {}", source, target);
+            } else {
+                log.debug("Copying file: {} -> {}", source, target);
+                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+                log.debug("Copied file: {} -> {}", source, target);
+            }
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 
-    public static void move(Path source, Path target) throws IOException {
-        // FIXME check that source is not part of target, etc.
-        log.info("Moving path: {} -> {}", source, target);
-        Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    public static void delete(Path path) throws IOException {
-        if (Files.isDirectory(path)) {
-            log.info("Deleting directory recursively {}: ", path);
-            Files.walkFileTree(path, new DeleteFileVisitor());
-            log.debug("Deleted directory recursively: {}", path);
-        } else {
-            log.info("Deleting file {}: ", path);
-            Files.delete(path);
-            log.debug("Deleted: file {}", path);
+    public static void move(Path source, Path target) {
+        try {
+            // FIXME check that source is not part of target, etc.
+            log.info("Moving path: {} -> {}", source, target);
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 
-    public static void deleteIfExists(Path path) throws IOException {
+    public static void delete(Path path) {
+        try {
+            if (Files.isDirectory(path)) {
+                log.info("Deleting directory recursively {}: ", path);
+                Files.walkFileTree(path, new DeleteFileVisitor());
+                log.debug("Deleted directory recursively: {}", path);
+            } else {
+                log.info("Deleting file {}: ", path);
+                Files.delete(path);
+                log.debug("Deleted: file {}", path);
+            }
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public static void deleteIfExists(Path path) {
         if (exists(path)) {
             delete(path);
         }
     }
 
-    public static byte[] readAllBytes(Path path) throws IOException {
-        return Files.readAllBytes(path);
+    public static byte[] readAllBytes(Path path) {
+        try {
+            return Files.readAllBytes(path);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
-    public static List<String> readAllLines(Path path) throws IOException {
-        return Files.readAllLines(path);
+    public static List<String> readAllLines(Path path) {
+        return readAllLines(path, StandardCharsets.UTF_8);
     }
 
-    public static List<String> readAllLinesOrEmpty(Path path) throws IOException {
+    public static List<String> readAllLines(Path path, Charset charset) {
+        try {
+            return Files.readAllLines(path, charset);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public static List<String> readAllLinesOrEmpty(Path path) {
+        return readAllLinesOrEmpty(path, StandardCharsets.UTF_8);
+    }
+
+    public static List<String> readAllLinesOrEmpty(Path path, Charset charset) {
         if (exists(path)) {
-            return PathUtils.readAllLines(path);
+            return readAllLines(path, charset);
         } else {
             return new ArrayList<>();
         }
     }
 
-    public static void write(Path file, byte[] bytes) throws IOException {
-        log.debug("Writing file: {}", file);
-        Files.createDirectories(file.getParent());
-        Files.write(file, bytes);
-        log.debug("Wrote file: {}", file);
-    }
-
-    public static void write(Path file, Iterable<? extends CharSequence> lines) throws IOException {
-        log.debug("Writing file: {}", file);
-        Files.createDirectories(file.getParent());
-        Files.write(file, lines);
-        log.debug("Wrote file: {}", file);
-    }
-
-    private static void checkExists(Path path) throws IOException {
-        if (!exists(path)) {
-            throw new NoSuchFileException(path.toString());
+    public static void write(Path file, byte[] bytes) {
+        try {
+            log.debug("Writing file: {}", file);
+            Files.createDirectories(file.getParent());
+            Files.write(file, bytes);
+            log.debug("Wrote file: {}", file);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 
-    private static void checkIsDirectory(Path path) throws IOException {
-        checkExists(path);
-        if (!Files.isDirectory(path)) {
-            throw new NotDirectoryException(path.toString());
+    public static void write(Path file, Iterable<? extends CharSequence> lines) {
+        try {
+            log.debug("Writing file: {}", file);
+            Files.createDirectories(file.getParent());
+            Files.write(file, lines);
+            log.debug("Wrote file: {}", file);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 
-    private static void checkIsRegularFile(Path path) throws IOException {
-        checkExists(path);
-        if (!Files.isRegularFile(path)) {
-            throw new NotRegularFileException(path.toString());
+    public static Stream<Path> walk(Path start) {
+        try {
+            return Files.walk(start);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
-    }
-
-    public static final class NotRegularFileException extends FileSystemException {
-        private static final long serialVersionUID = -4910285516621606130L;
-
-        public NotRegularFileException(String file) {
-            super(file);
-        }
-    }
-
-    public static Stream<Path> walk(Path start) throws IOException {
-        return Files.walk(start);
     }
 
     public static boolean exists(Path path) {
         return Files.exists(path);
     }
 
-    public static Stream<String> lines(Path path) throws IOException {
-        return Files.lines(path);
+    public static Stream<String> lines(Path path) {
+        try {
+            return Files.lines(path);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
-    public static void copy(InputStream in, Path target) throws IOException {
-        Files.copy(in, target);
+    public static void copy(InputStream in, Path target) {
+        try {
+            Files.copy(in, target);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public static void copy(URL url, Path target) {
+        try {
+            copy(url.openStream(), target);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public static Path toRealPath(Path baseDir) {
+        try {
+            return baseDir.toRealPath();
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public static long size(Path path) {
+        try {
+            return Files.size(path);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 }

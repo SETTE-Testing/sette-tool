@@ -27,23 +27,37 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
- * This visitor deletes all the visited files using {@link Files#delete(Path)}. It can be used with
+ * This visitor copies all the visited file using {@link Files#delete(Path)}. It can be used with
  * {@link Files#walkFileTree(Path, java.nio.file.FileVisitor)} to recursively delete the contents of
  * a directory.
  */
-final class DeleteFileVisitor extends SimpleFileVisitor<Path> {
+final class CopyFileVisitor extends SimpleFileVisitor<Path> {
+    private final Path source;
+    private final Path target;
+
+    public CopyFileVisitor(Path source, Path target) {
+        this.source = source;
+        this.target = target;
+    }
+
     @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        Files.delete(file);
+    public FileVisitResult preVisitDirectory(Path sDir, BasicFileAttributes attrs)
+            throws IOException {
+        Path tDir = target.resolve(source.relativize(sDir));
+        Files.createDirectories(tDir);
+
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-        Files.delete(dir);
+    public FileVisitResult visitFile(Path sFile, BasicFileAttributes attrs) throws IOException {
+        Path tFile = target.resolve(source.relativize(sFile));
+        Files.copy(sFile, tFile, StandardCopyOption.REPLACE_EXISTING);
+
         return FileVisitResult.CONTINUE;
     }
 }

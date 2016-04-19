@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,15 +63,13 @@ public final class SnippetInputCheckerRunner extends RunnerProjectRunner<Snippet
         super(snippetProject, outputDir, tool, runnerProjectTag);
         executor = Executors.newFixedThreadPool(16);
 
+        String templateFilename = "snippet-input-checker-test-case.template";
+
         try {
-
-            String templateFilename = "snippet-input-checker-test-case.template";
-
             InputStream templateFileStream = Resources.getResource(templateFilename).openStream();
             testTemplate = CharStreams.toString(new InputStreamReader(templateFileStream));
         } catch (IOException ex) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
         }
     }
 
@@ -80,7 +79,7 @@ public final class SnippetInputCheckerRunner extends RunnerProjectRunner<Snippet
     }
 
     @Override
-    protected void afterPrepare() throws IOException {
+    protected void afterPrepare() {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
 
@@ -90,7 +89,7 @@ public final class SnippetInputCheckerRunner extends RunnerProjectRunner<Snippet
 
     @Override
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
-            throws IOException, SetteConfigurationException {
+            throws SetteConfigurationException {
         if (snippet.getContainer().getInputFactoryContainer() == null) {
             // no inputs => N/A
             return;
@@ -123,7 +122,7 @@ public final class SnippetInputCheckerRunner extends RunnerProjectRunner<Snippet
     }
 
     @Override
-    protected void afterRunAll() throws IOException, SetteException {
+    protected void afterRunAll() throws SetteException {
         // wait for all threads
         try {
             Thread.sleep(1000);
@@ -174,7 +173,7 @@ public final class SnippetInputCheckerRunner extends RunnerProjectRunner<Snippet
     }
 
     @Override
-    public void cleanUp() throws IOException, SetteException {
+    public void cleanUp() {
         // nothing to do
     }
 }

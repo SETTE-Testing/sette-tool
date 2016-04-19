@@ -23,6 +23,7 @@
 package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -72,7 +73,7 @@ public final class CoverageInfo {
         }
     }
 
-    public static CoverageInfo fromJsonString(String jsonString) throws IOException {
+    public static CoverageInfo fromJsonString(String jsonString) {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
@@ -98,7 +99,9 @@ public final class CoverageInfo {
 
             return new CoverageInfo(data);
         } catch (JsonProcessingException ex) {
-            throw new RuntimeException("Cannot parse JSON: " + jsonString);
+            throw new RuntimeException("Cannot parse JSON: " + jsonString, ex);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 }
