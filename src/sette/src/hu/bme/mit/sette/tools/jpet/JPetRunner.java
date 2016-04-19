@@ -34,12 +34,12 @@ import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
-public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
+public final class JPetRunner extends RunnerProjectRunnerBase<JPetTool> {
 
     public JPetRunner(SnippetProject snippetProject, Path outputDir, JPetTool tool,
             String runnerProjectTag) {
@@ -56,7 +56,6 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
         // ant build
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
 
-        getTool();
         // delete test cases directory
         File testCasesDirectory = JPetTool.getTestCasesDirectory(getRunnerProjectSettings());
         if (testCasesDirectory.exists()) {
@@ -70,9 +69,8 @@ public final class JPetRunner extends RunnerProjectRunner<JPetTool> {
     protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
             throws SetteConfigurationException {
         // TODO extract, make more clear
-        File pet = getTool().getPetExecutable().toFile();
+        File pet = tool.getPetExecutable().toFile();
 
-        getTool();
         File testCaseXml = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(), snippet);
 
         PathUtils.createDir(testCaseXml.getParentFile().toPath());

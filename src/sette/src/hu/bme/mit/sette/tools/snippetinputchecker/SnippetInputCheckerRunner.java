@@ -51,10 +51,10 @@ import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetInputFactoryContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public final class SnippetInputCheckerRunner extends RunnerProjectRunner<SnippetInputCheckerTool> {
+public final class SnippetInputCheckerRunner extends RunnerProjectRunnerBase<SnippetInputCheckerTool> {
     private final String testTemplate;
     private final ExecutorService executor;
 

@@ -58,7 +58,7 @@ import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public final class TestSuiteGenerator extends EvaluationTask<Tool> {
+public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
     public static final String ANT_BUILD_TEST_FILENAME;
     private static final String ANT_BUILD_TEST_DATA;
 
@@ -108,7 +108,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         File testDir = getRunnerProjectSettings().getTestDirectory();
 
         // FIXME
-        if (getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+        if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
             if (testDir.exists()) {
                 System.out.println("Removing test dir");
                 PathUtils.delete(testDir.toPath());
@@ -127,7 +127,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // skip container with higher java version than supported
             if (container.getRequiredJavaVersion()
-                    .compareTo(getTool().getSupportedJavaVersion()) > 0) {
+                    .compareTo(tool.getSupportedJavaVersion()) > 0) {
                 // TODO error handling
                 System.err.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");
@@ -169,7 +169,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
                 }
 
                 if (inputsXml.getGeneratedInputCount() == 0
-                        && getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+                        && tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
                     System.err.println("No inputs: " + inputsXmlFile.getName());
                 }
 
@@ -178,7 +178,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
                 Method method = snippet.getMethod();
 
                 // FIXME
-                if (getTool().getOutputType() == ToolOutputType.INPUT_VALUES) {
+                if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
                     StringBuilder java = new StringBuilder();
 
                     String classSimpleName = javaClass.getSimpleName() + '_' + method.getName()
@@ -340,7 +340,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
                     returnValue = null;
                 } else if (skipMethodNamePrefixes.stream()
                         .anyMatch(prefix -> snippet.getMethod().getName().startsWith(prefix))) {
-                    returnValue = RunResultParser.getDefaultParameterValue(snippetReturnType);
+                    returnValue = RunResultParserBase.getDefaultParameterValue(snippetReturnType);
                 } else {
                     System.out.println(snippet.getId());
                     returnValue = snippet.getMethod().invoke(null, methodParams);
@@ -424,7 +424,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
     // .getContainers()) {
     // // skip container with higher java version than supported
     // if (container.getRequiredJavaVersion().compareTo(
-    // getTool().supportedJavaVersion()) > 0) {
+    // tool.supportedJavaVersion()) > 0) {
     // // TODO error handling
     // System.err.println("Skipping container: "
     // + container.getJavaClass().getName()
@@ -457,7 +457,7 @@ public final class TestSuiteGenerator extends EvaluationTask<Tool> {
     // private SnippetInputsXml parseSnippet(Snippet snippet) throws Exception {
     // // TODO explain, make clear
     // SnippetInputsXml inputsXml = new SnippetInputsXml();
-    // inputsXml.setToolName(getTool().getName());
+    // inputsXml.setToolName(tool.getName());
     // inputsXml.setSnippetProjectElement(new SnippetProjectElement(
     // getSnippetProjectSettings().getBaseDir()
     // .getCanonicalPath()));

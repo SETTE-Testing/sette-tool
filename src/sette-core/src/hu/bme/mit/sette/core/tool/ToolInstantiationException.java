@@ -20,27 +20,26 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// NOTE revise this file
-package hu.bme.mit.sette.tools.jpet;
-
-import java.io.File;
-import java.nio.file.Path;
+package hu.bme.mit.sette.core.tool;
 
 import hu.bme.mit.sette.core.SetteException;
-import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
-import hu.bme.mit.sette.core.util.io.PathUtils;
+import hu.bme.mit.sette.core.configuration.SetteToolConfiguration;
+import lombok.NonNull;
 
-public class JPetGenerator extends RunnerProjectGeneratorBase<JPetTool> {
-    public JPetGenerator(SnippetProject snippetProject, Path outputDir, JPetTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+/**
+ * Exception thrown when {@link Tool} instantiation fails.
+ */
+public class ToolInstantiationException extends SetteException {
+    private static final long serialVersionUID = 3164866143688311826L;
+
+    ToolInstantiationException(@NonNull SetteToolConfiguration toolConfiguration,
+            @NonNull Throwable cause) {
+        super(createMessage(toolConfiguration), cause);
     }
 
-    @Override
-    protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
-        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        PathUtils.copy(tool.getDefaultBuildXml(), buildXml.toPath());
+    private static String createMessage(SetteToolConfiguration toolConfiguration) {
+        return String.format("Cannot instantiate tool %s (class name: %s, tool dir: %s)",
+                toolConfiguration.getName(), toolConfiguration.getClassName(),
+                toolConfiguration.getToolDir());
     }
 }

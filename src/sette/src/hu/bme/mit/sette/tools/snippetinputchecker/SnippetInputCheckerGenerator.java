@@ -32,10 +32,10 @@ import hu.bme.mit.sette.core.descriptors.eclipse.EclipseClasspathEntry;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseClasspathEntryKind;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class SnippetInputCheckerGenerator extends RunnerProjectGenerator<SnippetInputCheckerTool> {
+public class SnippetInputCheckerGenerator extends RunnerProjectGeneratorBase<SnippetInputCheckerTool> {
     public SnippetInputCheckerGenerator(SnippetProject snippetProject, Path outputDir,
             SnippetInputCheckerTool tool, String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);

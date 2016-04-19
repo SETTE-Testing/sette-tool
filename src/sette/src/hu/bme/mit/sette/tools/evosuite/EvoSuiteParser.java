@@ -51,11 +51,11 @@ import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
+public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
     public EvoSuiteParser(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);

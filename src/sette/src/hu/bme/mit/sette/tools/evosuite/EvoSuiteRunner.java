@@ -35,9 +35,9 @@ import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 
-public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
+public final class EvoSuiteRunner extends RunnerProjectRunnerBase<EvoSuiteTool> {
     public EvoSuiteRunner(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -69,7 +69,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunner<EvoSuiteTool> {
 
         // additional parameter: -Dtarget_method
 
-        File evosuiteJar = getTool().getToolJar().toFile();
+        File evosuiteJar = tool.getToolJar().toFile();
 
         // create command
         String classpath = "build";

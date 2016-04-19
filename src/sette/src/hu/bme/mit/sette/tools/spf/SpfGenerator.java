@@ -38,10 +38,10 @@ import hu.bme.mit.sette.core.descriptors.java.JavaFileWithMainBuilder;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
+public class SpfGenerator extends RunnerProjectGeneratorBase<SpfTool> {
     public SpfGenerator(SnippetProject snippetProject, Path outputDir, SpfTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -57,7 +57,7 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
         createGeneratedFiles();
 
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
+        PathUtils.copy(tool.getDefaultBuildXml(), buildXml.toPath());
     }
 
     private void createGeneratedFiles() {
@@ -65,7 +65,7 @@ public class SpfGenerator extends RunnerProjectGenerator<SpfTool> {
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // skip container with higher java version than supported
             if (container.getRequiredJavaVersion()
-                    .compareTo(getTool().getSupportedJavaVersion()) > 0) {
+                    .compareTo(tool.getSupportedJavaVersion()) > 0) {
                 // TODO error handling
                 System.err.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");

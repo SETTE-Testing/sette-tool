@@ -30,17 +30,17 @@ import hu.bme.mit.sette.core.model.parserxml.FileCoverageElement;
 import hu.bme.mit.sette.core.model.parserxml.SnippetCoverageXml;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.tasks.EvaluationTask;
+import hu.bme.mit.sette.core.tasks.EvaluationTaskBase;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class HtmlGenerator {
-    private final EvaluationTask<Tool> testSuiteRunner;
+    private final EvaluationTaskBase<Tool> testSuiteRunner;
 
     /**
      * @param testSuiteRunner
      */
-    public HtmlGenerator(EvaluationTask<Tool> testSuiteRunner) {
+    public HtmlGenerator(EvaluationTaskBase<Tool> testSuiteRunner) {
         this.testSuiteRunner = testSuiteRunner;
     }
 
@@ -49,8 +49,8 @@ public final class HtmlGenerator {
                 this.testSuiteRunner.getRunnerProjectSettings(),
                 snippet);
 
-        String htmlTitle = this.testSuiteRunner.getTool().getName() + " - "
-                + snippet.getContainer().getJavaClass().getName() + '.'
+        String htmlTitle = this.testSuiteRunner.getRunnerProjectSettings().getTool().getName()
+                + " - " + snippet.getContainer().getJavaClass().getName() + '.'
                 + snippet.getMethod().getName() + "()";
         StringBuilder htmlData = new StringBuilder();
         htmlData.append("<!DOCTYPE html>\n");

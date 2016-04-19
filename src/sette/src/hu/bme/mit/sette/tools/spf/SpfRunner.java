@@ -31,11 +31,11 @@ import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
-public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
+public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
     public SpfRunner(SnippetProject snippetProject, Path outputDir, SpfTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -64,7 +64,7 @@ public final class SpfRunner extends RunnerProjectRunner<SpfTool> {
          * /spf/_1_base/BasePrimitiveTypes_twoParamBoolean.jpf
          */
 
-        File runJPFJar = getTool().getToolJar().toFile();
+        File runJPFJar = tool.getToolJar().toFile();
 
         String filenameBase = snippet.getContainer().getJavaClass().getName().replace('.', '/')
                 + "_" + snippet.getMethod().getName();

@@ -44,12 +44,12 @@ import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
-public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
+public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
     private final Random seedGenerator;
 
     public RandoopRunner(SnippetProject snippetProject, Path outputDir, RandoopTool tool,
@@ -88,7 +88,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
          * sette.snippets._3_objects.dependencies.SimpleObject)
          */
 
-        File randoopJar = getTool().getToolJar().toFile();
+        File randoopJar = tool.getToolJar().toFile();
 
         // TODO ???
         // String filenameBase = JavaFileUtil

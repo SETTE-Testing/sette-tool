@@ -37,7 +37,7 @@ public final class RunnerUI implements BaseUI {
 
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        RunnerProjectRunner<?> runner = context.getTool().createRunnerProjectRunner(
+        RunnerProjectRunner runner = context.getTool().createRunnerProjectRunner(
                 context.getSnippetProject(), context.getOutputDir(),
                 context.getRunnerProjectTag());
         runner.setTimeoutInMs(context.getRunnerTimeoutInMs());

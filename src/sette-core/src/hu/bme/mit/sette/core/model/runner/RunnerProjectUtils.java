@@ -23,7 +23,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.model.runner;
 
-  import java.io.File;
+import java.io.File;
 
 import org.apache.commons.lang3.Validate;
 
@@ -63,7 +63,7 @@ public final class RunnerProjectUtils {
      *            the settings of the runner project.
      * @return the runner log file
      */
-    public static File getRunnerLogFile(RunnerProjectSettings<?> settings) {
+    public static File getRunnerLogFile(RunnerProjectSettings settings) {
         Validate.notNull(settings, "The settings must not be null");
 
         return new File(settings.getRunnerOutputDirectory(), RUNNER_LOG_FILE);
@@ -95,7 +95,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.myExt).
      */
-    private static File getSnippetFile(@NonNull RunnerProjectSettings<?> settings,
+    private static File getSnippetFile(@NonNull RunnerProjectSettings settings,
             @NonNull Snippet snippet,
             @NonNull String extension) {
         Preconditions.checkArgument(!extension.isEmpty());
@@ -115,7 +115,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.info).
      */
-    public static File getSnippetInfoFile(RunnerProjectSettings<?> settings, Snippet snippet) {
+    public static File getSnippetInfoFile(RunnerProjectSettings settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -132,7 +132,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.out).
      */
-    public static File getSnippetOutputFile(RunnerProjectSettings<?> settings, Snippet snippet) {
+    public static File getSnippetOutputFile(RunnerProjectSettings settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -149,7 +149,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g.
      *         RUNNER_OUTPUT_DIR/hu/bme/mit/sette/MyContainer_MySnippet.err).
      */
-    public static File getSnippetErrorFile(RunnerProjectSettings<?> settings, Snippet snippet) {
+    public static File getSnippetErrorFile(RunnerProjectSettings settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -166,7 +166,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.inputs.xml).
      */
-    public static File getSnippetInputsFile(RunnerProjectSettings<?> settings, Snippet snippet) {
+    public static File getSnippetInputsFile(RunnerProjectSettings settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -183,7 +183,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.result.xml).
      */
-    public static File getSnippetResultFile(RunnerProjectSettings<?> settings, Snippet snippet) {
+    public static File getSnippetResultFile(RunnerProjectSettings settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -200,7 +200,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.coverage.xml).
      */
-    public static File getSnippetCoverageFile(RunnerProjectSettings<?> settings, Snippet snippet) {
+    public static File getSnippetCoverageFile(RunnerProjectSettings settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 
@@ -217,7 +217,7 @@ public final class RunnerProjectUtils {
      * @return the output file for the snippet (e.g. RUNNER_OUTPUT_DIR/hu/bme/mit
      *         /sette/MyContainer_MySnippet.coverage.xml).
      */
-    public static File getSnippetHtmlFile(RunnerProjectSettings<?> settings, Snippet snippet) {
+    public static File getSnippetHtmlFile(RunnerProjectSettings settings, Snippet snippet) {
         Validate.notNull(settings, "The settings must not be null");
         Validate.notNull(snippet, "The snippet must not be null");
 

@@ -44,10 +44,10 @@ import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class RandoopParser extends RunResultParser<RandoopTool> {
+public class RandoopParser extends RunResultParserBase<RandoopTool> {
     private final static Pattern TEST_COUNT_LINE_PATTERN = Pattern
             .compile("^Writing (-?\\d+) junit tests$");
 

@@ -31,13 +31,13 @@ import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
+import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
-public final class CatgRunner extends RunnerProjectRunner<CatgTool> {
+public final class CatgRunner extends RunnerProjectRunnerBase<CatgTool> {
     private static final int TRIAL_COUNT = 100;
 
     public CatgRunner(SnippetProject snippetProject, Path outputDir, CatgTool tool,

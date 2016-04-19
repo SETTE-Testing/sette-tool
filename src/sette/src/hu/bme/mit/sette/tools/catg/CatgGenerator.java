@@ -43,10 +43,10 @@ import hu.bme.mit.sette.core.descriptors.java.JavaFileWithMainBuilder;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
+public class CatgGenerator extends RunnerProjectGeneratorBase<CatgTool> {
     public CatgGenerator(SnippetProject snippetProject, Path outputDir, CatgTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -75,7 +75,7 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
         // generate main() for each snippet
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             if (container.getRequiredJavaVersion()
-                    .compareTo(getTool().getSupportedJavaVersion()) > 0) {
+                    .compareTo(tool.getSupportedJavaVersion()) > 0) {
                 // TODO enhance message
                 System.err.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");
@@ -158,7 +158,7 @@ public class CatgGenerator extends RunnerProjectGenerator<CatgTool> {
     }
 
     private void copyTool(EclipseProject eclipseProject) throws SetteConfigurationException {
-        PathUtils.copy(getTool().getToolDir().resolve("tool"),
+        PathUtils.copy(tool.getToolDir().resolve("tool"),
                 getRunnerProjectSettings().getBaseDir().toPath());
 
         // edit build.xml

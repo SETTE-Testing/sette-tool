@@ -36,7 +36,7 @@ import hu.bme.mit.sette.core.util.io.PathUtils;
 public final class GeneratorUI implements BaseUI {
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        RunnerProjectGenerator<?> generator = context.getTool().createRunnerProjectGenerator(
+        RunnerProjectGenerator generator = context.getTool().createRunnerProjectGenerator(
                 context.getSnippetProject(), context.getOutputDir(),
                 context.getRunnerProjectTag());
 

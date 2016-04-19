@@ -29,10 +29,10 @@ import java.nio.file.Path;
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class RandoopGenerator extends RunnerProjectGenerator<RandoopTool> {
+public class RandoopGenerator extends RunnerProjectGeneratorBase<RandoopTool> {
     public RandoopGenerator(SnippetProject snippetProject, Path outputDir, RandoopTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -41,6 +41,6 @@ public class RandoopGenerator extends RunnerProjectGenerator<RandoopTool> {
     @Override
     protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
+        PathUtils.copy(tool.getDefaultBuildXml(), buildXml.toPath());
     }
 }

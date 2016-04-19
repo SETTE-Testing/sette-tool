@@ -29,9 +29,9 @@ import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 
-public class SnippetInputCheckerParser extends RunResultParser<SnippetInputCheckerTool> {
+public class SnippetInputCheckerParser extends RunResultParserBase<SnippetInputCheckerTool> {
     public SnippetInputCheckerParser(SnippetProject snippetProject, Path outputDir,
             SnippetInputCheckerTool tool, String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);

@@ -62,14 +62,14 @@ import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.EvaluationTask;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tasks.EvaluationTaskBase;
+import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
-public class EvoSuiteParserMutation extends EvaluationTask<EvoSuiteTool> {
+public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
     public EvoSuiteParserMutation(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -333,7 +333,7 @@ public class EvoSuiteParserMutation extends EvaluationTask<EvoSuiteTool> {
             String str = paramsStr.get(i);
             paramValues[i] = stringToObject(cls, str);
             if (cls.isPrimitive() && paramValues[i] == null) {
-                paramValues[i] = RunResultParser.getDefaultParameterValue(cls);
+                paramValues[i] = RunResultParserBase.getDefaultParameterValue(cls);
             }
         }
 

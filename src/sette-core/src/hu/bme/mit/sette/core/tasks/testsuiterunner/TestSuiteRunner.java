@@ -84,7 +84,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.EvaluationTask;
+import hu.bme.mit.sette.core.tasks.EvaluationTaskBase;
 import hu.bme.mit.sette.core.tasks.TestSuiteGenerator;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
@@ -98,8 +98,8 @@ import junit.framework.AssertionFailedError;
 import lombok.Getter;
 import lombok.Setter;
 
-public final class TestSuiteRunner extends EvaluationTask<Tool> {
     public static final int TEST_CASE_TIMEOUT_IN_MS = 30000;
+public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
 
     @Getter
     @Setter
@@ -428,9 +428,9 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         }
 
         // TODO remove debug
-        // new File("D:/SETTE/!DUMP/" + getTool().getName()).mkdirs();
+        // new File("D:/SETTE/!DUMP/" + tool.getName()).mkdirs();
         // PrintStream out = new PrintStream("D:/SETTE/!DUMP/"
-        // + getTool().getName() + "/" + testClassName + ".out");
+        // + tool.getName() + "/" + testClassName + ".out");
 
         Map<String, Triple<SortedSet<Integer>, SortedSet<Integer>, SortedSet<Integer>>> coverageInfo = new HashMap<>();
 
@@ -605,8 +605,8 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         command.add(getSnippetProject().getBaseDir().toString());
         // sette-results dir
         command.add(getRunnerProjectSettings().getBaseDir().getParent());
-        String toolArg = String.format("%s|%s|%s", getTool().getClass().getName(),
-                getTool().getName(), getTool().getToolDir());
+        String toolArg = String.format("%s|%s|%s", tool.getClass().getName(),
+                tool.getName(), tool.getToolDir());
         command.add(toolArg);
         command.add(getRunnerProjectSettings().getTag());
         command.add(snippet.getId());
@@ -668,7 +668,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         double coverage = resultTypeAndCoverage.getRight();
 
         // FIXME hook to check snippets, but should be elsewhere
-        if (getTool().getClass().getSimpleName().equals("SnippetInputCheckerTool")) {
+        if (tool.getClass().getSimpleName().equals("SnippetInputCheckerTool")) {
             if (resultType != ResultType.C) {
                 System.err.println("FAILURE for Checker, not C: " + snippet.getId());
                 throw new RuntimeException();
@@ -677,7 +677,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
 
         // create coverage XML
         SnippetCoverageXml coverageXml = new SnippetCoverageXml();
-        coverageXml.setToolName(getTool().getName());
+        coverageXml.setToolName(tool.getName());
         coverageXml.setSnippetProjectElement(new SnippetProjectElement(
                 getSnippetProject().getBaseDir().toFile().getCanonicalPath()));
 

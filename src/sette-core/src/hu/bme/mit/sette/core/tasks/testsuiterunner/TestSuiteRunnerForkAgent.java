@@ -108,7 +108,7 @@ public final class TestSuiteRunnerForkAgent {
 
     private final SnippetProject snippetProject;
     private final Tool tool;
-    private final RunnerProjectSettings<Tool> runnerProjectSettings;
+    private final RunnerProjectSettings runnerProjectSettings;
     private final Snippet snippet;
     private final String testClassName;
     private final String testMethodName;
@@ -131,7 +131,7 @@ public final class TestSuiteRunnerForkAgent {
         snippetProject = SnippetProject.parse(snippetProjectDir);
         tool = Tool.create(new SetteToolConfiguration(toolConfig.get(0), toolConfig.get(1),
                 Paths.get(toolConfig.get(2))));
-        runnerProjectSettings = new RunnerProjectSettings<>(snippetProject, outputDir, tool,
+        runnerProjectSettings = new RunnerProjectSettings(snippetProject, outputDir, tool,
                 runnerProjectTag);
 
         snippet = snippetProject.getSnippetContainers().stream()

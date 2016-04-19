@@ -36,13 +36,13 @@ import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCasesConverter;
 
-public class JPetParser extends RunResultParser<JPetTool> {
+public class JPetParser extends RunResultParserBase<JPetTool> {
     public JPetParser(SnippetProject snippetProject, Path outputDir, JPetTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);

@@ -25,7 +25,6 @@ package hu.bme.mit.sette.core.tool;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -123,8 +122,6 @@ public abstract class Tool implements Comparable<Tool> {
             Constructor<?> ctor = toolClass.getConstructor(String.class, Path.class);
             return (Tool) ctor.newInstance(toolConfiguration.getName(),
                     toolConfiguration.getToolDir());
-        } catch (InvocationTargetException ex) {
-            throw new ToolInstantiationException(toolConfiguration, ex);
         } catch (Exception ex) {
             throw new ToolInstantiationException(toolConfiguration, ex);
         }
@@ -164,7 +161,7 @@ public abstract class Tool implements Comparable<Tool> {
      *            the output directory
      * @return the runner project generator
      */
-    public abstract RunnerProjectGenerator<?> createRunnerProjectGenerator(
+    public abstract RunnerProjectGenerator createRunnerProjectGenerator(
             SnippetProject snippetProject, Path outputDir, String runnerProjectTag);
 
     /**
@@ -176,7 +173,7 @@ public abstract class Tool implements Comparable<Tool> {
      *            the output directory
      * @return the runner project runner
      */
-    public abstract RunnerProjectRunner<?> createRunnerProjectRunner(SnippetProject snippetProject,
+    public abstract RunnerProjectRunner createRunnerProjectRunner(SnippetProject snippetProject,
             Path outputDir, String runnerProjectTag);
 
     /**
@@ -190,7 +187,7 @@ public abstract class Tool implements Comparable<Tool> {
      *            the tag of the runner project
      * @return the run result parser
      */
-    public abstract RunResultParser<?> createRunResultParser(SnippetProject snippetProject,
+    public abstract RunResultParser createRunResultParser(SnippetProject snippetProject,
             Path outputDir, String runnerProjectTag);
 
     @Override

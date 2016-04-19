@@ -76,12 +76,11 @@ public final class JPetTool extends Tool {
         return new JPetRunner(snippetProject, outputDir, this, runnerProjectTag);
     }
 
-    public static File getTestCasesDirectory(
-            RunnerProjectSettings<JPetTool> runnerProjectSettings) {
+    public static File getTestCasesDirectory(RunnerProjectSettings runnerProjectSettings) {
         return new File(runnerProjectSettings.getBaseDir(), TESTCASES_DIRNAME);
     }
 
-    public static File getTestCaseXmlFile(RunnerProjectSettings<JPetTool> runnerProjectSettings,
+    public static File getTestCaseXmlFile(RunnerProjectSettings runnerProjectSettings,
             Snippet snippet) {
         return new File(getTestCasesDirectory(runnerProjectSettings),
                 RunnerProjectUtils.getSnippetBaseFilename(snippet) + ".xml");

@@ -79,7 +79,7 @@ import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
-import hu.bme.mit.sette.core.tasks.EvaluationTask;
+import hu.bme.mit.sette.core.tasks.EvaluationTaskBase;
 import hu.bme.mit.sette.core.tasks.testsuiterunner.CoverageInfo;
 import hu.bme.mit.sette.core.tasks.testsuiterunner.HtmlGenerator;
 import hu.bme.mit.sette.core.tasks.testsuiterunner.JaCoCoClassLoader;
@@ -93,7 +93,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 // tailored for evosuite and extra snippets
-public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
+public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
     private static final String ANT_BUILD_TEST2_FILENAME;
 
     static {
@@ -116,7 +116,7 @@ public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
         lines.add("            <compilerarg value=\"UTF8\" />");
         lines.add("            <classpath>");
 
-        if (getTool().getClass().getSimpleName().startsWith("EvoSuite")) {
+        if (tool.getClass().getSimpleName().startsWith("EvoSuite")) {
             lines.add("                <pathelement path=\"evosuite.jar\" />");
         } else {
             lines.add("                <pathelement path=\"junit.jar\" />");
@@ -127,7 +127,7 @@ public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
         lines.add("                </fileset>");
         lines.add("            </classpath>");
         lines.add("            <src path=\"snippet-src\" />");
-        if (getTool().getClass().getSimpleName().startsWith("EvoSuite")) {
+        if (tool.getClass().getSimpleName().startsWith("EvoSuite")) {
             lines.add("            <src path=\"test-original\" />");
         } else {
             lines.add("            <src path=\"test\" />");
@@ -167,14 +167,14 @@ public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
 
         // copy evojar if needed
         // FIXME without reflection...
-        if (getTool().getClass().getSimpleName().startsWith("EvoSuite")) {
+        if (tool.getClass().getSimpleName().startsWith("EvoSuite")) {
             evosuiteJar = new File(getRunnerProjectSettings().getBaseDir(), "evosuite.jar")
                     .toPath();
             if (!PathUtils.exists(evosuiteJar)) {
-                Field fld = getTool().getClass().getDeclaredField("toolJar");
+                Field fld = tool.getClass().getDeclaredField("toolJar");
                 fld.setAccessible(true);
 
-                Path toolJarSource = (Path) fld.get(getTool());
+                Path toolJarSource = (Path) fld.get(tool);
 
                 PathUtils.copy(toolJarSource, evosuiteJar);
             }
@@ -486,9 +486,9 @@ public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
         }
 
         // TODO remove debug
-        // new File("D:/SETTE/!DUMP/" + getTool().getName()).mkdirs();
+        // new File("D:/SETTE/!DUMP/" + tool.getName()).mkdirs();
         // PrintStream out = new PrintStream("D:/SETTE/!DUMP/"
-        // + getTool().getName() + "/" + testClassName + ".out");
+        // + tool.getName() + "/" + testClassName + ".out");
 
         Map<String, Triple<SortedSet<Integer>, SortedSet<Integer>, SortedSet<Integer>>> coverageInfo = new HashMap<>();
 
@@ -545,7 +545,7 @@ public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
         double coverage = resultTypeAndCoverage.getRight();
 
         // FIXME hook to check snippets, but should be elsewhere
-        if (getTool().getClass().getSimpleName().equals("SnippetInputCheckerTool")) {
+        if (tool.getClass().getSimpleName().equals("SnippetInputCheckerTool")) {
             if (resultType != ResultType.C) {
                 System.err.println("FAILURE for Checker, not C: " + snippet.getId());
                 throw new RuntimeException();
@@ -554,7 +554,7 @@ public final class TestSuiteRunner2 extends EvaluationTask<Tool> {
 
         // create coverage XML
         SnippetCoverageXml coverageXml = new SnippetCoverageXml();
-        coverageXml.setToolName(getTool().getName());
+        coverageXml.setToolName(tool.getName());
         coverageXml.setSnippetProjectElement(new SnippetProjectElement(
                 getSnippetProject().getBaseDir().toFile().getCanonicalPath()));
 

@@ -43,11 +43,11 @@ import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
+import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
+public class EvoSuiteGenerator extends RunnerProjectGeneratorBase<EvoSuiteTool> {
     public EvoSuiteGenerator(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -58,7 +58,7 @@ public class EvoSuiteGenerator extends RunnerProjectGenerator<EvoSuiteTool> {
         createSpecialSnippetFiles();
 
         File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        PathUtils.copy(getTool().getDefaultBuildXml(), buildXml.toPath());
+        PathUtils.copy(tool.getDefaultBuildXml(), buildXml.toPath());
     }
 
     private void createSpecialSnippetFiles() {

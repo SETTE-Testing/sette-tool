@@ -46,7 +46,7 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public final class CsvGenerator extends EvaluationTask<Tool> {
+public final class CsvGenerator extends EvaluationTaskBase<Tool> {
     private static final String FIELD_SEP = ",";
 
     public CsvGenerator(SnippetProject snippetProject, Path outputDir, Tool tool,
@@ -101,7 +101,7 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
 
     private String createHeader() {
         String header = String.join(FIELD_SEP, HEADER_COLUMNS);
-        if (getTool().getName().startsWith("SnippetInputChecker")) {
+        if (tool.getName().startsWith("SnippetInputChecker")) {
             header += FIELD_SEP + "RequiredStatementCoverage    ";
         }
         return header;
@@ -152,7 +152,7 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
         String snippetShortName = getShortSnippetName(snippet);
         fields.add(snippetShortName.split("_")[0]); // category
         fields.add(snippetShortName); // snippet
-        fields.add(getTool().getName()); // tool
+        fields.add(tool.getName()); // tool
         fields.add(StringUtils.defaultIfEmpty(resultXml.getAchievedCoverage(), "").replace('%', ' ')
                 .trim()); // coverage
         fields.add(resultXml.getResultType().toString()); // Status = ResultType
@@ -160,7 +160,7 @@ public final class CsvGenerator extends EvaluationTask<Tool> {
         fields.add(getRunnerProjectSettings().getTag()); // Run = TAG
         fields.add(elapsedTime); // Duration: 43243 ms
 
-        if (getTool().getName().startsWith("SnippetInputChecker")) {
+        if (tool.getName().startsWith("SnippetInputChecker")) {
             fields.add(String.format("%.2f", snippet.getRequiredStatementCoverage())); // coverage
             Validate.isTrue(fields.size() == HEADER_COLUMNS.length + 1);
         } else {

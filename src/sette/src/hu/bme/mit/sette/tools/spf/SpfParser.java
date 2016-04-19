@@ -42,9 +42,9 @@ import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 
-public class SpfParser extends RunResultParser<SpfTool> {
+public class SpfParser extends RunResultParserBase<SpfTool> {
     public SpfParser(SnippetProject snippetProject, Path outputDir, SpfTool tool,
             String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);

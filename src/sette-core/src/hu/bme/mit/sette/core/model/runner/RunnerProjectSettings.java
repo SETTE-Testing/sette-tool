@@ -44,7 +44,7 @@ import lombok.NonNull;
  * @param <T>
  *            The type of the tool.
  */
-public final class RunnerProjectSettings<T extends Tool> {
+public final class RunnerProjectSettings {
     /** Name of the directory containing the compiled files of the runner project. */
     public static final String BINARY_DIRNAME = "build";
 
@@ -63,7 +63,7 @@ public final class RunnerProjectSettings<T extends Tool> {
 
     /** The tool. */
     @Getter
-    private final T tool;
+    private final Tool tool;
 
     /** The base directory of the runner project. */
     @Getter
@@ -101,7 +101,7 @@ public final class RunnerProjectSettings<T extends Tool> {
      * @param tag
      */
     public RunnerProjectSettings(@NonNull SnippetProject snippetProject,
-            @NonNull Path outputDir, @NonNull T tool, @NonNull String tag) {
+            @NonNull Path outputDir, @NonNull Tool tool, @NonNull String tag) {
         Preconditions.checkArgument(!tag.trim().isEmpty(), "The tag must not be blank");
         Preconditions.checkArgument(!tag.contains("___"),
                 "The tag must not contain the '___' substring");

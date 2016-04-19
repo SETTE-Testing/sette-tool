@@ -41,9 +41,9 @@ import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
-import hu.bme.mit.sette.core.tasks.RunResultParser;
+import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 
-public class CatgParser extends RunResultParser<CatgTool> {
+public class CatgParser extends RunResultParserBase<CatgTool> {
     private static final Pattern EXCEPTION_LINE_PATTERN;
     private static final Pattern[] ACCEPTED_ERROR_LINE_PATTERNS;
 
