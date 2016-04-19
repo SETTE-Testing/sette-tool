@@ -258,7 +258,11 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
             ex.printStackTrace();
             System.err.println("========================================================");
             System.err.println("========================================================");
-            throw new RuntimeException(ex);
+            if (ex instanceof ThreadDeath) {
+                // ignore
+            } else {
+                throw new RuntimeException(ex);
+            }
         }
     }
 

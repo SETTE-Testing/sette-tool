@@ -270,14 +270,15 @@ project(':sette-core') {
         compile 'com.github.javaparser:javaparser-core:2.3.0'
 
         // Utilities
-        compile 'com.fasterxml.jackson.core:jackson-databind:2.7.2'
+        compile 'com.fasterxml.jackson.core:jackson-databind:2.7.3'
+        compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.7.3'
         compile 'com.google.guava:guava:19.0'
         compile 'org.apache.commons:commons-lang3:3.4'
-        compile 'org.simpleframework:simple-xml:2.7.1'
+        compile 'org.simpleframework:simple-xml:2.7.1' // replace by jackson-dataformat-xml?
 
         // Logging
-        compile 'org.slf4j:slf4j-api:1.7.18'
-        compile 'ch.qos.logback:logback-classic:1.1.6'
+        compile 'org.slf4j:slf4j-api:1.7.21'
+        compile 'ch.qos.logback:logback-classic:1.1.7'
     }
 
     // FIXME
