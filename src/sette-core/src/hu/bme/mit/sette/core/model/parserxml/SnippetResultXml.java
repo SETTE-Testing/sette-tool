@@ -42,6 +42,7 @@ public final class SnippetResultXml extends SnippetBaseXml {
      * Instantiates a new snippet result XML.
      */
     public SnippetResultXml() {
+        // default constructor is required for deserialization
     }
 
     public static SnippetResultXml createForWithResult(SnippetInputsXml inputsXml,

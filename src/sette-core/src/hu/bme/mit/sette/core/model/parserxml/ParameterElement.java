@@ -64,6 +64,7 @@ public final class ParameterElement extends AbstractParameterElement {
      * Instantiates a new simple parameter element.
      */
     public ParameterElement() {
+        // default constructor is required for deserialization
         super();
     }
 

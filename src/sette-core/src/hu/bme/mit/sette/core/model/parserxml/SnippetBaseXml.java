@@ -58,6 +58,7 @@ public abstract class SnippetBaseXml implements XmlElement {
      * Instantiates a new snippet base xml.
      */
     public SnippetBaseXml() {
+        // default constructor is required for deserialization
     }
 
     /**

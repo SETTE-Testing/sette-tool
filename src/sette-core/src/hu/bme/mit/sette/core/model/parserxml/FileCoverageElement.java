@@ -61,6 +61,7 @@ public class FileCoverageElement implements XmlElement {
      * Instantiates a file coverage element.
      */
     public FileCoverageElement() {
+        // default constructor is required for deserialization
     }
 
     /**

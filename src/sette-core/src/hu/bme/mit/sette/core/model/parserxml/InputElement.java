@@ -59,6 +59,7 @@ public final class InputElement implements XmlElement {
      * Instantiates a new input element.
      */
     public InputElement() {
+        // default constructor is required for deserialization
         parameters = new ArrayList<>();
     }
 

@@ -55,6 +55,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
      * Instantiates a new snippet inputs XML.
      */
     public SnippetInputsXml() {
+        // default constructor is required for deserialization
         super();
     }
 

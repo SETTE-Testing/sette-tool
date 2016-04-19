@@ -78,7 +78,7 @@ public final class JPetTestCasesConverter {
         // }
 
         if (heap.length() > 0) {
-            inputElement.setHeap(heap.toString());
+            inputElement.setHeap(heap);
         }
 
         // parameters

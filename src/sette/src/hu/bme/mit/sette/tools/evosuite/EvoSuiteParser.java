@@ -276,7 +276,7 @@ public class EvoSuiteParser extends RunResultParser<EvoSuiteTool> {
                     log.debug("Parsing with JavaParser: {}", testCasesFile);
                     compilationUnit = JavaParser.parse(testCasesFile);
                     log.debug("Parsed with JavaParser: {}", testCasesFile);
-                } catch (Throwable t) {
+                } catch (Exception t) {
                     throw new RuntimeException("Cannot parse: " + testCasesFile, t);
                 }
 

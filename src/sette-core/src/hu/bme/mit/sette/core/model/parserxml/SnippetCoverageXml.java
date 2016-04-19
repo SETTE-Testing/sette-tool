@@ -51,6 +51,7 @@ public final class SnippetCoverageXml extends SnippetBaseXml {
      * Instantiates a new snippet coverage XML.
      */
     public SnippetCoverageXml() {
+        // default constructor is required for deserialization
         super();
         coverage = new ArrayList<>();
     }

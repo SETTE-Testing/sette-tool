@@ -604,7 +604,7 @@ public final class TestSuiteRunner extends EvaluationTask<Tool> {
         // parameters for the agent
         command.add(getSnippetProject().getBaseDir().toString());
         // sette-results dir
-        command.add(getRunnerProjectSettings().getBaseDir().getParent().toString());
+        command.add(getRunnerProjectSettings().getBaseDir().getParent());
         String toolArg = String.format("%s|%s|%s", getTool().getClass().getName(),
                 getTool().getName(), getTool().getToolDir());
         command.add(toolArg);

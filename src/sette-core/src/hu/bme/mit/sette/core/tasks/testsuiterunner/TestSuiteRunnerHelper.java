@@ -207,7 +207,7 @@ final class TestSuiteRunnerHelper {
                 }
 
                 System.err.println("Stopped test: " + method.getName());
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 System.err.println("Thread Stop failed");
                 ex.printStackTrace();
                 throw new RuntimeException(ex);
@@ -235,7 +235,7 @@ final class TestSuiteRunnerHelper {
                     .setName(testClassInstance.getClass().getSimpleName() + "_" + method.getName());
             try {
                 method.invoke(testClassInstance);
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 // reason for Throwable: ThreadDeath
                 invokeException = ex;
             }

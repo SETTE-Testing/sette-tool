@@ -43,6 +43,7 @@ public final class ArrayParameterElement extends AbstractParameterElement {
      * Instantiates a new array parameter element.
      */
     public ArrayParameterElement() {
+        // default constructor is required for deserialization
         super();
         elements = new ArrayList<>();
     }

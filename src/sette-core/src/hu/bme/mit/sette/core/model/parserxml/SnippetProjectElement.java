@@ -44,6 +44,7 @@ public final class SnippetProjectElement implements XmlElement {
      * Instantiates a new snippet project element.
      */
     public SnippetProjectElement() {
+        // default constructor is required for deserialization
     }
 
     /**
