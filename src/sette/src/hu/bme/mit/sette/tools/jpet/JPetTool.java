@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
@@ -76,14 +75,14 @@ public final class JPetTool extends Tool {
         return new JPetRunner(snippetProject, outputDir, this, runnerProjectTag);
     }
 
-    public static File getTestCasesDirectory(RunnerProjectSettings runnerProjectSettings) {
-        return new File(runnerProjectSettings.getBaseDir(), TESTCASES_DIRNAME);
+    public static Path getTestCasesDirectory(RunnerProjectSettings runnerProjectSettings) {
+        return runnerProjectSettings.getBaseDir().resolve(TESTCASES_DIRNAME);
     }
 
-    public static File getTestCaseXmlFile(RunnerProjectSettings runnerProjectSettings,
+    public static Path getTestCaseXmlFile(RunnerProjectSettings runnerProjectSettings,
             Snippet snippet) {
-        return new File(getTestCasesDirectory(runnerProjectSettings),
-                RunnerProjectUtils.getSnippetBaseFilename(snippet) + ".xml");
+        return getTestCasesDirectory(runnerProjectSettings)
+                .resolve(RunnerProjectUtils.getSnippetBaseFilename(snippet) + ".xml");
     }
 
     @Override

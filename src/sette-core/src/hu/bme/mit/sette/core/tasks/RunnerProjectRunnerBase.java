@@ -23,7 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -116,15 +117,16 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
             afterPrepare();
 
             // create logger
-            File runnerLogFile = RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings());
+            Path runnerLogFile = RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings());
 
             if (loggerStream != null) {
-                loggerStream.println("Log file: " + runnerLogFile.getCanonicalPath());
+                loggerStream.println("Log file: " + runnerLogFile);
                 runnerLogger = new PrintStream(
-                        new SplitterOutputStream(new FileOutputStream(runnerLogFile), loggerStream),
+                        new SplitterOutputStream(new FileOutputStream(runnerLogFile.toFile()),
+                                loggerStream),
                         true);
             } else {
-                runnerLogger = new PrintStream(new FileOutputStream(runnerLogFile), true);
+                runnerLogger = new PrintStream(new FileOutputStream(runnerLogFile.toFile()), true);
             }
 
             // run all
@@ -171,13 +173,13 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
      */
     private void prepare() {
         // delete previous outputs
-        if (getRunnerProjectSettings().getRunnerOutputDirectory().exists()) {
-            Path dir = getRunnerProjectSettings().getRunnerOutputDirectory().toPath();
+        if (exists(getRunnerProjectSettings().getRunnerOutputDir())) {
+            Path dir = getRunnerProjectSettings().getRunnerOutputDir();
             PathUtils.delete(dir);
         }
 
         // create output directory
-        PathUtils.createDir(getRunnerProjectSettings().getRunnerOutputDirectory().toPath());
+        PathUtils.createDir(getRunnerProjectSettings().getRunnerOutputDir());
     }
 
     @FunctionalInterface
@@ -220,11 +222,11 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
 
                 String filenameBase = getFilenameBase(snippet);
 
-                File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
+                Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
                         snippet);
-                File outputFile = RunnerProjectUtils
+                Path outputFile = RunnerProjectUtils
                         .getSnippetOutputFile(getRunnerProjectSettings(), snippet);
-                File errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
+                Path errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
                         snippet);
 
                 try {
@@ -285,7 +287,7 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
      * @throws SetteException
      *             if a SETTE problem occurred
      */
-    protected abstract void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+    protected abstract void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
             throws SetteException;
 
     protected static final String getFilenameBase(Snippet snippet) {
@@ -293,15 +295,15 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
                 + snippet.getMethod().getName();
     }
 
-    protected final void executeToolProcess(List<String> command, File infoFile, File outputFile,
-            File errorFile) {
-        infoFile.getParentFile().mkdirs();
+    protected final void executeToolProcess(List<String> command, Path infoFile, Path outputFile,
+            Path errorFile) {
+        PathUtils.createDir(infoFile.getParent());
 
-        File workingDirectory = getRunnerProjectSettings().getBaseDir();
+        Path workingDirectory = getRunnerProjectSettings().getBaseDir();
 
-        ProcessBuilder pb = new ProcessBuilder(command).directory(workingDirectory);
-        pb.redirectOutput(outputFile);
-        pb.redirectError(errorFile);
+        ProcessBuilder pb = new ProcessBuilder(command).directory(workingDirectory.toFile());
+        pb.redirectOutput(outputFile.toFile());
+        pb.redirectError(errorFile.toFile());
 
         try {
             ProcessExecutor pe = new ProcessExecutor(pb,
@@ -326,7 +328,7 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
                     infoData.append("Elapsed time: ").append(result.getElapsedTimeInMs())
                             .append(" ms\n");
 
-                    PathUtils.write(infoFile.toPath(), infoData.toString().getBytes());
+                    PathUtils.write(infoFile, infoData.toString().getBytes());
                 }
             });
         } catch (Exception ex) {

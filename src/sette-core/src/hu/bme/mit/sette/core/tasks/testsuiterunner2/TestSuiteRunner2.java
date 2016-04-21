@@ -25,8 +25,8 @@ package hu.bme.mit.sette.core.tasks.testsuiterunner2;
 
 import static hu.bme.mit.sette.core.tasks.testsuiterunner2.TestSuiteRunner2Helper.decideResultType;
 import static hu.bme.mit.sette.core.tasks.testsuiterunner2.TestSuiteRunner2Helper.loadTestClasses;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -152,24 +152,23 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
     }
 
     public final void analyze() throws Exception {
-        if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
+        if (!exists(RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()))) {
             throw new TestSuiteRunner2Exception(
                     "Run the tool on the runner project first (and then parse and generate tests)");
         }
 
         // create build file
         PathUtils.write(
-                getRunnerProjectSettings().getBaseDir().toPath().resolve(ANT_BUILD_TEST2_FILENAME),
+                getRunnerProjectSettings().getBaseDir().resolve(ANT_BUILD_TEST2_FILENAME),
                 getAntBuildTest2Data().getBytes());
 
         // force rebuild?
-        // PathUtils.deleteIfExists(getRunnerProjectSettings().getBaseDir().toPath().resolve("build"));
+        // PathUtils.deleteIfExists(getRunnerProjectSettings().getBaseDir().resolve("build"));
 
         // copy evojar if needed
         // FIXME without reflection...
         if (tool.getClass().getSimpleName().startsWith("EvoSuite")) {
-            evosuiteJar = new File(getRunnerProjectSettings().getBaseDir(), "evosuite.jar")
-                    .toPath();
+            evosuiteJar = getRunnerProjectSettings().getBaseDir().resolve("evosuite.jar");
             if (!PathUtils.exists(evosuiteJar)) {
                 Field fld = tool.getClass().getDeclaredField("toolJar");
                 fld.setAccessible(true);
@@ -188,9 +187,11 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
         Serializer serializer = new Persister(new AnnotationStrategy());
 
         // binary directories for the JaCoCoClassLoader
-        File[] binaryDirectories = new File[2];
-        binaryDirectories[0] = getSnippetProject().getBuildDir().toFile();
-        binaryDirectories[1] = getRunnerProjectSettings().getBinaryDirectory();
+        Path[] binaryDirectories = {
+                getSnippetProject().getBuildDir(),
+                getRunnerProjectSettings().getBinaryDir()
+        };
+
         log.debug("Binary directories: {}", (Object) binaryDirectories);
 
         // foreach containers
@@ -223,10 +224,10 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
                     continue;
                 }
 
-                File resultXmlFile = RunnerProjectUtils
+                Path resultXmlFile = RunnerProjectUtils
                         .getSnippetResultFile(getRunnerProjectSettings(), snippet);
 
-                new PathValidator(resultXmlFile.toPath()).type(PathType.REGULAR_FILE).validate();
+                new PathValidator(resultXmlFile).type(PathType.REGULAR_FILE).validate();
             }
         }
 
@@ -234,12 +235,12 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
         System.err.println("=> ANALYZE ENDED");
     }
 
-    private void handleSnippet(Snippet snippet, Serializer serializer, File[] binaryDirectories)
+    private void handleSnippet(Snippet snippet, Serializer serializer, Path[] binaryDirectories)
             throws Exception {
-        File inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(getRunnerProjectSettings(),
+        Path inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(getRunnerProjectSettings(),
                 snippet);
 
-        if (!inputsXmlFile.exists()) {
+        if (!exists(inputsXmlFile)) {
             throw new RuntimeException("Missing inputsXML: " + inputsXmlFile);
         }
 
@@ -253,7 +254,7 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
             Thread.currentThread().setContextClassLoader(getSnippetProject().getClassLoader());
 
             // read data
-            inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
+            inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile.toFile());
 
             // set back the original class loader
             Thread.currentThread().setContextClassLoader(originalClassLoader);
@@ -278,13 +279,13 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
             resultXml.validate();
 
             // TODO needs more documentation
-            File resultFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
+            Path resultFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
                     snippet);
 
             Serializer serializerWrite = new Persister(new AnnotationStrategy(),
                     new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
 
-            serializerWrite.write(resultXml, resultFile);
+            serializerWrite.write(resultXml, resultFile.toFile());
 
             return;
         }
@@ -304,13 +305,13 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
             resultXml.validate();
 
             // TODO needs more documentation
-            File resultFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
+            Path resultFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
                     snippet);
 
             Serializer serializerWrite = new Persister(new AnnotationStrategy(),
                     new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
 
-            serializerWrite.write(resultXml, resultFile);
+            serializerWrite.write(resultXml, resultFile.toFile());
         } catch (ValidationException ex) {
             System.err.println(ex.getMessage());
             throw new RuntimeException("Validation failed");
@@ -324,7 +325,7 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
         }
     }
 
-    private SnippetCoverageXml analyzeOne(Snippet snippet, File[] binaryDirectories)
+    private SnippetCoverageXml analyzeOne(Snippet snippet, Path[] binaryDirectories)
             throws Throwable {
         //
         // Initialize
@@ -353,8 +354,9 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
 
         ClassLoader parentClassLoader = getSnippetProject().getClassLoader();
         if (evosuiteJar != null) {
-            parentClassLoader = new URLClassLoader(new URL[] { evosuiteJar.toUri().toURL(),
-                    getRunnerProjectSettings().getBinaryDirectory().toURI().toURL()
+            parentClassLoader = new URLClassLoader(new URL[] {
+                    evosuiteJar.toUri().toURL(),
+                    getRunnerProjectSettings().getBinaryDir().toUri().toURL()
             });
         }
         JaCoCoClassLoader testClassLoader = new JaCoCoClassLoader(binaryDirectories, instrumenter,
@@ -582,13 +584,13 @@ public final class TestSuiteRunner2 extends EvaluationTaskBase<Tool> {
         coverageXml.validate();
 
         // TODO needs more documentation
-        File coverageFile = RunnerProjectUtils.getSnippetCoverageFile(getRunnerProjectSettings(),
+        Path coverageFile = RunnerProjectUtils.getSnippetCoverageFile(getRunnerProjectSettings(),
                 snippet);
 
         Serializer serializer = new Persister(new AnnotationStrategy(),
                 new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
 
-        serializer.write(coverageXml, coverageFile);
+        serializer.write(coverageXml, coverageFile.toFile());
 
         // generate html
         new HtmlGenerator(this).generate(snippet, coverageXml);

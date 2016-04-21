@@ -23,7 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+
 import java.lang.reflect.Parameter;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
 
     @Override
     public final void parse() throws Exception {
-        if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
+        if (!exists(RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()))) {
             throw new RunResultParserException("Run the tool on the runner project first");
         }
 
@@ -98,16 +99,16 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
                     inputsXml.setResultType(ResultType.NA);
                     inputsXml.validate();
 
-                    File inputsXmlFile = RunnerProjectUtils
+                    Path inputsXmlFile = RunnerProjectUtils
                             .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
-                    PathUtils.createDir(inputsXmlFile.getParentFile().toPath());
+                    PathUtils.createDir(inputsXmlFile.getParent());
 
-                    PathUtils.deleteIfExists(inputsXmlFile.toPath());
+                    PathUtils.deleteIfExists(inputsXmlFile);
 
                     Serializer serializer = new Persister(new AnnotationStrategy(),
                             new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-                    serializer.write(inputsXml, inputsXmlFile);
+                    serializer.write(inputsXml, inputsXmlFile.toFile());
                     continue;
                 }
 
@@ -115,16 +116,16 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
                 // TODO further validation
                 inputsXml.validate();
 
-                File inputsXmlFile = RunnerProjectUtils
+                Path inputsXmlFile = RunnerProjectUtils
                         .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
-                PathUtils.createDir(inputsXmlFile.getParentFile().toPath());
+                PathUtils.createDir(inputsXmlFile.getParent());
 
-                PathUtils.deleteIfExists(inputsXmlFile.toPath());
+                PathUtils.deleteIfExists(inputsXmlFile);
 
                 Serializer serializer = new Persister(new AnnotationStrategy(),
                         new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-                serializer.write(inputsXml, inputsXmlFile);
+                serializer.write(inputsXml, inputsXmlFile.toFile());
             }
         }
 
@@ -135,15 +136,15 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
-                File inputsXmlFile = RunnerProjectUtils
+                Path inputsXmlFile = RunnerProjectUtils
                         .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
-                File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
+                Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
                         snippet);
 
-                new PathValidator(inputsXmlFile.toPath()).type(PathType.REGULAR_FILE).validate();
-                if (!infoFile.exists()) {
+                new PathValidator(inputsXmlFile).type(PathType.REGULAR_FILE).validate();
+                if (!PathUtils.exists(infoFile)) {
                     SnippetInputsXml inputsXml = new Persister(new AnnotationStrategy())
-                            .read(SnippetInputsXml.class, inputsXmlFile);
+                            .read(SnippetInputsXml.class, inputsXmlFile.toFile());
 
                     Validate.isTrue(inputsXml.getResultType() == ResultType.NA,
                             "If there is no .info file, the result must be N/A: " + inputsXmlFile);
@@ -223,11 +224,11 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
 
         public SnippetOutFiles(Snippet snippet, RunnerProjectSettings runnerProjectSettings) {
             infoFile = RunnerProjectUtils.getSnippetInfoFile(runnerProjectSettings,
-                    snippet).toPath();
+                    snippet);
             outputFile = RunnerProjectUtils.getSnippetOutputFile(runnerProjectSettings,
-                    snippet).toPath();
+                    snippet);
             errorOutputFile = RunnerProjectUtils.getSnippetErrorFile(runnerProjectSettings,
-                    snippet).toPath();
+                    snippet);
         }
 
         public List<String> readInfoLines() {

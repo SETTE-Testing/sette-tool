@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +54,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunnerBase<EvoSuiteTool> 
     }
 
     @Override
-    protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
             throws SetteConfigurationException {
         // TODO make better
         // e.g.
@@ -69,7 +68,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunnerBase<EvoSuiteTool> 
 
         // additional parameter: -Dtarget_method
 
-        File evosuiteJar = tool.getToolJar().toFile();
+        Path evosuiteJar = tool.getToolJar();
 
         // create command
         String classpath = "build";
@@ -87,7 +86,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunnerBase<EvoSuiteTool> 
         List<String> cmd = new ArrayList<>();
         cmd.add("java");
         cmd.add("-jar");
-        cmd.add(evosuiteJar.getAbsolutePath());
+        cmd.add(evosuiteJar.toString());
         cmd.add("-projectCP");
         cmd.add(classpath);
         // NOTE default: cmd.add("-generateSuite");

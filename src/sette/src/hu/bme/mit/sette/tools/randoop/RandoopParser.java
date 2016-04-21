@@ -23,7 +23,9 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.randoop;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+import static java.util.stream.Collectors.toList;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.IntSummaryStatistics;
@@ -31,8 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.Validate;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -61,8 +61,8 @@ public class RandoopParser extends RunResultParserBase<RandoopTool> {
             SnippetInputsXml inputsXml) throws Exception {
         List<String> outputLines = outFiles.readOutputLines();
         List<String> errorLines = outFiles.readErrorOutputLines();
-        File lookUpDir = new File(getRunnerProjectSettings().getBaseDir(),
-                "test/" + RunnerProjectUtils.getSnippetBaseFilename(snippet) + "_Test");
+        Path lookUpDir = getRunnerProjectSettings().getBaseDir().resolve("test")
+                .resolve(RunnerProjectUtils.getSnippetBaseFilename(snippet) + "_Test");
 
         // do not parse inputs
         inputsXml.setGeneratedInputs(null);
@@ -79,7 +79,7 @@ public class RandoopParser extends RunResultParserBase<RandoopTool> {
             }
         }
 
-        if (inputsXml.getResultType() == null && !lookUpDir.exists() && !errorLines.isEmpty()) {
+        if (inputsXml.getResultType() == null && !exists(lookUpDir) && !errorLines.isEmpty()) {
             String firstLine = errorLines.get(0);
 
             if (firstLine.startsWith("java.io.FileNotFoundException:")
@@ -123,18 +123,17 @@ public class RandoopParser extends RunResultParserBase<RandoopTool> {
                 inputsXml.setGeneratedInputCount(generatedInputCount);
             } else {
                 // NOTE randoop did not write out the result, we have to determine it :(
-                if (!lookUpDir.exists()) {
+                if (!exists(lookUpDir)) {
                     inputsXml.setGeneratedInputCount(0);
                 } else {
                     System.err.println("Determining test case count: " + lookUpDir);
 
-                    Validate.isTrue(lookUpDir.isDirectory());
-                    File[] testFiles = lookUpDir.listFiles();
+                    List<Path> testFiles = Files.list(lookUpDir).collect(toList());
 
                     int cnt = 0;
-                    for (File file : testFiles) {
+                    for (Path file : testFiles) {
                         log.debug("Parsing with JavaParser: {}", file);
-                        CompilationUnit cu = JavaParser.parse(file);
+                        CompilationUnit cu = JavaParser.parse(file.toFile());
                         log.debug("Parsed with JavaParser: {}", file);
                         ClassOrInterfaceDeclaration cls = (ClassOrInterfaceDeclaration) cu
                                 .getTypes().get(0);
@@ -164,25 +163,26 @@ public class RandoopParser extends RunResultParserBase<RandoopTool> {
     @Override
     protected void afterParse() {
         // fix compilation error in test suite files
-        File testDir = getRunnerProjectSettings().getTestDirectory();
+        Path testDir = getRunnerProjectSettings().getTestDir();
 
-        Iterator<File> it = PathUtils.walk(testDir.toPath()).filter(Files::isRegularFile)
-                .filter(p -> p.toString().endsWith(".java")).map(Path::toFile).sorted()
-                .collect(Collectors.toList()).iterator();
+        Iterator<Path> it = PathUtils.walk(testDir)
+                .filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java"))
+                .sorted().collect(Collectors.toList()).iterator();
 
         while (it.hasNext()) {
-            File testFile = it.next();
-            if (!testFile.getName().endsWith("Test.java")) {
+            Path testFile = it.next();
+            if (!testFile.getFileName().toString().endsWith("Test.java")) {
                 continue;
             }
 
-            List<String> lines = PathUtils.readAllLines(testFile.toPath());
+            List<String> lines = PathUtils.readAllLines(testFile);
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i).replace("public static Test suite() {",
                         "public static TestSuite suite() {");
                 lines.set(i, line);
             }
-            PathUtils.write(testFile.toPath(), lines);
+            PathUtils.write(testFile, lines);
         }
     }
 

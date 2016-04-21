@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -159,9 +158,10 @@ public final class TestSuiteRunnerForkAgent {
         runtime.startup(data);
 
         // binary directories for the JaCoCoClassLoader
-        File[] binaryDirectories = new File[2];
-        binaryDirectories[0] = snippetProject.getBuildDir().toFile();
-        binaryDirectories[1] = runnerProjectSettings.getBinaryDirectory();
+        Path[] binaryDirectories = {
+                snippetProject.getBuildDir(),
+                runnerProjectSettings.getBinaryDir()
+        };
         log.debug("Binary directories: " + Arrays.asList(binaryDirectories));
 
         // create class loader

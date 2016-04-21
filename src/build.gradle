@@ -82,10 +82,8 @@ subprojects {
     tasks.withType(GroovyCompile) {
         groovyOptions.optimizationOptions.indy = true
     }
-    
-    test {
-        exclude '**/test/system/**'
-    }
+
+    test { exclude '**/test/system/**' }
 
     task testAll (type: Test) {
         group = 'Verification'

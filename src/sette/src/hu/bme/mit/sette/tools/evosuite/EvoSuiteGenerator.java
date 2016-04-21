@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
@@ -57,8 +56,8 @@ public class EvoSuiteGenerator extends RunnerProjectGeneratorBase<EvoSuiteTool> 
     protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         createSpecialSnippetFiles();
 
-        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        PathUtils.copy(tool.getDefaultBuildXml(), buildXml.toPath());
+        Path buildXml = getRunnerProjectSettings().getBaseDir().resolve("build.xml");
+        PathUtils.copy(tool.getDefaultBuildXml(), buildXml);
     }
 
     private void createSpecialSnippetFiles() {
@@ -75,19 +74,18 @@ public class EvoSuiteGenerator extends RunnerProjectGeneratorBase<EvoSuiteTool> 
                 String methodName = snippet.getMethod().getName();
                 String newJavaClassName = javaClassName + '_' + methodName;
 
-                File originalSourceFile = new File(
-                        getRunnerProjectSettings().getSnippetSourceDirectory(),
+                Path originalSourceFile = getRunnerProjectSettings().getSnippetSourceDir().resolve(
                         javaPackageName.replace('.', '/') + '/' + javaClassName + ".java");
-                if (!originalSourceFile.exists()) {
+                if (!PathUtils.exists(originalSourceFile)) {
                     throw new RuntimeException(
                             "Original source file is missing: " + originalSourceFile);
                 }
-                File newSourceFile = new File(originalSourceFile.getParentFile(),
-                        newJavaClassName + ".java");
+                Path newSourceFile = originalSourceFile.getParent()
+                        .resolve(newJavaClassName + ".java");
 
                 try {
                     log.debug("Parsing with JavaParser: {}", originalSourceFile);
-                    CompilationUnit originalCu = JavaParser.parse(originalSourceFile);
+                    CompilationUnit originalCu = JavaParser.parse(originalSourceFile.toFile());
                     log.debug("Parsed with JavaParser: {}", originalSourceFile);
                     CompilationUnit newCu = (CompilationUnit) originalCu.clone();
 
@@ -151,7 +149,7 @@ public class EvoSuiteGenerator extends RunnerProjectGeneratorBase<EvoSuiteTool> 
 
                     // without comment might be buggy???
                     newCu.accept(new EscapeSpecialCharactersVisitor(), null);
-                    PathUtils.write(newSourceFile.toPath(), newCu.toString().getBytes());
+                    PathUtils.write(newSourceFile, newCu.toString().getBytes());
                 } catch (Exception ex) {
                     throw new RuntimeException("SETTE ERROR", ex);
                 }

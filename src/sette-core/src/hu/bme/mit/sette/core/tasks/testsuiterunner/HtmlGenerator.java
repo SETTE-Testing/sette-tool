@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,7 +45,7 @@ public final class HtmlGenerator {
     }
 
     public void generate(Snippet snippet, SnippetCoverageXml coverageXml) {
-        File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(
+        Path htmlFile = RunnerProjectUtils.getSnippetHtmlFile(
                 this.testSuiteRunner.getRunnerProjectSettings(),
                 snippet);
 
@@ -81,9 +81,8 @@ public final class HtmlGenerator {
             htmlData.append("       <h2>" + fce.getName() + "</h2>\n");
             htmlData.append("       \n");
 
-            File src = new File(this.testSuiteRunner.getSnippetProject().getSourceDir().toFile(),
-                    fce.getName());
-            List<String> srcLines = PathUtils.readAllLines(src.toPath());
+            Path src = testSuiteRunner.getSnippetProject().getSourceDir().resolve(fce.getName());
+            List<String> srcLines = PathUtils.readAllLines(src);
 
             int[] full = TestSuiteRunnerHelper.linesToArray(fce.getFullyCoveredLines());
             int[] partial = TestSuiteRunnerHelper.linesToArray(fce.getPartiallyCoveredLines());
@@ -103,7 +102,7 @@ public final class HtmlGenerator {
         htmlData.append("</body>\n");
         htmlData.append("</html>\n");
 
-        PathUtils.write(htmlFile.toPath(), htmlData.toString().getBytes());
+        PathUtils.write(htmlFile, htmlData.toString().getBytes());
     }
 
     private static String getLineDivClass(int lineNumber, int[] full, int[] partial, int[] not) {

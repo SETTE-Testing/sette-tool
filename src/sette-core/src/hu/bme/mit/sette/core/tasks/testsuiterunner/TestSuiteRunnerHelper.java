@@ -22,13 +22,13 @@
  */
 package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketImpl;
 import java.net.SocketImplFactory;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -250,13 +250,12 @@ final class TestSuiteRunnerHelper {
         // iterate through files
         for (String relJavaFile : coverageInfo.data.keySet()) {
             // relJavaFile: hu/bme/mit/sette/snippets/_1_basic/B3_loops/B3c_DoWhile.java
-            File javaFile = new File(
-                    snippet.getContainer().getSnippetProject().getSourceDir().toFile(),
+            Path javaFile = snippet.getContainer().getSnippetProject().getSourceDir().resolve(
                     relJavaFile);
 
             // parse file
             log.debug("Parsing with JavaParser: {}", javaFile);
-            CompilationUnit compilationUnit = JavaParser.parse(javaFile);
+            CompilationUnit compilationUnit = JavaParser.parse(javaFile.toFile());
             log.debug("Parsed with JavaParser: {}", javaFile);
             int beginLine = compilationUnit.getBeginLine();
             int endLine = compilationUnit.getEndLine();

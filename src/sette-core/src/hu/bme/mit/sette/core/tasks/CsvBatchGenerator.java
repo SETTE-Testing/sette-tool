@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -36,14 +35,14 @@ import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class CsvBatchGenerator {
     private final SnippetProject snippetProject;
-    private final File outputDir;
+    private final Path outputDir;
     private final List<Tool> tools;
     private final String[] runnerProjectTags;
 
     public CsvBatchGenerator(SnippetProject snippetProject, Path outputDir, List<Tool> tools,
             String runnerProjectTags) {
         this.snippetProject = snippetProject;
-        this.outputDir = outputDir.toFile();
+        this.outputDir = outputDir;
 
         this.tools = tools;
 
@@ -52,12 +51,12 @@ public final class CsvBatchGenerator {
     }
 
     public void generateAll() throws Exception {
-        List<File> filesToMerge = new ArrayList<>();
+        List<Path> filesToMerge = new ArrayList<>();
 
         // generate for each
         for (Tool tool : tools) {
             for (String tag : runnerProjectTags) {
-                CsvGenerator gen = new CsvGenerator(snippetProject, outputDir.toPath(), tool, tag);
+                CsvGenerator gen = new CsvGenerator(snippetProject, outputDir, tool, tag);
                 System.err.println("CsvBatchGenerator.generate for: "
                         + gen.getRunnerProjectSettings().getProjectName());
                 try {
@@ -72,9 +71,9 @@ public final class CsvBatchGenerator {
 
         // merge
         List<String> mergedLines = new ArrayList<>();
-        for (File csvFile : filesToMerge) {
+        for (Path csvFile : filesToMerge) {
             System.err.println("Merging: " + csvFile);
-            List<String> csvLines = PathUtils.readAllLines(csvFile.toPath());
+            List<String> csvLines = PathUtils.readAllLines(csvFile);
             if (!mergedLines.isEmpty()) {
                 csvLines.remove(0); // remove header if not first file
             }
@@ -87,9 +86,9 @@ public final class CsvBatchGenerator {
         mergedFilename += String.join(",", runnerProjectTags);
         mergedFilename += ".csv";
 
-        File mergedFile = new File(outputDir, mergedFilename);
+        Path mergedFile = outputDir.resolve(mergedFilename);
 
         System.err.println("Writing into: " + mergedFile);
-        PathUtils.write(mergedFile.toPath(), mergedLines);
+        PathUtils.write(mergedFile, mergedLines);
     }
 }

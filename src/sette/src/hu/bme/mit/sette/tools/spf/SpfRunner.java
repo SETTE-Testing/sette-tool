@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -53,7 +52,7 @@ public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
     }
 
     @Override
-    protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
             throws SetteConfigurationException {
         // TODO make better
         /*
@@ -64,12 +63,12 @@ public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
          * /spf/_1_base/BasePrimitiveTypes_twoParamBoolean.jpf
          */
 
-        File runJPFJar = tool.getToolJar().toFile();
+        Path runJPFJar = tool.getToolJar();
 
         String filenameBase = snippet.getContainer().getJavaClass().getName().replace('.', '/')
                 + "_" + snippet.getMethod().getName();
-        File configFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
-                filenameBase + ".jpf").getAbsoluteFile();
+        Path configFile = getRunnerProjectSettings().getGeneratedDir()
+                .resolve(filenameBase + ".jpf");
 
         // create command
         StringBuilder cmd = new StringBuilder();
@@ -77,10 +76,10 @@ public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
         cmd.append("java -jar").append(' ');
         // cmd.append('"').append(runJPFJar.getCanonicalPath()).append('"').append(' ');
         // TODO if whitespace in jpf path?
-        cmd.append(runJPFJar.getAbsolutePath()).append(' ');
+        cmd.append(runJPFJar.toString()).append(' ');
 
         cmd.append("+shell.port=4242 ");
-        cmd.append(configFile.getAbsolutePath());
+        cmd.append(configFile.toString());
 
         System.out.println("  command: " + cmd.toString());
 

@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,11 +80,11 @@ public final class CsvGenerator extends EvaluationTaskBase<Tool> {
             lines.add(createRow(entry.getValue()));
         }
 
-        PathUtils.write(getCsvFile().toPath(), lines);
+        PathUtils.write(getCsvFile(), lines);
     }
 
-    public File getCsvFile() {
-        return new File(getRunnerProjectSettings().getBaseDir(), "sette-evaluation.csv");
+    public Path getCsvFile() {
+        return getRunnerProjectSettings().getBaseDir().resolve("sette-evaluation.csv");
     }
 
     // Category: B1a
@@ -109,23 +108,25 @@ public final class CsvGenerator extends EvaluationTaskBase<Tool> {
 
     private String createRow(Snippet snippet) throws Exception {
         // parse data
-        File infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(), snippet);
-        File inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(getRunnerProjectSettings(),
+        Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(), snippet);
+        Path inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(getRunnerProjectSettings(),
                 snippet);
-        File resultXmlFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
+        Path resultXmlFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
                 snippet);
 
         Serializer serializer = new Persister(new AnnotationStrategy());
-        SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
+        SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class,
+                inputsXmlFile.toFile());
         inputsXml.validate();
 
-        SnippetResultXml resultXml = serializer.read(SnippetResultXml.class, resultXmlFile);
+        SnippetResultXml resultXml = serializer.read(SnippetResultXml.class,
+                resultXmlFile.toFile());
         resultXml.validate();
 
         // example: Elapsed time: 2002 ms
         String elapsedTime;
-        if (infoFile.exists()) {
-            elapsedTime = PathUtils.lines(infoFile.toPath())
+        if (PathUtils.exists(infoFile)) {
+            elapsedTime = PathUtils.lines(infoFile)
                     .filter(line -> !StringUtils.isBlank(line)
                             && line.trim().startsWith("Elapsed time:"))
                     .map(line -> line.replaceAll("Elapsed time:", "").trim()).findAny().get()

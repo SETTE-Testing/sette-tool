@@ -25,8 +25,10 @@
 // NOTE revise this file
 package hu.bme.mit.sette.application;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -41,13 +43,13 @@ public final class GeneratorUI implements BaseUI {
                 context.getRunnerProjectTag());
 
         // directories
-        File snippetProjectDir = generator.getSnippetProject().getBaseDir().toFile();
-        File runnerProjectDir = generator.getRunnerProjectSettings().getBaseDir();
+        Path snippetProjectDir = generator.getSnippetProject().getBaseDir();
+        Path runnerProjectDir = generator.getRunnerProjectSettings().getBaseDir();
 
         context.getOutput().println("Snippet project: " + snippetProjectDir);
 
         // backup output directory if it exists
-        if (runnerProjectDir.exists()) {
+        if (exists(runnerProjectDir)) {
             switch (context.getBackupPolicy()) {
                 case ASK:
                     context.getOutput().print(
@@ -81,7 +83,7 @@ public final class GeneratorUI implements BaseUI {
             }
         }
 
-        PathUtils.deleteIfExists(runnerProjectDir.toPath());
+        PathUtils.deleteIfExists(runnerProjectDir);
 
         try {
             // generate runner project
@@ -94,17 +96,13 @@ public final class GeneratorUI implements BaseUI {
         }
     }
 
-    private static void doBackup(File runnerProjectDir, PrintStream out) {
+    private static void doBackup(Path runnerProjectDir, PrintStream out) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
-        File backup = new File(runnerProjectDir.getParentFile(),
-                runnerProjectDir.getName() + "___backup_" + dateFormat.format(new Date()))
-                        .getAbsoluteFile();
-
-        if (runnerProjectDir.renameTo(backup)) {
-            out.println("Backup location: " + backup);
-        } else {
-            throw new RuntimeException("Backup failed, exiting");
-        }
+        Path backupDir = runnerProjectDir.getParent()
+                .resolve(runnerProjectDir.getFileName().toString() + "___backup_"
+                        + dateFormat.format(new Date()));
+        PathUtils.move(runnerProjectDir, backupDir);
+        out.println("Backup location: " + backupDir);
     }
 }

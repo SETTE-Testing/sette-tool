@@ -35,7 +35,8 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public class SnippetInputCheckerGenerator extends RunnerProjectGeneratorBase<SnippetInputCheckerTool> {
+public class SnippetInputCheckerGenerator
+        extends RunnerProjectGeneratorBase<SnippetInputCheckerTool> {
     public SnippetInputCheckerGenerator(SnippetProject snippetProject, Path outputDir,
             SnippetInputCheckerTool tool, String runnerProjectTag) {
         super(snippetProject, outputDir, tool, runnerProjectTag);
@@ -60,7 +61,7 @@ public class SnippetInputCheckerGenerator extends RunnerProjectGeneratorBase<Sni
 
     @Override
     protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
-        Path baseDir = getRunnerProjectSettings().getBaseDir().toPath();
+        Path baseDir = getRunnerProjectSettings().getBaseDir();
 
         // copy snippet input sources
         Path originalInputSourceDir = getSnippetProject().getInputSourceDir();

@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.snippetinputchecker;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -54,7 +53,8 @@ import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
-public final class SnippetInputCheckerRunner extends RunnerProjectRunnerBase<SnippetInputCheckerTool> {
+public final class SnippetInputCheckerRunner
+        extends RunnerProjectRunnerBase<SnippetInputCheckerTool> {
     private final String testTemplate;
     private final ExecutorService executor;
 
@@ -84,11 +84,11 @@ public final class SnippetInputCheckerRunner extends RunnerProjectRunnerBase<Sni
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
 
         // delete test dir if exists
-        PathUtils.deleteIfExists(getRunnerProjectSettings().getTestDirectory().toPath());
+        PathUtils.deleteIfExists(getRunnerProjectSettings().getTestDir());
     }
 
     @Override
-    protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
             throws SetteConfigurationException {
         if (snippet.getContainer().getInputFactoryContainer() == null) {
             // no inputs => N/A
@@ -115,7 +115,7 @@ public final class SnippetInputCheckerRunner extends RunnerProjectRunnerBase<Sni
         // generate and save test cases
         String testSource = generateTestSource(snippet);
 
-        Path target = getRunnerProjectSettings().getTestDirectory().toPath()
+        Path target = getRunnerProjectSettings().getTestDir()
                 .resolve(snippet.getContainer().getJavaClass().getName().replace('.', '/')
                         + "_" + snippet.getName() + "_Test.java");
         PathUtils.write(target, testSource.getBytes());

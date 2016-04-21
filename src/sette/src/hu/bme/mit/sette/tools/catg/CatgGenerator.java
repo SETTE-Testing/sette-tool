@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -149,26 +148,25 @@ public class CatgGenerator extends RunnerProjectGeneratorBase<CatgTool> {
                 String relativePath = main.getFullClassName().replace('.', '/');
                 String relativePathMain = relativePath.replace('.', '/') + ".java";
 
-                File targetMainFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
+                Path targetMainFile = getRunnerProjectSettings().getGeneratedDir().resolve(
                         relativePathMain);
-                PathUtils.createDir(targetMainFile.getParentFile().toPath());
-                PathUtils.write(targetMainFile.toPath(), main.build());
+                PathUtils.createDir(targetMainFile.getParent());
+                PathUtils.write(targetMainFile, main.build());
             }
         }
     }
 
     private void copyTool(EclipseProject eclipseProject) throws SetteConfigurationException {
         PathUtils.copy(tool.getToolDir().resolve("tool"),
-                getRunnerProjectSettings().getBaseDir().toPath());
+                getRunnerProjectSettings().getBaseDir());
 
         // edit build.xml
         // TODO make better
 
-        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-
+        Path buildXml = getRunnerProjectSettings().getBaseDir().resolve("build.xml");
         List<String> newLines = new ArrayList<>();
 
-        List<String> lines = PathUtils.readAllLines(buildXml.toPath());
+        List<String> lines = PathUtils.readAllLines(buildXml);
 
         for (String line : lines) {
             if (line.contains("[SETTE]")) {
@@ -210,7 +208,7 @@ public class CatgGenerator extends RunnerProjectGeneratorBase<CatgTool> {
             }
         }
 
-        PathUtils.write(buildXml.toPath(), newLines);
+        PathUtils.write(buildXml, newLines);
     }
 
     private static String getTypeString(Class<?> javaClass) {

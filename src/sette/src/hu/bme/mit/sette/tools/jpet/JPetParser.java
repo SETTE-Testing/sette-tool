@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -37,6 +36,7 @@ import hu.bme.mit.sette.core.model.runner.ResultType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
@@ -54,7 +54,8 @@ public class JPetParser extends RunResultParserBase<JPetTool> {
             .compile("^Top Code Coverage of '.*': (\\d+(.\\d+)?)% \\(.*\\)$");
 
     @Override
-    protected void parseSnippet(Snippet snippet,SnippetOutFiles outFiles, SnippetInputsXml inputsXml) throws Exception {
+    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
+            SnippetInputsXml inputsXml) throws Exception {
         List<String> outputLines = outFiles.readOutputLines();
         List<String> errorLines = outFiles.readErrorOutputLines();
 
@@ -91,7 +92,8 @@ public class JPetParser extends RunResultParserBase<JPetTool> {
             }
         } else {
             // TODO enhance
-            if (outputLines.get(outputLines.size() - 1).startsWith("Error loading bytecode program")) {
+            if (outputLines.get(outputLines.size() - 1)
+                    .startsWith("Error loading bytecode program")) {
                 // System.err.println(snippet.getMethod().getName());
                 // System.err.println("BYTECODE PROBLEM");
                 inputsXml.setResultType(ResultType.EX);
@@ -160,15 +162,16 @@ public class JPetParser extends RunResultParserBase<JPetTool> {
                 // extract inputs
                 outputLines = null;
 
-                File testCasesFile = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(),
+                Path testCasesFile = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(),
                         snippet);
-                new PathValidator(testCasesFile.toPath()).type(PathType.REGULAR_FILE).validate();
+                new PathValidator(testCasesFile).type(PathType.REGULAR_FILE).validate();
 
-                if (testCasesFile.length() / 1000.0 / 1000.0 > 10) {
+                if (PathUtils.size(testCasesFile) / 1000.0 / 1000.0 > 10) {
                     // just to not kill the XML parser with extremely big files
                     // TODO enhance this section
                     System.err.println(String.format("Filesize is bigger than 10 MB (%.2f MB): %s",
-                            testCasesFile.length() / 1000.0 / 1000.0, testCasesFile.getName()));
+                            PathUtils.size(testCasesFile) / 1000.0 / 1000.0,
+                            testCasesFile.getFileName().toString()));
                 }
                 // TODO it was used to dump the cases where jpet cannot decide coverage
 
@@ -177,7 +180,7 @@ public class JPetParser extends RunResultParserBase<JPetTool> {
 
                 JPetTestCaseXmlParser testCasesParser = new JPetTestCaseXmlParser();
 
-                saxParser.parse(testCasesFile, testCasesParser);
+                saxParser.parse(testCasesFile.toFile(), testCasesParser);
 
                 JPetTestCasesConverter.convert(snippet, testCasesParser.getTestCases(), inputsXml);
             }

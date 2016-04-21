@@ -25,7 +25,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.application;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import hu.bme.mit.sette.core.tasks.RunResultParser;
 
@@ -36,8 +36,8 @@ public final class ParserUI implements BaseUI {
                 context.getSnippetProject(), context.getOutputDir(), context.getRunnerProjectTag());
 
         // directories
-        File snippetProjectDir = parser.getSnippetProject().getBaseDir().toFile();
-        File runnerProjectDir = parser.getRunnerProjectSettings().getBaseDir();
+        Path snippetProjectDir = parser.getSnippetProject().getBaseDir();
+        Path runnerProjectDir = parser.getRunnerProjectSettings().getBaseDir();
 
         context.getOutput().println("Snippet project: " + snippetProjectDir);
         context.getOutput().println("Runner project: " + runnerProjectDir);

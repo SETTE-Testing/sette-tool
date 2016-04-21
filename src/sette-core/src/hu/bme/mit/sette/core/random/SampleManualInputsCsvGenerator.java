@@ -23,7 +23,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.random;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public final class SampleManualInputsCsvGenerator {
     public static void main(String[] args) throws Exception {
         SnippetProject snippetProject = SnippetProject
                 .parse(Paths.get("../../../sette-snippets/sette-snippets"));
-        File outputDirectory = new File("../../../sette-results").getCanonicalFile();
+        Path outputDirectory = Paths.get("../../../sette-results").toRealPath();
 
         SampleManualInputsCsvGenerator gen = new SampleManualInputsCsvGenerator(snippetProject,
                 outputDirectory);
@@ -52,9 +52,9 @@ public final class SampleManualInputsCsvGenerator {
 
     private static final String FIELD_SEP = ",";
     private SnippetProject snippetProject;
-    private File outputDirectory;
+    private Path outputDirectory;
 
-    public SampleManualInputsCsvGenerator(SnippetProject snippetProject, File outputDirectory) {
+    public SampleManualInputsCsvGenerator(SnippetProject snippetProject, Path outputDirectory) {
         this.snippetProject = snippetProject;
         this.outputDirectory = outputDirectory;
     }
@@ -86,11 +86,11 @@ public final class SampleManualInputsCsvGenerator {
             lines.add(createRow(entry.getValue()));
         }
 
-        PathUtils.write(getCsvFile().toPath(), lines);
+        PathUtils.write(getCsvFile(), lines);
     }
 
-    public File getCsvFile() {
-        return new File(outputDirectory, "sample-manual-inputs.csv");
+    public Path getCsvFile() {
+        return outputDirectory.resolve("sample-manual-inputs.csv");
     }
 
     // Category: B1a

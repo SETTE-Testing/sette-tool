@@ -80,12 +80,13 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
 
         for (SnippetContainer snippetContainer : getSnippetProject().getSnippetContainers()) {
             for (Snippet snippet : snippetContainer.getSnippets().values()) {
-                File inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(
+                Path inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(
                         getRunnerProjectSettings(),
                         snippet);
 
                 Serializer serializer = new Persister(new AnnotationStrategy());
-                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
+                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class,
+                        inputsXmlFile.toFile());
                 inputsXml.validate();
 
                 if (inputsXml.getResultType() == ResultType.NA
@@ -101,16 +102,14 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
     }
 
     private void beforeParse() throws ValidationException {
-        Path testDir = getRunnerProjectSettings().getTestDirectory().toPath();
-        Path testDirBackup = getRunnerProjectSettings().getBaseDir().toPath()
-                .resolve("test-original");
+        Path testDir = getRunnerProjectSettings().getTestDir();
+        Path testDirBackup = getRunnerProjectSettings().getBaseDir().resolve("test-original");
 
         // require both test and test-original (test-mutation generated from formerly parsed tests)
         PathValidator.forDirectory(testDir, true, true, true).validate();
         PathValidator.forDirectory(testDirBackup, true, true, true).validate();
 
-        Path testDirMutation = getRunnerProjectSettings().getBaseDir().toPath()
-                .resolve("test-mutation");
+        Path testDirMutation = getRunnerProjectSettings().getBaseDir().resolve("test-mutation");
 
         if (PathUtils.exists(testDirMutation)) {
             PathUtils.delete(testDirMutation);
@@ -120,8 +119,8 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
 
     private void parseOne(Snippet snippet) throws Exception {
         // test files
-        File testDirMutation = getRunnerProjectSettings().getBaseDir().toPath()
-                .resolve("test-mutation").toFile();
+        File testDirMutation = getRunnerProjectSettings().getBaseDir().resolve("test-mutation")
+                .toFile();
         String classNameWithSlashes = snippet.getContainer().getJavaClass().getName()
                 .replace('.', '/');
         String snippetName = snippet.getName();
@@ -191,7 +190,7 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
         testCasesFileString = testCasesFileString.replace(badCall, goodCall);
 
         // save file
-        PathUtils.write(testCasesFile.toPath(), testCasesFileString.getBytes());
+        PathUtils.write(testCasesFile, testCasesFileString.getBytes());
 
         // read again
         try {
@@ -218,7 +217,7 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
         testCasesFileString = compilationUnit.toString();
 
         // save file
-        PathUtils.write(testCasesFile.toPath(), testCasesFileString.getBytes());
+        PathUtils.write(testCasesFile, testCasesFileString.getBytes());
     }
 
     private static final String EXPR_PATTERN_STRING = "^"

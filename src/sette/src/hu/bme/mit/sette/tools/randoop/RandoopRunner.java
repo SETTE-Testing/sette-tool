@@ -25,7 +25,6 @@ package hu.bme.mit.sette.tools.randoop;
 
 import static java.util.stream.Collectors.joining;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
@@ -70,7 +69,7 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
     }
 
     @Override
-    protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
             throws SetteConfigurationException {
         // TODO make better
         /*
@@ -88,7 +87,7 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
          * sette.snippets._3_objects.dependencies.SimpleObject)
          */
 
-        File randoopJar = tool.getToolJar().toFile();
+        Path randoopJar = tool.getToolJar();
 
         // TODO ???
         // String filenameBase = JavaFileUtil
@@ -97,11 +96,11 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
         // + "_" + snippet.getMethod().getName();
 
         // create command
-        String classpath = randoopJar.getAbsolutePath() + SystemUtils.PATH_SEPARATOR + "build";
+        String classpath = randoopJar.toString() + SystemUtils.PATH_SEPARATOR + "build";
 
         for (Path libraryFile : getSnippetProject().getJavaLibFiles()) {
             classpath += SystemUtils.PATH_SEPARATOR
-                    + getRunnerProjectSettings().getSnippetLibraryDirectory().getName()
+                    + getRunnerProjectSettings().getSnippetLibraryDir().getFileName().toString()
                     + SystemUtils.FILE_SEPARATOR + libraryFile.toFile().getName();
         }
 
@@ -110,10 +109,10 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
                 + snippet.getMethod().getName() + "_Test";
 
         // create method list file
-        File methodList = new File(getRunnerProjectSettings().getBaseDir(),
-                "methodlist_" + junitPackageName + ".tmp"); // TODO better file name
+        Path methodList = getRunnerProjectSettings().getBaseDir()
+                .resolve("methodlist_" + junitPackageName + ".tmp"); // TODO better file name
 
-        PathUtils.write(methodList.toPath(), createMethodListLines(snippet));
+        PathUtils.write(methodList, createMethodListLines(snippet));
 
         // create command
         // String cmdFormat =
@@ -127,7 +126,7 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
         cmd.add("randoop.main.Main");
         cmd.add("gentests");
         // cmd.add("--classlist=" + getClassListFile().toAbsolutePath());
-        cmd.add("--methodlist=" + methodList.getAbsolutePath().replace('\\', '/'));
+        cmd.add("--methodlist=" + methodList.toString().replace('\\', '/'));
         cmd.add("--timelimit=" + timelimit);
         // cmd.add("--forbid-null=false"); // use default false
         // cmd.add("--null-ratio=0.5"); // use default 0.05
@@ -153,7 +152,7 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
 
         // TODO preserve for reproduction
         // delete method list file
-        // PathUtils.deleteIfExists(methodList.toPath());
+        // PathUtils.deleteIfExists(methodList);
     }
 
     @Override

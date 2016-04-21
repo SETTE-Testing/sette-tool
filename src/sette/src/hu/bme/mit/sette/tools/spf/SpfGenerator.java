@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 
@@ -56,8 +55,8 @@ public class SpfGenerator extends RunnerProjectGeneratorBase<SpfTool> {
     protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         createGeneratedFiles();
 
-        File buildXml = new File(getRunnerProjectSettings().getBaseDir(), "build.xml");
-        PathUtils.copy(tool.getDefaultBuildXml(), buildXml.toPath());
+        Path buildXml = getRunnerProjectSettings().getBaseDir().resolve("build.xml");
+        PathUtils.copy(tool.getDefaultBuildXml(), buildXml);
     }
 
     private void createGeneratedFiles() {
@@ -123,15 +122,15 @@ public class SpfGenerator extends RunnerProjectGeneratorBase<SpfTool> {
                 String relativePathJPF = relativePath + ".jpf";
                 String relativePathMain = relativePath + ".java";
 
-                File targetJPFFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
-                        relativePathJPF);
-                PathUtils.createDir(targetJPFFile.getParentFile().toPath());
-                PathUtils.write(targetJPFFile.toPath(), jpfConfig.generate().toString().getBytes());
+                Path targetJPFFile = getRunnerProjectSettings().getGeneratedDir()
+                        .resolve(relativePathJPF);
+                PathUtils.createDir(targetJPFFile.getParent());
+                PathUtils.write(targetJPFFile, jpfConfig.generate().toString().getBytes());
 
-                File targetMainFile = new File(getRunnerProjectSettings().getGeneratedDirectory(),
-                        relativePathMain);
-                PathUtils.createDir(targetMainFile.getParentFile().toPath());
-                PathUtils.write(targetMainFile.toPath(), main.build());
+                Path targetMainFile = getRunnerProjectSettings().getGeneratedDir()
+                        .resolve(relativePathMain);
+                PathUtils.createDir(targetMainFile.getParent());
+                PathUtils.write(targetMainFile, main.build());
             }
         }
     }

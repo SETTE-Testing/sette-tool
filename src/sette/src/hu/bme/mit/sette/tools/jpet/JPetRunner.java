@@ -23,7 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,23 +58,22 @@ public final class JPetRunner extends RunnerProjectRunnerBase<JPetTool> {
         AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
 
         // delete test cases directory
-        File testCasesDirectory = JPetTool.getTestCasesDirectory(getRunnerProjectSettings());
-        if (testCasesDirectory.exists()) {
-            Path dir = new File(getRunnerProjectSettings().getBaseDir(),
-                    JPetTool.TESTCASES_DIRNAME).toPath();
+        Path testCasesDirectory = JPetTool.getTestCasesDirectory(getRunnerProjectSettings());
+        if (exists(testCasesDirectory)) {
+            Path dir = getRunnerProjectSettings().getBaseDir().resolve(JPetTool.TESTCASES_DIRNAME);
             PathUtils.delete(dir);
         }
     }
 
     @Override
-    protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
             throws SetteConfigurationException {
         // TODO extract, make more clear
-        File pet = tool.getPetExecutable().toFile();
+        Path pet = tool.getPetExecutable();
 
-        File testCaseXml = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(), snippet);
+        Path testCaseXml = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(), snippet);
 
-        PathUtils.createDir(testCaseXml.getParentFile().toPath());
+        PathUtils.createDir(testCaseXml.getParent());
 
         StringBuilder jPetName = new StringBuilder();
 
@@ -99,7 +99,7 @@ public final class JPetRunner extends RunnerProjectRunnerBase<JPetTool> {
 
         // create command
         List<String> cmd = new ArrayList<>();
-        cmd.add(pet.getAbsolutePath());
+        cmd.add(pet.toString());
 
         cmd.add(jPetName.toString());
 
@@ -131,7 +131,7 @@ public final class JPetRunner extends RunnerProjectRunnerBase<JPetTool> {
         cmd.add("yes");
 
         cmd.add("-xml");
-        cmd.add(testCaseXml.getAbsolutePath());
+        cmd.add(testCaseXml.toString());
 
         System.out.println("  command: " + StringUtils.join(cmd, ' '));
 

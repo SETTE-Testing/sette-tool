@@ -26,6 +26,7 @@ package hu.bme.mit.sette.core.tasks.testsuiterunner;
 import static hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunnerHelper.decideResultType;
 import static hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunnerHelper.invokeMethod;
 import static hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunnerHelper.loadTestClasses;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -111,7 +112,7 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
     }
 
     public final void analyze() throws Exception {
-        if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
+        if (!exists(RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()))) {
             throw new TestSuiteRunnerException(
                     "Run the tool on the runner project first (and then parse and generate tests)");
         }
@@ -124,9 +125,10 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
         Serializer serializer = new Persister(new AnnotationStrategy());
 
         // binary directories for the JaCoCoClassLoader
-        File[] binaryDirectories = new File[2];
-        binaryDirectories[0] = getSnippetProject().getBuildDir().toFile();
-        binaryDirectories[1] = getRunnerProjectSettings().getBinaryDirectory();
+        Path[] binaryDirectories = {
+                getSnippetProject().getBuildDir(),
+                getRunnerProjectSettings().getBinaryDir()
+        };
         log.debug("Binary directories: {}", (Object) binaryDirectories);
 
         // foreach containers
@@ -159,10 +161,10 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
                     continue;
                 }
 
-                File resultXmlFile = RunnerProjectUtils
+                Path resultXmlFile = RunnerProjectUtils
                         .getSnippetResultFile(getRunnerProjectSettings(), snippet);
 
-                new PathValidator(resultXmlFile.toPath()).type(PathType.REGULAR_FILE).validate();
+                new PathValidator(resultXmlFile).type(PathType.REGULAR_FILE).validate();
             }
         }
 
@@ -170,12 +172,12 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
         System.err.println("=> ANALYZE ENDED");
     }
 
-    private void handleSnippet(Snippet snippet, Serializer serializer, File[] binaryDirectories)
+    private void handleSnippet(Snippet snippet, Serializer serializer, Path[] binaryDirectories)
             throws Exception {
-        File inputsXmlFile = RunnerProjectUtils
+        Path inputsXmlFile = RunnerProjectUtils
                 .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
-        if (!inputsXmlFile.exists()) {
+        if (!exists(inputsXmlFile)) {
             throw new RuntimeException("Missing inputsXML: " + inputsXmlFile);
         }
 
@@ -191,7 +193,7 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
                     .setContextClassLoader(getSnippetProject().getClassLoader());
 
             // read data
-            inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
+            inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile.toFile());
 
             // set back the original class loader
             Thread.currentThread().setContextClassLoader(originalClassLoader);
@@ -216,13 +218,13 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
             resultXml.validate();
 
             // TODO needs more documentation
-            File resultFile = RunnerProjectUtils
-                    .getSnippetResultFile(getRunnerProjectSettings(), snippet);
+            Path resultFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
+                    snippet);
 
             Serializer serializerWrite = new Persister(new AnnotationStrategy(),
                     new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
 
-            serializerWrite.write(resultXml, resultFile);
+            serializerWrite.write(resultXml, resultFile.toFile());
 
             return;
         }
@@ -242,13 +244,13 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
             resultXml.validate();
 
             // TODO needs more documentation
-            File resultFile = RunnerProjectUtils
+            Path resultFile = RunnerProjectUtils
                     .getSnippetResultFile(getRunnerProjectSettings(), snippet);
 
             Serializer serializerWrite = new Persister(new AnnotationStrategy(),
                     new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
 
-            serializerWrite.write(resultXml, resultFile);
+            serializerWrite.write(resultXml, resultFile.toFile());
         } catch (ValidationException ex) {
             System.err.println(ex.getMessage());
             throw new RuntimeException("Validation failed");
@@ -267,7 +269,7 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
     }
 
     private SnippetCoverageXml analyzeOne(Snippet snippet, SnippetInputsXml inputsXml,
-            File[] binaryDirectories)
+            Path[] binaryDirectories)
                     throws Throwable {
         // FIXME allow fork defined on snippwet level (Env3_deadlock)
         // problem: this snippet goes into a native method and block-waiting, and cannot be
@@ -283,7 +285,7 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
         }
     }
 
-    private SnippetCoverageXml analyzeOneWithReflection(Snippet snippet, File[] binaryDirectories)
+    private SnippetCoverageXml analyzeOneWithReflection(Snippet snippet, Path[] binaryDirectories)
             throws Throwable {
         //
         // Initialize
@@ -479,7 +481,7 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
         return coverageXml;
     }
 
-    private SnippetCoverageXml analyzeOneWithAgent(Snippet snippet, File[] binaryDirectories)
+    private SnippetCoverageXml analyzeOneWithAgent(Snippet snippet, Path[] binaryDirectories)
             throws Throwable {
         //
         // Initialize
@@ -604,7 +606,7 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
         // parameters for the agent
         command.add(getSnippetProject().getBaseDir().toString());
         // sette-results dir
-        command.add(getRunnerProjectSettings().getBaseDir().getParent());
+        command.add(getRunnerProjectSettings().getBaseDir().getParent().toString());
         String toolArg = String.format("%s|%s|%s", tool.getClass().getName(),
                 tool.getName(), tool.getToolDir());
         command.add(toolArg);
@@ -619,7 +621,7 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
         log.trace("Agent command: " + command);
 
         ProcessBuilder pb = new ProcessBuilder(command);
-        pb.directory(getRunnerProjectSettings().getBaseDir());
+        pb.directory(getRunnerProjectSettings().getBaseDir().toFile());
 
         // test case timeout + (10% but at least 5 sec)
         int processTimeout = TEST_CASE_TIMEOUT_IN_MS
@@ -705,13 +707,13 @@ public final class TestSuiteRunner extends EvaluationTaskBase<Tool> {
         coverageXml.validate();
 
         // TODO needs more documentation
-        File coverageFile = RunnerProjectUtils.getSnippetCoverageFile(getRunnerProjectSettings(),
+        Path coverageFile = RunnerProjectUtils.getSnippetCoverageFile(getRunnerProjectSettings(),
                 snippet);
 
         Serializer serializer = new Persister(new AnnotationStrategy(),
                 new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
 
-        serializer.write(coverageXml, coverageFile);
+        serializer.write(coverageXml, coverageFile.toFile());
 
         // generate html
         new HtmlGenerator(this).generate(snippet, coverageXml);

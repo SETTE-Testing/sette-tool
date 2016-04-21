@@ -23,7 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -33,7 +34,6 @@ import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
-import hu.bme.mit.sette.core.validator.PathType;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
@@ -57,26 +57,23 @@ public final class CatgRunner extends RunnerProjectRunnerBase<CatgTool> {
     }
 
     @Override
-    protected void runOne(Snippet snippet, File infoFile, File outputFile, File errorFile)
+    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
             throws ValidationException {
         // TODO make better
-        File concolic = new File(getRunnerProjectSettings().getBaseDir(), "concolic")
-                .getAbsoluteFile();
-        concolic.setExecutable(true);
+        Path concolic = getRunnerProjectSettings().getBaseDir().resolve("concolic");
+        concolic.toFile().setExecutable(true);
 
-        new PathValidator(concolic.toPath()).type(PathType.REGULAR_FILE).executable(true)
-                .validate();
+        PathValidator.forRegularFile(concolic, true, null, true, null).validate();
 
         String methodName = snippet.getContainer().getJavaClass().getName() + "_"
                 + snippet.getMethod().getName();
 
         String filename = methodName.replace('.', '/') + ".java";
 
-        File file = new File(getRunnerProjectSettings().getGeneratedDirectory(), filename)
-                .getAbsoluteFile();
+        Path file = getRunnerProjectSettings().getGeneratedDir().resolve(filename);
 
-        if (!file.exists()) {
-            System.err.println("Not found: " + file.getAbsolutePath());
+        if (!exists(file)) {
+            System.err.println("Not found: " + file);
             System.err.println("Skipping: " + methodName);
             return;
         }

@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -173,27 +172,27 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
         // TODO revise whole method
         // TODO now using a newer JAPA (suuports java 8), -> maybe ANTLR supports better
 
-        PathUtils.createDir(getRunnerProjectSettings().getBaseDir().toPath());
+        PathUtils.createDir(getRunnerProjectSettings().getBaseDir());
 
         // copy snippets
         PathUtils.copy(getSnippetProject().getSourceDir(),
-                getRunnerProjectSettings().getSnippetSourceDirectory().toPath());
+                getRunnerProjectSettings().getSnippetSourceDir());
 
         // create INFO file
         writeInfoFile();
 
         // remove SETTE annotations and imports from file
-        Collection<File> filesWritten = PathUtils
-                .walk(getRunnerProjectSettings().getSnippetSourceDirectory().toPath())
-                .filter(Files::isRegularFile).map(Path::toFile).sorted()
-                .collect(Collectors.toList());
+        Collection<Path> filesWritten = PathUtils
+                .walk(getRunnerProjectSettings().getSnippetSourceDir())
+                .filter(Files::isRegularFile)
+                .sorted().collect(Collectors.toList());
 
-        for (File file : filesWritten) {
+        for (Path file : filesWritten) {
             // parse source with JavaParser
             log.debug("Parsing with JavaParser: {}", file);
             CompilationUnit compilationUnit;
             try {
-                compilationUnit = JavaParser.parse(file);
+                compilationUnit = JavaParser.parse(file.toFile());
             } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }
@@ -218,7 +217,7 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
             if (reqJavaVer != null && !tool.supportsJavaVersion(reqJavaVer)) {
                 System.err.println(
                         "Skipping file: " + file + " (required Java version: " + reqJavaVer + ")");
-                PathUtils.delete(file.toPath());
+                PathUtils.delete(file);
             } else {
                 // remove SETTE annotations from the class
                 Predicate<AnnotationExpr> isSetteAnnotation = (a -> a.getName().getName()
@@ -254,23 +253,23 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
                     source = source.replaceFirst(type.getName() + "\\s+implements\\s*\\{",
                             type.getName() + " {");
                 }
-                PathUtils.write(file.toPath(), source.getBytes());
+                PathUtils.write(file, source.getBytes());
             }
         }
 
         // copy libraries
         if (getSnippetProject().getLibDir().toFile().exists()) {
             PathUtils.copy(getSnippetProject().getLibDir(),
-                    getRunnerProjectSettings().getSnippetLibraryDirectory().toPath());
+                    getRunnerProjectSettings().getSnippetLibraryDir());
         }
 
         // create project
-        this.eclipseProject.save(getRunnerProjectSettings().getBaseDir().toPath());
+        this.eclipseProject.save(getRunnerProjectSettings().getBaseDir());
     }
 
     private void writeInfoFile() {
         // TODO later maybe use an XML file!!!
-        File infoFile = new File(getRunnerProjectSettings().getBaseDir(), "SETTE-INFO");
+        Path infoFile = getRunnerProjectSettings().getBaseDir().resolve("SETTE-INFO");
 
         StringBuilder infoFileData = new StringBuilder();
         infoFileData.append("Runner project name: " + getSnippetProject().getName())
@@ -286,7 +285,7 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
         String generatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         infoFileData.append("Generated at: ").append(generatedAt).append('\n');
 
-        PathUtils.write(infoFile.toPath(), infoFileData.toString().getBytes());
+        PathUtils.write(infoFile, infoFileData.toString().getBytes());
     }
 
     private static JavaVersion getRequiredJavaVersion(List<AnnotationExpr> classAnnotations) {

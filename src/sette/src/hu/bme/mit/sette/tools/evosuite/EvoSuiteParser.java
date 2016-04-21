@@ -23,7 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,14 +64,13 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
 
     @Override
     protected void beforeParse() {
-        Path testDir = getRunnerProjectSettings().getTestDirectory().toPath();
+        Path testDir = getRunnerProjectSettings().getTestDir();
 
         if (!PathUtils.exists(testDir)) {
             return;
         }
 
-        Path testDirBackup = getRunnerProjectSettings().getBaseDir().toPath()
-                .resolve("test-original");
+        Path testDirBackup = getRunnerProjectSettings().getBaseDir().resolve("test-original");
 
         if (PathUtils.exists(testDirBackup)) {
             PathUtils.deleteIfExists(testDir);
@@ -91,7 +91,7 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
         List<String> errorLines = outFiles.readErrorOutputLines();
 
         // test files
-        File testDir = getRunnerProjectSettings().getTestDirectory();
+        Path testDir = getRunnerProjectSettings().getTestDir();
         String classNameWithSlashes = snippet.getContainer().getJavaClass().getName()
                 .replace('.', '/');
         String snippetName = snippet.getName();
@@ -102,14 +102,14 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
                 snippetName, snippetName);
         String testFileBasePathNormal = String.format("%s_%s_Test", classNameWithSlashes,
                 snippetName);
-        File testCasesFileEvo = new File(testDir, testFileBasePathEvo + ".java");
-        File testScaffoldingFile = new File(testDir, testFileBasePathEvo + "_scaffolding.java");
-        File testCasesFile = new File(testDir, testFileBasePathNormal + ".java");
+        Path testCasesFileEvo = testDir.resolve(testFileBasePathEvo + ".java");
+        Path testScaffoldingFile = testDir.resolve(testFileBasePathEvo + "_scaffolding.java");
+        Path testCasesFile = testDir.resolve(testFileBasePathNormal + ".java");
 
         if (outputLines.isEmpty()) {
             throw new RuntimeException(
                     "EvoSuite did not write anything to SDTOUT for " + snippet.getId());
-        } else if (PathUtils.exists(testScaffoldingFile.toPath())) {
+        } else if (PathUtils.exists(testScaffoldingFile)) {
             // generated some tests -> S (but set later)
         } else if (errorLines.isEmpty()) {
             throw new RuntimeException(
@@ -239,9 +239,9 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
             }
 
             // delete scaffolding file
-            PathUtils.deleteIfExists(testScaffoldingFile.toPath());
+            PathUtils.deleteIfExists(testScaffoldingFile);
 
-            if (!testCasesFileEvo.exists() && !testCasesFile.exists()) {
+            if (!PathUtils.exists(testCasesFileEvo) && !PathUtils.exists(testCasesFile)) {
                 // no test case, but the tool stopped properly
                 inputsXml.setGeneratedInputCount(0);
             } else {
@@ -250,20 +250,20 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
                 //
                 // rename file if needed
                 //
-                if (testCasesFileEvo.exists() && testCasesFile.exists()) {
+                if (exists(testCasesFileEvo) && exists(testCasesFile)) {
                     System.err.println(testCasesFileEvo);
                     System.err.println(testCasesFile);
                     throw new RuntimeException("Both EvoSuite and normal files exists");
                 }
 
-                if (testCasesFileEvo.exists() && !testCasesFile.exists()) {
-                    testCasesFileEvo.renameTo(testCasesFile);
+                if (exists(testCasesFileEvo) && !exists(testCasesFile)) {
+                    PathUtils.move(testCasesFileEvo, testCasesFile);
                 }
 
                 testCasesFileEvo = null;
 
                 // last check whether rename was successful
-                if (!testCasesFile.exists()) {
+                if (!exists(testCasesFile)) {
                     System.err.println(testCasesFile);
                     throw new RuntimeException("SETTE RUNTIME ERROR");
                 }
@@ -274,7 +274,7 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
                 CompilationUnit compilationUnit;
                 try {
                     log.debug("Parsing with JavaParser: {}", testCasesFile);
-                    compilationUnit = JavaParser.parse(testCasesFile);
+                    compilationUnit = JavaParser.parse(testCasesFile.toFile());
                     log.debug("Parsed with JavaParser: {}", testCasesFile);
                 } catch (Exception t) {
                     throw new RuntimeException("Cannot parse: " + testCasesFile, t);
@@ -328,7 +328,7 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
                 });
 
                 // rename to appropriate name
-                String nm = testCasesFile.getName();
+                String nm = testCasesFile.getFileName().toString();
                 testClass.setName(nm.substring(0, nm.lastIndexOf('.')));
 
                 // set appropriate super class
@@ -418,10 +418,10 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
 
                 // NOTE stupid, but makes sure that inputsXml initialized properly
                 if (deleteTestFileForExtra) {
-                    PathUtils.deleteIfExists(testCasesFile.toPath());
+                    PathUtils.deleteIfExists(testCasesFile);
                 } else {
                     // save file
-                    PathUtils.write(testCasesFile.toPath(), testCasesFileString.getBytes());
+                    PathUtils.write(testCasesFile, testCasesFileString.getBytes());
                 }
                 // set gen input count
                 inputsXml.setGeneratedInputCount(testMethodCnt);

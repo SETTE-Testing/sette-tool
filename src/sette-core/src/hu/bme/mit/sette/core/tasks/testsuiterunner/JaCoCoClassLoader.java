@@ -23,9 +23,9 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks.testsuiterunner;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.Validate;
@@ -42,10 +42,10 @@ import lombok.NonNull;
 public final class JaCoCoClassLoader extends ClassLoader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final File[] binaryDirectories;
+    private final Path[] binaryDirectories;
     private final Instrumenter instrumenter;
 
-    public JaCoCoClassLoader(@NonNull File[] binaryDirectories, @NonNull Instrumenter instrumenter,
+    public JaCoCoClassLoader(@NonNull Path[] binaryDirectories, @NonNull Instrumenter instrumenter,
             @NonNull ClassLoader parent) {
         super(parent);
 
@@ -117,14 +117,14 @@ public final class JaCoCoClassLoader extends ClassLoader {
      *            the name of the class
      * @return the binary file or null if it was not found
      */
-    public File findBinaryFile(String className) {
+    public Path findBinaryFile(String className) {
         Validate.notBlank(className, "The class name must not be blank");
 
         // iterate binary directories in order
-        for (File dir : binaryDirectories) {
-            File file = new File(dir, className.replace('.', '/') + ".class");
+        for (Path dir : binaryDirectories) {
+            Path file = dir.resolve(className.replace('.', '/') + ".class");
 
-            if (file.exists()) {
+            if (PathUtils.exists(file)) {
                 // found
                 return file;
             }
@@ -144,10 +144,10 @@ public final class JaCoCoClassLoader extends ClassLoader {
     public byte[] readBytes(String className) {
         Validate.notBlank(className, "The class name must not be blank");
 
-        File file = findBinaryFile(className);
+        Path file = findBinaryFile(className);
 
         if (file != null) {
-            return PathUtils.readAllBytes(file.toPath());
+            return PathUtils.readAllBytes(file);
         } else {
             return null;
         }

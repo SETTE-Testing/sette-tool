@@ -25,7 +25,7 @@
 // NOTE revise this file
 package hu.bme.mit.sette.application;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +46,8 @@ public final class RunnerUI implements BaseUI {
                 runner.getRunnerProjectSettings().getProjectName(), runner.getTimeoutInMs());
 
         // directories
-        File snippetProjectDir = runner.getSnippetProject().getBaseDir().toFile();
-        File runnerProjectDir = runner.getRunnerProjectSettings().getBaseDir();
+        Path snippetProjectDir = runner.getSnippetProject().getBaseDir();
+        Path runnerProjectDir = runner.getRunnerProjectSettings().getBaseDir();
 
         context.getOutput().println("Snippet project: " + snippetProjectDir);
         context.getOutput().println("Runner project: " + runnerProjectDir);

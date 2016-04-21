@@ -22,7 +22,7 @@
  */
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +33,7 @@ import hu.bme.mit.sette.core.util.process.ProcessExecutor;
 import hu.bme.mit.sette.core.util.process.SimpleProcessExecutorListener;
 
 public class AntExecutor {
-    public static void executeAnt(File dir, String buildFile) {
+    public static void executeAnt(Path dir, String buildFile) {
         List<String> command = new ArrayList<>();
 
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -50,7 +50,7 @@ public class AntExecutor {
             command.add("ant");
         }
 
-        ProcessBuilder pb = new ProcessBuilder(command).directory(dir);
+        ProcessBuilder pb = new ProcessBuilder(command).directory(dir.toFile());
         ProcessExecutor pr = new ProcessExecutor(pb, 0);
         SimpleProcessExecutorListener listener = new SimpleProcessExecutorListener();
         ProcessExecutionResult result;

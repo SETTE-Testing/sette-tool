@@ -20,10 +20,8 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-// NOTE revise this file
 package hu.bme.mit.sette.core.model.runner;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import com.google.common.base.Preconditions;
@@ -31,7 +29,7 @@ import com.google.common.base.Preconditions;
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
-import hu.bme.mit.sette.core.validator.PathType;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
@@ -67,7 +65,7 @@ public final class RunnerProjectSettings {
 
     /** The base directory of the runner project. */
     @Getter
-    private final File baseDir;
+    private final Path baseDir;
 
     /** The tag for the runner project. */
     @Getter
@@ -112,7 +110,7 @@ public final class RunnerProjectSettings {
 
         String projectName = String.format("%s___%s___%s", snippetProject.getName(),
                 tool.getName(), tag).toLowerCase();
-        this.baseDir = new File(outputDir.toFile(), projectName);
+        this.baseDir = outputDir.resolve(projectName);
     }
 
     /**
@@ -121,7 +119,7 @@ public final class RunnerProjectSettings {
      * @return The name of the runner project.
      */
     public String getProjectName() {
-        return this.baseDir.getName();
+        return baseDir.getFileName().toString();
     }
 
     /**
@@ -129,8 +127,8 @@ public final class RunnerProjectSettings {
      *
      * @return The snippet source directory.
      */
-    public File getSnippetSourceDirectory() {
-        return new File(this.baseDir, "snippet-src");
+    public Path getSnippetSourceDir() {
+        return baseDir.resolve("snippet-src");
     }
 
     /**
@@ -138,8 +136,8 @@ public final class RunnerProjectSettings {
      *
      * @return The snippet library directory.
      */
-    public File getSnippetLibraryDirectory() {
-        return new File(this.baseDir, "snippet-lib");
+    public Path getSnippetLibraryDir() {
+        return baseDir.resolve("snippet-lib");
     }
 
     /**
@@ -147,8 +145,8 @@ public final class RunnerProjectSettings {
      *
      * @return The binary directory.
      */
-    public File getBinaryDirectory() {
-        return new File(this.baseDir, RunnerProjectSettings.BINARY_DIRNAME);
+    public Path getBinaryDir() {
+        return baseDir.resolve(RunnerProjectSettings.BINARY_DIRNAME);
     }
 
     /**
@@ -156,8 +154,8 @@ public final class RunnerProjectSettings {
      *
      * @return The generated directory.
      */
-    public File getGeneratedDirectory() {
-        return new File(this.baseDir, RunnerProjectSettings.GENERATED_DIRNAME);
+    public Path getGeneratedDir() {
+        return baseDir.resolve(RunnerProjectSettings.GENERATED_DIRNAME);
     }
 
     /**
@@ -165,8 +163,8 @@ public final class RunnerProjectSettings {
      *
      * @return The runner directory.
      */
-    public File getRunnerOutputDirectory() {
-        return new File(this.baseDir, RunnerProjectSettings.RUNNER_OUTPUT_DIRNAME);
+    public Path getRunnerOutputDir() {
+        return baseDir.resolve(RunnerProjectSettings.RUNNER_OUTPUT_DIRNAME);
     }
 
     /**
@@ -174,8 +172,8 @@ public final class RunnerProjectSettings {
      *
      * @return The directory containing the tests.
      */
-    public File getTestDirectory() {
-        return new File(this.baseDir, RunnerProjectSettings.TEST_DIRNAME);
+    public Path getTestDir() {
+        return baseDir.resolve(RunnerProjectSettings.TEST_DIRNAME);
     }
 
     /**
@@ -189,42 +187,27 @@ public final class RunnerProjectSettings {
         try {
             Validator<?> v = Validator.of(this);
 
-            // base directory
-            PathValidator v1 = new PathValidator(this.baseDir.toPath());
-            v1.type(PathType.DIRECTORY).readable(true).executable(true);
-            v.addChild(v1);
+            PathValidator.forDirectory(baseDir, true, null, true).addTo(v);
+            PathValidator.forDirectory(getSnippetSourceDir(), true, null, true).addTo(v);
 
-            // snippet source directory
-            PathValidator v2 = new PathValidator(this.getSnippetSourceDirectory().toPath());
-            v2.type(PathType.DIRECTORY).readable(true).executable(true);
-            v.addChild(v2);
-
-            // snippet library directory
-            if (this.getSnippetLibraryDirectory().exists()) {
-                PathValidator v3 = new PathValidator(this.getSnippetLibraryDirectory().toPath())
-                        .type(PathType.DIRECTORY).readable(true).executable(true);
-                v.addChild(v3);
+            Path libraryDir = getSnippetLibraryDir();
+            if (PathUtils.exists(libraryDir)) {
+                PathValidator.forDirectory(libraryDir, true, null, true).addTo(v);
             }
 
-            // generated directory
-            if (this.getGeneratedDirectory().exists()) {
-                PathValidator v4 = new PathValidator(this.getGeneratedDirectory().toPath())
-                        .type(PathType.DIRECTORY).readable(true).executable(true);
-                v.addChild(v4);
+            Path generatedDir = getGeneratedDir();
+            if (PathUtils.exists(generatedDir)) {
+                PathValidator.forDirectory(generatedDir, true, null, true).addTo(v);
             }
 
-            // runner output directory
-            if (this.getRunnerOutputDirectory().exists()) {
-                PathValidator v5 = new PathValidator(this.getRunnerOutputDirectory().toPath())
-                        .type(PathType.DIRECTORY).readable(true).executable(true);
-                v.addChild(v5);
+            Path runnerOutputDir = getRunnerOutputDir();
+            if (PathUtils.exists(runnerOutputDir)) {
+                PathValidator.forDirectory(runnerOutputDir, true, null, true).addTo(v);
             }
 
-            // test directory
-            if (this.getTestDirectory().exists()) {
-                PathValidator v6 = new PathValidator(this.getTestDirectory().toPath())
-                        .type(PathType.DIRECTORY).readable(true).executable(true);
-                v.addChild(v6);
+            Path testDir = getTestDir();
+            if (PathUtils.exists(testDir)) {
+                PathValidator.forDirectory(testDir, true, null, true).addTo(v);
             }
 
             v.validate();
@@ -242,9 +225,9 @@ public final class RunnerProjectSettings {
      */
     public void validateNotExists() throws SetteConfigurationException {
         try {
-            PathValidator.forNonexistent(baseDir.toPath()).validate();
+            PathValidator.forNonexistent(baseDir).validate();
         } catch (ValidationException ex) {
-            throw new SetteConfigurationException("The runner project already exists");
+            throw new SetteConfigurationException("The runner project already exists", ex);
         }
     }
 }

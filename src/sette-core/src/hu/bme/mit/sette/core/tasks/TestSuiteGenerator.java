@@ -23,7 +23,8 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.io.File;
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -100,22 +101,19 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
     }
 
     public void generate() throws Exception {
-        if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()).exists()) {
+        if (!exists(RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()))) {
             throw new TestSuiteGeneratorException(
                     "Run the tool on the runner project first (and then parse)");
         }
 
-        File testDir = getRunnerProjectSettings().getTestDirectory();
+        Path testDir = getRunnerProjectSettings().getTestDir();
 
         // FIXME
         if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
-            if (testDir.exists()) {
-                System.out.println("Removing test dir");
-                PathUtils.delete(testDir.toPath());
-            }
+            PathUtils.deleteIfExists(testDir);
         }
 
-        PathUtils.createDir(testDir.toPath());
+        PathUtils.createDir(testDir);
 
         Serializer serializer = new Persister(new AnnotationStrategy());
 
@@ -136,10 +134,10 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
 
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
-                File inputsXmlFile = RunnerProjectUtils
+                Path inputsXmlFile = RunnerProjectUtils
                         .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
 
-                if (!inputsXmlFile.exists()) {
+                if (!exists(inputsXmlFile)) {
                     System.err.println("Missing: " + inputsXmlFile);
                     continue;
                 }
@@ -151,7 +149,8 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
                 Thread.currentThread().setContextClassLoader(getSnippetProject().getClassLoader());
 
                 // read data
-                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class, inputsXmlFile);
+                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class,
+                        inputsXmlFile.toFile());
 
                 // set back the original class loader
                 Thread.currentThread().setContextClassLoader(originalClassLoader);
@@ -164,13 +163,13 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
                 // skip N/A, EX, T/M and C
                 if (inputsXml.getResultType() != ResultType.S) {
                     System.err.println("Skipping " + inputsXml.getResultType() + " file: "
-                            + inputsXmlFile.getName());
+                            + inputsXmlFile.getFileName().toString());
                     continue;
                 }
 
                 if (inputsXml.getGeneratedInputCount() == 0
                         && tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
-                    System.err.println("No inputs: " + inputsXmlFile.getName());
+                    System.err.println("No inputs: " + inputsXmlFile.getFileName().toString());
                 }
 
                 Class<?> javaClass = container.getJavaClass();
@@ -205,8 +204,8 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
 
                     java.append("}\n");
 
-                    File testFile = new File(testDir, className.replace('.', '/') + ".java");
-                    PathUtils.write(testFile.toPath(), java.toString().getBytes());
+                    Path testFile = testDir.resolve(className.replace('.', '/') + ".java");
+                    PathUtils.write(testFile, java.toString().getBytes());
 
                     // import junit.framework.TestCase;
                     // import
@@ -238,14 +237,14 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
         // Generate ant build file and copy junit.jar
         //
         // FIXME
-        File antBuildTestFile = new File(getRunnerProjectSettings().getBaseDir(),
-                ANT_BUILD_TEST_FILENAME);
-        File jUnitJar = new File(getRunnerProjectSettings().getBaseDir(), "junit.jar");
-        if (!antBuildTestFile.exists()) {
-            PathUtils.write(antBuildTestFile.toPath(), ANT_BUILD_TEST_DATA.getBytes());
+        Path antBuildTestFile = getRunnerProjectSettings().getBaseDir()
+                .resolve(ANT_BUILD_TEST_FILENAME);
+        Path jUnitJar = getRunnerProjectSettings().getBaseDir().resolve("junit.jar");
+        if (!exists(antBuildTestFile)) {
+            PathUtils.write(antBuildTestFile, ANT_BUILD_TEST_DATA.getBytes());
         }
-        if (!jUnitJar.exists()) {
-            PathUtils.copy(getSetteJUnitJarInputStream(), jUnitJar.toPath());
+        if (!exists(jUnitJar)) {
+            PathUtils.copy(getSetteJUnitJarInputStream(), jUnitJar);
         }
     }
 
