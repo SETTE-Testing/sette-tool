@@ -23,9 +23,9 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.evosuite;
 
+import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
 import static java.util.stream.Collectors.toList;
 
-import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -119,8 +119,7 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
 
     private void parseOne(Snippet snippet) throws Exception {
         // test files
-        File testDirMutation = getRunnerProjectSettings().getBaseDir().resolve("test-mutation")
-                .toFile();
+        Path testDirMutation = getRunnerProjectSettings().getBaseDir().resolve("test-mutation");
         String classNameWithSlashes = snippet.getContainer().getJavaClass().getName()
                 .replace('.', '/');
         String snippetName = snippet.getName();
@@ -129,14 +128,14 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
             // evo: my/snippet/MySnippet_method_method
             String testFileBasePathEvo = String.format("%s_%s_%s_Test", classNameWithSlashes,
                     snippetName, snippetName);
-            File testCasesFileEvo = new File(testDirMutation, testFileBasePathEvo + ".java");
-            File testScaffoldingFile = new File(testDirMutation,
-                    testFileBasePathEvo + "_scaffolding.java");
-            if (testCasesFileEvo.exists()) {
+            Path testCasesFileEvo = testDirMutation.resolve(testFileBasePathEvo + ".java");
+            Path testScaffoldingFile = testDirMutation
+                    .resolve(testFileBasePathEvo + "_scaffolding.java");
+            if (exists(testCasesFileEvo)) {
                 throw new RuntimeException(
                         "Original test case file should not exist: " + testScaffoldingFile);
             }
-            if (testScaffoldingFile.exists()) {
+            if (exists(testScaffoldingFile)) {
                 throw new RuntimeException(
                         "Scaffolding file should not exist: " + testScaffoldingFile);
             }
@@ -145,8 +144,8 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
         // normal: my/snippet/MySnippet_method
         String testFileBasePathNormal = String.format("%s_%s_Test", classNameWithSlashes,
                 snippetName);
-        File testCasesFile = new File(testDirMutation, testFileBasePathNormal + ".java");
-        if (!testCasesFile.exists()) {
+        Path testCasesFile = testDirMutation.resolve(testFileBasePathNormal + ".java");
+        if (!exists(testCasesFile)) {
             throw new RuntimeException("Missing parsed test case file: " + testCasesFile);
         }
 
@@ -160,7 +159,7 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
         CompilationUnit compilationUnit;
         try {
             log.debug("Parsing with JavaParser: {}", testCasesFile);
-            compilationUnit = JavaParser.parse(testCasesFile);
+            compilationUnit = JavaParser.parse(testCasesFile.toFile());
             log.debug("Parsed with JavaParser: {}", testCasesFile);
         } catch (Exception t) {
             throw new RuntimeException("Cannot parse: " + testCasesFile, t);
@@ -195,7 +194,7 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
         // read again
         try {
             log.debug("Parsing with JavaParser: {}", testCasesFile);
-            compilationUnit = JavaParser.parse(testCasesFile);
+            compilationUnit = JavaParser.parse(testCasesFile.toFile());
             log.debug("Parsed with JavaParser: {}", testCasesFile);
         } catch (Exception t) {
             throw new RuntimeException("Cannot parse: " + testCasesFile, t);
