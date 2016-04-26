@@ -202,14 +202,14 @@ public class Validator<T> {
     /**
      * @return the parent of this validator or <code>null</code> if not present
      */
-    public final Validator<?> getParent() {
+    public final Validator<?> getParent() { // NOSONAR: too much effort to refactor
         return parentValidator.get();
     }
 
     /**
      * @return the root validator in the hierarchy
      */
-    public final Validator<?> getRoot() {
+    public final Validator<?> getRoot() { // NOSONAR: too much effort to refactor
         Validator<?> v = this;
         while (v.parentValidator.isSet()) {
             v = v.getParent();
@@ -220,14 +220,14 @@ public class Validator<T> {
     /**
      * @return a stream of the children validators
      */
-    final Stream<Validator<?>> getChildren() {
+    final Stream<Validator<?>> getChildren() { // NOSONAR: too much effort to refactor
         return children.stream();
     }
 
     /**
      * @return a stream of the all validators in the hierarchy
      */
-    final Stream<Validator<?>> getAllChildren() {
+    final Stream<Validator<?>> getAllChildren() { // NOSONAR: too much effort to refactor
         return Stream.concat(
                 children.stream(),
                 children.stream().flatMap(Validator::getAllChildren));
