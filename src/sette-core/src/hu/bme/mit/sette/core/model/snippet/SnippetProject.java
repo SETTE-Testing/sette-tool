@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -381,12 +382,31 @@ public final class SnippetProject implements Comparable<SnippetProject> {
         return baseDir.resolve("build");
     }
 
-    public Stream<Snippet> snippets() {
-        return snippetContainers.stream().flatMap(sc -> sc.getSnippets().values().stream());
+    /**
+     * @return a list of snippets
+     */
+    public Iterable<Snippet> getSnippets() {
+        return getSnippets(null);
+    }
+
+    /**
+     * @param snippetSelector
+     *            filter for snippets ids (<code>null</code> will return all the snippets)
+     * @return a filtered list of snippets
+     */
+    public Iterable<Snippet> getSnippets(Pattern snippetSelector) {
+        Stream<Snippet> snippetStream = snippetContainers.stream()
+                .flatMap(sc -> sc.getSnippets().values().stream());
+
+        if (snippetSelector != null) {
+            snippetStream = snippetStream.filter(s -> snippetSelector.matcher(s.getId()).matches());
+        }
+
+        return ImmutableList.copyOf(snippetStream.iterator());
     }
 
     @Override
-    public int compareTo(@NonNull SnippetProject o) {
+    public int compareTo(@NonNull SnippetProject o) { // NOSONAR: default equals() and hashCode()
         return getName().compareToIgnoreCase(o.getName());
     }
 

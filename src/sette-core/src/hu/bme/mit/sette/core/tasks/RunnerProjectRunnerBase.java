@@ -196,8 +196,10 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
     private void runAll(PrintStream runnerLoggerOut) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        // foreach containers
-        for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
+        // foreach snippets
+        for (Snippet snippet : getSnippetProject().getSnippets(snippetSelector)) {
+            SnippetContainer container = snippet.getContainer();
+            
             // skip container with higher java version than supported
             if (container.getRequiredJavaVersion()
                     .compareTo(tool.getSupportedJavaVersion()) > 0) {
@@ -209,39 +211,36 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
                 continue;
             }
 
-            // foreach snippets
-            for (Snippet snippet : container.getSnippets().values()) {
-                // FIXME duplicated in TestSuiteRunner -> replace loop with proper iterator
-                if (snippetSelector != null
-                        && !snippetSelector.matcher(snippet.getId()).matches()) {
-                    String msg = String.format("Skipping %s (--snippet-selector)", snippet.getId());
-                    runnerLoggerOut.println(msg);
-                    log.info(msg);
-                    continue;
-                }
+            // FIXME duplicated in TestSuiteRunner -> replace loop with proper iterator
+            if (snippetSelector != null
+                    && !snippetSelector.matcher(snippet.getId()).matches()) {
+                String msg = String.format("Skipping %s (--snippet-selector)", snippet.getId());
+                runnerLoggerOut.println(msg);
+                log.info(msg);
+                continue;
+            }
 
-                String filenameBase = getFilenameBase(snippet);
+            String filenameBase = getFilenameBase(snippet);
 
-                Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
-                        snippet);
-                Path outputFile = RunnerProjectUtils
-                        .getSnippetOutputFile(getRunnerProjectSettings(), snippet);
-                Path errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
-                        snippet);
+            Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
+                    snippet);
+            Path outputFile = RunnerProjectUtils
+                    .getSnippetOutputFile(getRunnerProjectSettings(), snippet);
+            Path errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
+                    snippet);
 
-                try {
-                    String timestamp = dateFormat.format(new Date());
-                    runnerLoggerOut
-                            .println("[" + timestamp + "] Running for snippet: " + filenameBase);
-                    this.runOne(snippet, infoFile, outputFile, errorFile);
-                    this.cleanUp();
-                } catch (Exception ex) {
-                    runnerLoggerOut.println("Exception: " + ex.getMessage());
-                    runnerLoggerOut.println("==========");
-                    ex.printStackTrace(runnerLoggerOut);
-                    runnerLoggerOut.println("==========");
-                    throw new RuntimeException(ex);
-                }
+            try {
+                String timestamp = dateFormat.format(new Date());
+                runnerLoggerOut
+                        .println("[" + timestamp + "] Running for snippet: " + filenameBase);
+                this.runOne(snippet, infoFile, outputFile, errorFile);
+                this.cleanUp();
+            } catch (Exception ex) {
+                runnerLoggerOut.println("Exception: " + ex.getMessage());
+                runnerLoggerOut.println("==========");
+                ex.printStackTrace(runnerLoggerOut);
+                runnerLoggerOut.println("==========");
+                throw new RuntimeException(ex);
             }
         }
     }

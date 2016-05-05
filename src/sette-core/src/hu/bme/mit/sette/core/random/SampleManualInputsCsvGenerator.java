@@ -34,7 +34,6 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.Validate;
 
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
@@ -62,21 +61,19 @@ public final class SampleManualInputsCsvGenerator {
     public void generate() throws Exception {
         // sort snippets
         SortedMap<String, Snippet> sortedSnippets = new TreeMap<>();
-        for (SnippetContainer container : snippetProject.getSnippetContainers()) {
-            for (Snippet snippet : container.getSnippets().values()) {
-                String key = container.getJavaClass().getPackage().getName() + "/"
-                        + getShortSnippetName(snippet);
+        for (Snippet snippet : snippetProject.getSnippets()) {
+            String key = snippet.getContainer().getJavaClass().getPackage().getName() + "/"
+                    + getShortSnippetName(snippet);
 
-                // check whether unique
-                if (sortedSnippets.containsKey(key)) {
-                    System.err.println(sortedSnippets.get(key).getMethod());
-                    System.err.println(snippet.getMethod());
-                    throw new RuntimeException("Duplicate detected");
-                }
-
-                // preserve category order
-                sortedSnippets.put(key, snippet);
+            // check whether unique
+            if (sortedSnippets.containsKey(key)) {
+                System.err.println(sortedSnippets.get(key).getMethod());
+                System.err.println(snippet.getMethod());
+                throw new RuntimeException("Duplicate detected");
             }
+
+            // preserve category order
+            sortedSnippets.put(key, snippet);
         }
 
         // create file data

@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 
@@ -161,12 +162,11 @@ public final class SnippetBrowser extends JFrame {
 
         // set list
         StringBuilder sb = new StringBuilder();
-        snippetProject.snippets().forEach(s -> {
-            String line = String.format("%-50s %s_%s\n", s.getId(),
-                    s.getContainer().getName(),
-                    s.getName());
+        for (Snippet snippet : snippetProject.getSnippets()) {
+            String line = String.format("%-50s %s_%s\n", snippet.getId(),
+                    snippet.getContainer().getName(), snippet.getName());
             sb.append(line);
-        });
+        }
         txtrSnippetList.setText(sb.toString());
     }
 }

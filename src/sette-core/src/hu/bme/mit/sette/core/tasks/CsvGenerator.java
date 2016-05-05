@@ -40,7 +40,6 @@ import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.parserxml.SnippetResultXml;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
@@ -56,21 +55,19 @@ public final class CsvGenerator extends EvaluationTaskBase<Tool> {
     public void generate() throws Exception {
         // sort snippets
         SortedMap<String, Snippet> sortedSnippets = new TreeMap<>();
-        for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
-            for (Snippet snippet : container.getSnippets().values()) {
-                String key = container.getJavaClass().getPackage().getName() + "/"
-                        + getShortSnippetName(snippet);
+        for (Snippet snippet : getSnippetProject().getSnippets()) {
+            String key = snippet.getContainer().getJavaClass().getPackage().getName() + "/"
+                    + getShortSnippetName(snippet);
 
-                // check whether unique
-                if (sortedSnippets.containsKey(key)) {
-                    System.err.println(sortedSnippets.get(key).getMethod());
-                    System.err.println(snippet.getMethod());
-                    throw new RuntimeException("Duplicate detected");
-                }
-
-                // preserve category order
-                sortedSnippets.put(key, snippet);
+            // check whether unique
+            if (sortedSnippets.containsKey(key)) {
+                System.err.println(sortedSnippets.get(key).getMethod());
+                System.err.println(snippet.getMethod());
+                throw new RuntimeException("Duplicate detected");
             }
+
+            // preserve category order
+            sortedSnippets.put(key, snippet);
         }
 
         // create file data
