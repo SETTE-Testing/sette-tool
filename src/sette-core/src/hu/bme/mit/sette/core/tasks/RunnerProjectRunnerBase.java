@@ -201,8 +201,7 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
             SnippetContainer container = snippet.getContainer();
             
             // skip container with higher java version than supported
-            if (container.getRequiredJavaVersion()
-                    .compareTo(tool.getSupportedJavaVersion()) > 0) {
+            if (!tool.supportsJavaVersion(container.getRequiredJavaVersion())) {
                 // TODO error/warning handling
                 runnerLoggerOut.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");

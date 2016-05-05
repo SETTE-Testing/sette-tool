@@ -124,8 +124,7 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
         // foreach containers
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
             // skip container with higher java version than supported
-            if (container.getRequiredJavaVersion()
-                    .compareTo(tool.getSupportedJavaVersion()) > 0) {
+            if (!tool.supportsJavaVersion(container.getRequiredJavaVersion())) {
                 // TODO error handling
                 System.err.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");

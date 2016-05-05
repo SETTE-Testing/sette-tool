@@ -73,8 +73,7 @@ public class CatgGenerator extends RunnerProjectGeneratorBase<CatgTool> {
     private void createGeneratedFiles() {
         // generate main() for each snippet
         for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
-            if (container.getRequiredJavaVersion()
-                    .compareTo(tool.getSupportedJavaVersion()) > 0) {
+            if (!tool.supportsJavaVersion(container.getRequiredJavaVersion())) {
                 // TODO enhance message
                 System.err.println("Skipping container: " + container.getJavaClass().getName()
                         + " (required Java version: " + container.getRequiredJavaVersion() + ")");

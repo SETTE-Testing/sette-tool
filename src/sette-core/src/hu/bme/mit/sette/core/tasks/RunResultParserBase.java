@@ -77,8 +77,7 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
                 // skip container with higher java version than supported
-                if (container.getRequiredJavaVersion()
-                        .compareTo(tool.getSupportedJavaVersion()) > 0) {
+                if (!tool.supportsJavaVersion(container.getRequiredJavaVersion())) {
                     // TODO error/warning handling
                     System.err.println("Skipping container: " + container.getJavaClass().getName()
                             + " (required Java version: " + container.getRequiredJavaVersion()
