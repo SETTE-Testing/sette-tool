@@ -1,8 +1,8 @@
 #!/bin/bash 
 # Usage: ./experiment-genrun-test-all.sh
-# It will run all tools with a "test" tag without backing up for the sette-snippets project
+# It will run all tools with a "test" tag without backing up for the sette-snippets-core project
 TOOLS=(catg evosuite jpet randoop spf)
-PROJ=sette-snippets/java/sette-snippets
+PROJ=sette-snippets/java/sette-snippets-core
 projectName="$(sed -r -e 's#.*/##g' <<< $PROJ)"
 TAG=test
 

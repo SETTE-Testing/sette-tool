@@ -52,7 +52,7 @@ class SnippetInputCheckerTest {
         ]
 
         tasks.each { String task ->
-            app.execute('--snippet-project-dir', 'sette-snippets/java/sette-snippets', '--backup', 'skip',
+            app.execute('--snippet-project-dir', 'sette-snippets/java/sette-snippets-core', '--backup', 'skip',
                     '--runner-project-tag', 'test-auto', '--task', task, '--tool', 'SnippetInputChecker')
         }
     }

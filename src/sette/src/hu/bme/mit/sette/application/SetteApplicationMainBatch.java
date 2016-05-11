@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableList;
 public final class SetteApplicationMainBatch {
     public static void main(String... args) {
         // FIXME perftime
-        // runBatch("evosuite", "parser", "sette-snippets/java/sette-snippets",
+        // runBatch("evosuite", "parser", "sette-snippets/java/sette-snippets-core",
         // new int[] { 30 }, 10);
         // runBatch("evosuite", "parser", "sette-snippets/java/sette-snippets-performance-time",
         // new int[] { 15, 60 }, 10);
@@ -48,17 +48,17 @@ public final class SetteApplicationMainBatch {
                 new int[] { 30 }, cnt);
 
         // FIXME normal
-        // runBatch("evosuite", "parser", "sette-snippets/java/sette-snippets",
+        // runBatch("evosuite", "parser", "sette-snippets/java/sette-snippets-core",
         // new int[] { 30 }, 10);
-        // runBatch("evosuite", "test-generator", "sette-snippets/java/sette-snippets",
+        // runBatch("evosuite", "test-generator", "sette-snippets/java/sette-snippets-core",
         // new int[] { 30 }, 10);
-        // runBatch("evosuite", "test-runner", "sette-snippets/java/sette-snippets",
+        // runBatch("evosuite", "test-runner", "sette-snippets/java/sette-snippets-core",
         // new int[] { 30 }, 10);
-        // runBatch("evosuite", "export-csv", "sette-snippets/java/sette-snippets",
+        // runBatch("evosuite", "export-csv", "sette-snippets/java/sette-snippets-core",
         // new int[] { 30 }, 10);
 
         // FIXME EVO MUT PARSER
-        // runBatch("evosuite", "parser-evosuite-mutation", "sette-snippets/java/sette-snippets",
+        // runBatch("evosuite", "parser-evosuite-mutation", "sette-snippets/java/sette-snippets-core",
         // new int[] { 30 }, 10);
     }
 

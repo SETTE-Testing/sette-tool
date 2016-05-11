@@ -26,7 +26,7 @@ import hu.bme.mit.sette.core.tasks.testsuiterunner.TestSuiteRunnerForkAgent;
 
 public class TestRunnerAgentTest {
     public static void main(String[] args) {
-        String a = "D:/SETTE/sette-snippets/java/sette-snippets ";
+        String a = "D:/SETTE/sette-snippets/java/sette-snippets-core ";
         a += "D:/SETTE/sette-results ";
         a += "hu.bme.mit.sette.tools.randoop.RandoopTool|Randoop|D:/SETTE/sette-tool/test-generator-tools/randoop ";
         a += "run-01-30sec ";

@@ -19,8 +19,8 @@ Param(
   [string] $SnippetSelector = ".*"
 )
 
-$SNIPPET_PROJECT = "sette-snippets"
-$SNIPPET_PROJECT_DIR = "sette-snippets/java/sette-snippets"
+$SNIPPET_PROJECT = "sette-snippets-core"
+$SNIPPET_PROJECT_DIR = "sette-snippets/java/sette-snippets-core"
 $LOG_DIR = "explog"
 
 $TASK_NUMBERS = @{ "generator" = 1; "runner" = 2; "parser" = 3; "test-generator" = 4; "test-runner" = 5; "export-csv" = 6}

@@ -79,7 +79,7 @@ class EvaluationRegressionTest {
 
             // expect no exception
             try {
-                app.execute( '--snippet-project-dir', 'sette-snippets/java/sette-snippets',
+                app.execute( '--snippet-project-dir', 'sette-snippets/java/sette-snippets-core',
                         '--backup', 'skip',
                         '--tool', toolName, '--runner-project-tag', tag, '--task', task)
             } catch (Exception ex) {
@@ -97,7 +97,7 @@ class EvaluationRegressionTest {
     // check CSV in separate test to make it runnable as a separate test
     @Test
     void test_2_checkCsv() {
-        String runnerProjectName = "sette-snippets___${toolName.toLowerCase()}___${tag}"
+        String runnerProjectName = "sette-snippets-core___${toolName.toLowerCase()}___${tag}"
         Path expectedCsvFile = configuration.getOutputDir().resolve("expected_${runnerProjectName}.csv")
         Path actualCsvFile =  configuration.getOutputDir().resolve("$runnerProjectName/sette-evaluation.csv")
 

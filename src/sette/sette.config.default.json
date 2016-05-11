@@ -3,7 +3,7 @@
   "outputDir":"sette-results",
   "runnerTimeoutInMs":30000,
   "snippetProjectDirs":[
-    "sette-snippets/java/sette-snippets",
+    "sette-snippets/java/sette-snippets-core",
     "sette-snippets/java/sette-snippets-performance-time",
     "sette-snippets/java/sette-snippets-extra",
     "sette-snippets/java/sette-snippets-native",

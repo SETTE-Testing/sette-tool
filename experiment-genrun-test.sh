@@ -1,9 +1,9 @@
 #!/bin/bash 
 # Usage: ./experiment-genrun-test.sh TOOL
 # Example: ./experiment-genrun-test.sh randoop
-# It will run the selected tool with a "test" tag without backing up for the sette-snippets project
+# It will run the selected tool with a "test" tag without backing up for the sette-snippets-core project
 tool=$1
-PROJ=sette-snippets/java/sette-snippets
+PROJ=sette-snippets/java/sette-snippets-core
 TAG=test
 projectName="$(sed -r -e 's#.*/##g' <<< $PROJ)"
 

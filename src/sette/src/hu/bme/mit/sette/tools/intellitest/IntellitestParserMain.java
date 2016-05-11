@@ -53,7 +53,7 @@ public class IntellitestParserMain {
         PathValidator.forDirectory(intellitestDir, true, true, true).validate();
 
         SnippetProject snippetProject = SnippetProject.parse(
-                setteConfig.getBaseDir().resolve("sette-snippets/java/sette-snippets"));
+                setteConfig.getBaseDir().resolve("sette-snippets/java/sette-snippets-core"));
 
         List<Path> sourceDirs = Files.list(intellitestDir)
                 .filter(dir -> dir.getFileName().toString().startsWith("sette-snippets.Tests"))
