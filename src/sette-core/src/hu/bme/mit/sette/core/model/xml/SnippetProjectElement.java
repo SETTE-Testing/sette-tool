@@ -21,12 +21,13 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import org.simpleframework.xml.Element;
 
 import com.google.common.base.Strings;
 
+import hu.bme.mit.sette.core.util.xml.XmlElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Data;
@@ -37,7 +38,7 @@ import lombok.Data;
 @Data
 public final class SnippetProjectElement implements XmlElement {
     /** The base directory path of the snippet project. */
-    @Element(name = "baseDir", data = true)
+    @Element(data = true)
     private String baseDirPath;
 
     /**

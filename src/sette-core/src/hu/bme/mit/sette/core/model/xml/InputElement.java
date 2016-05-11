@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,17 +30,19 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.ElementListUnion;
 
-import com.google.common.base.Strings;
-
+import hu.bme.mit.sette.core.util.ListUtils;
+import hu.bme.mit.sette.core.util.xml.XmlElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
 
 /**
  * Represents an input element.
  */
+@Data
 public final class InputElement implements XmlElement {
     /** The heap. */
-    @Element(name = "heap", data = true, required = false)
+    @Element(data = true, required = false)
     private String heap;
 
     /** The parameters. */
@@ -49,47 +51,11 @@ public final class InputElement implements XmlElement {
                     required = false),
             @ElementList(type = ArrayParameterElement.class, entry = "arrayParameter",
                     inline = true, required = false) })
-    private List<AbstractParameterElement> parameters;
+    private ArrayList<AbstractParameterElement> parameters = new ArrayList<>();
 
     /** The name of the expected exception. */
-    @Element(name = "expected", data = true, required = false)
+    @Element(data = true, required = false)
     private String expected;
-
-    /**
-     * Instantiates a new input element.
-     */
-    public InputElement() {
-        // default constructor is required for deserialization
-        parameters = new ArrayList<>();
-    }
-
-    /**
-     * Gets the heap.
-     *
-     * @return the heap
-     */
-    public String getHeap() {
-        return heap;
-    }
-
-    /**
-     * Sets the heap.
-     *
-     * @param heap
-     *            the new heap
-     */
-    public void setHeap(String heap) {
-        this.heap = Strings.emptyToNull(heap);
-    }
-
-    /**
-     * Gets the list of parameters.
-     *
-     * @return the list of parameters
-     */
-    public List<AbstractParameterElement> getParameters() {
-        return parameters;
-    }
 
     /**
      * Sets the list of parameters.
@@ -98,26 +64,7 @@ public final class InputElement implements XmlElement {
      *            the new list of parameters
      */
     public void setParameters(List<AbstractParameterElement> parameters) {
-        this.parameters = parameters;
-    }
-
-    /**
-     * Gets the name of the expected exception.
-     *
-     * @return the name of the expected exception
-     */
-    public String getExpected() {
-        return expected;
-    }
-
-    /**
-     * Sets the name of the expected exception.
-     *
-     * @param expected
-     *            the new name of the expected exception
-     */
-    public void setExpected(String expected) {
-        this.expected = expected;
+        this.parameters = ListUtils.asArrayList(parameters);
     }
 
     @Override

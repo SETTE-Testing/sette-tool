@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.spf;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -35,26 +34,24 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.primitives.Primitives;
 
-import hu.bme.mit.sette.core.model.parserxml.InputElement;
-import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.InputElement;
+import hu.bme.mit.sette.core.model.xml.ParameterElement;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 
 public class SpfParser extends RunResultParserBase<SpfTool> {
-    public SpfParser(SnippetProject snippetProject, Path outputDir, SpfTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public SpfParser(RunnerProject runnerProject, SpfTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
-            SnippetInputsXml inputsXml) throws Exception {
-        List<String> outputLines = outFiles.readOutputLines();
-        List<String> errorLines = outFiles.readErrorOutputLines();
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = runnerProject.snippet(snippet).readOutputLines();
+        List<String> errorLines = runnerProject.snippet(snippet).readErrorOutputLines();
 
         if (!errorLines.isEmpty()) {
             // TODO make this section simple and clear
@@ -102,7 +99,7 @@ public class SpfParser extends RunResultParserBase<SpfTool> {
 
         if (inputsXml.getResultType() == null) {
             // TODO enhance
-            if (snippet.getRequiredStatementCoverage() == 0) {
+            if (snippet.getRequiredStatementCoverage() <= 0.01) {
                 inputsXml.setResultType(ResultType.C);
             } else {
                 inputsXml.setResultType(ResultType.S);
@@ -147,7 +144,8 @@ public class SpfParser extends RunResultParserBase<SpfTool> {
             if (!inputLines.isEmpty()) {
                 String firstLine = inputLines.get(0);
                 if (!firstLine.startsWith("Inputs:")) {
-                    throw new RuntimeException("Cannot parse: " + outFiles.outputFile);
+                    throw new RuntimeException(
+                            "Cannot parse: " + runnerProject.snippet(snippet).getOutputFile());
                 }
 
                 firstLine = firstLine.substring(7).trim();

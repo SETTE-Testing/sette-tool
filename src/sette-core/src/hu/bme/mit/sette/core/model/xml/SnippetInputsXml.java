@@ -21,8 +21,12 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkState;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.Validate;
@@ -30,43 +34,28 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
 
-import com.google.common.base.MoreObjects;
-
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.util.ListUtils;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents an XML file containing the generated inputs for a snippet.
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 @Root(name = "setteSnippetInputs")
 public final class SnippetInputsXml extends SnippetBaseXml {
     /** The generated inputs. */
-    @ElementList(name = "generatedInputs", entry = "input", type = InputElement.class,
-            required = false)
-    private List<InputElement> generatedInputs = null;
+    @ElementList(entry = "input", required = false)
+    private ArrayList<InputElement> generatedInputs = null;
 
     /** The number of the generated inputs. */
-    @Element(name = "generatedInputCount", required = false)
+    @Element(required = false)
     // FIXME boxed integer because of simple xml
     private Integer generatedInputCount = null;
-
-    /**
-     * Instantiates a new snippet inputs XML.
-     */
-    public SnippetInputsXml() {
-        // default constructor is required for deserialization
-        super();
-    }
-
-    /**
-     * Gets the list of generated inputs.
-     *
-     * @return the list of generated inputs
-     */
-    public List<InputElement> getGeneratedInputs() {
-        return generatedInputs;
-    }
 
     /**
      * Sets the list of generated inputs.
@@ -77,7 +66,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
     public void setGeneratedInputs(List<InputElement> generatedInputs) {
         Validate.isTrue(generatedInputCount == null,
                 "The generated input count property must be set to null before setting this variable");
-        this.generatedInputs = generatedInputs;
+        this.generatedInputs = ListUtils.asArrayList(generatedInputs);
     }
 
     /**
@@ -89,7 +78,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
         if (generatedInputs != null) {
             return generatedInputs.size();
         } else {
-            return MoreObjects.firstNonNull(generatedInputCount, 0);
+            return firstNonNull(generatedInputCount, 0);
         }
     }
 
@@ -100,7 +89,7 @@ public final class SnippetInputsXml extends SnippetBaseXml {
      *            the new generated input count
      */
     public void setGeneratedInputCount(Integer generatedInputCount) {
-        Validate.isTrue(generatedInputs == null,
+        checkState(generatedInputs == null,
                 "The list of generated inputs must be set to null before setting this variable");
         this.generatedInputCount = generatedInputCount;
     }

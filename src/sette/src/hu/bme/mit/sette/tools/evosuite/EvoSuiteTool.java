@@ -26,7 +26,7 @@ package hu.bme.mit.sette.tools.evosuite;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.PathValidator;
@@ -60,20 +60,17 @@ public final class EvoSuiteTool extends Tool {
     }
 
     @Override
-    public EvoSuiteGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new EvoSuiteGenerator(snippetProject, outputDir, this, runnerProjectTag);
+    public EvoSuiteGenerator createRunnerProjectGenerator(RunnerProject runnerProject) {
+        return new EvoSuiteGenerator(runnerProject, this);
     }
 
     @Override
-    public EvoSuiteRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new EvoSuiteRunner(snippetProject, outputDir, this, runnerProjectTag);
+    public EvoSuiteRunner createRunnerProjectRunner(RunnerProject runnerProject) {
+        return new EvoSuiteRunner(runnerProject, this);
     }
 
     @Override
-    public EvoSuiteParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new EvoSuiteParser(snippetProject, outputDir, this, runnerProjectTag);
+    public EvoSuiteParser createRunResultParser(RunnerProject runnerProject) {
+        return new EvoSuiteParser(runnerProject, this);
     }
 }

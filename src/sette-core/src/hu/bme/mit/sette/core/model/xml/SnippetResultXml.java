@@ -21,40 +21,31 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
+import org.simpleframework.xml.convert.Convert;
+
+import com.google.common.primitives.Doubles;
 
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.xml.converter.DoublePercentConverter;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents an XML file containing the result of the generation for a snippet.
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 @Root(name = "setteSnippetResult")
 public final class SnippetResultXml extends SnippetBaseXml {
     /** The achieved coverage. */
-    @Element(name = "achievedCoverage", required = false)
-    private String achievedCoverage;
-
-    /**
-     * Instantiates a new snippet result XML.
-     */
-    public SnippetResultXml() {
-        // default constructor is required for deserialization
-    }
-
-    public static SnippetResultXml createForWithResult(SnippetInputsXml inputsXml,
-            ResultType resultType, String achievedCoverage) {
-        SnippetResultXml ret = new SnippetResultXml();
-        ret.setToolName(inputsXml.getToolName());
-        ret.setSnippetProjectElement(inputsXml.getSnippetProjectElement());
-        ret.setSnippetElement(inputsXml.getSnippetElement());
-        ret.setResultType(resultType);
-        ret.setAchievedCoverage(achievedCoverage);
-        return ret;
-    }
+    @Element(required = false)
+    @Convert(DoublePercentConverter.class)
+    private Double achievedCoverage;
 
     public static SnippetResultXml createForWithResult(SnippetInputsXml inputsXml,
             ResultType resultType, Double achievedCoverage) {
@@ -65,25 +56,6 @@ public final class SnippetResultXml extends SnippetBaseXml {
         ret.setResultType(resultType);
         ret.setAchievedCoverage(achievedCoverage);
         return ret;
-    }
-
-    public String getAchievedCoverage() {
-        return achievedCoverage;
-    }
-
-    public void setAchievedCoverage(String achievedCoverage) {
-        this.achievedCoverage = achievedCoverage;
-    }
-
-    /**
-     * E.g.: 50.623453 -> 50.62%
-     */
-    public void setAchievedCoverage(Double achievedCoverage) {
-        if (achievedCoverage != null) {
-            this.achievedCoverage = String.format("%.2f%%", achievedCoverage);
-        } else {
-            this.achievedCoverage = null;
-        }
     }
 
     @Override

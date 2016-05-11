@@ -21,10 +21,8 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.random;
+package hu.bme.mit.sette.core.util.xml;
 
-import java.io.OutputStream;
-import java.io.Writer;
 import java.nio.file.Path;
 
 import javax.xml.transform.OutputKeys;
@@ -35,18 +33,29 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.convert.AnnotationStrategy;
+import org.simpleframework.xml.core.Persister;
+import org.simpleframework.xml.stream.Format;
 import org.w3c.dom.Document;
 
-import hu.bme.mit.sette.core.exceptions.XmlException;
+import hu.bme.mit.sette.core.util.io.PathUtils;
 import lombok.NonNull;
 
 /**
  * Contains static helper methods for XML file manipulation.
  */
 public final class XmlUtils {
+    private static Serializer xmlSerializer;
+
     /** Static class. */
     private XmlUtils() {
         throw new UnsupportedOperationException("Static class");
+    }
+
+    static {
+        xmlSerializer = new Persister(new AnnotationStrategy(),
+                new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
     }
 
     /**
@@ -62,36 +71,6 @@ public final class XmlUtils {
     public static void writeXml(@NonNull Document document, @NonNull Path file)
             throws XmlException {
         XmlUtils.transformXml(document, new StreamResult(file.toFile()));
-    }
-
-    /**
-     * Writes the specified XML document to the specified output stream.
-     *
-     * @param document
-     *            The XML document.
-     * @param outputStream
-     *            The output stream.
-     * @throws XmlException
-     *             If an XML related exception occurs.
-     */
-    public static void writeXml(@NonNull Document document, @NonNull OutputStream outputStream)
-            throws XmlException {
-        XmlUtils.transformXml(document, new StreamResult(outputStream));
-    }
-
-    /**
-     * Writes the specified XML document with the specified writer.
-     *
-     * @param document
-     *            The XML document.
-     * @param writer
-     *            The writer.
-     * @throws XmlException
-     *             If an XML related exception occurs.
-     */
-    public static void writeXml(@NonNull Document document, @NonNull Writer writer)
-            throws XmlException {
-        XmlUtils.transformXml(document, new StreamResult(writer));
     }
 
     /**
@@ -116,7 +95,53 @@ public final class XmlUtils {
 
             transformer.transform(new DOMSource(document), result);
         } catch (TransformerException ex) {
-            throw new XmlException("Transformation failed", ex);
+            throw new XmlException("XML transformation has failed", ex);
+        }
+    }
+
+    /**
+     * Validates and serialises the object to an XML file.
+     * 
+     * @param object
+     *            the object to serialise
+     * @param file
+     *            the target file (missing parent directories will be created)
+     * @throws XmlException
+     *             If an XML related exception occurs.
+     */
+    public static void serializeToXml(@NonNull XmlElement object, @NonNull Path file)
+            throws XmlException {
+        try {
+            object.validate();
+
+            PathUtils.createDir(file.getParent());
+            PathUtils.deleteIfExists(file);
+
+            xmlSerializer.write(object, file.toFile());
+        } catch (Exception ex) {
+            throw new XmlException("XML serialization has failed", ex);
+        }
+    }
+
+    /**
+     * Deserialises and validates an object from an XML file.
+     * 
+     * @param cls
+     *            the class of the object
+     * @param file
+     *            the source file
+     * @return the deserialised object
+     * @throws XmlException
+     *             If an XML related exception occurs.
+     */
+    public static <T extends XmlElement> T deserializeFromXml(@NonNull Class<T> cls,
+            @NonNull Path file) throws XmlException {
+        try {
+            T object = xmlSerializer.read(cls, file.toFile());
+            object.validate();
+            return object;
+        } catch (Exception ex) {
+            throw new XmlException("XML deserialization has failed", ex);
         }
     }
 }

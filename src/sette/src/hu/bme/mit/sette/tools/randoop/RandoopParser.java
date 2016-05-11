@@ -39,29 +39,29 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInfoXml;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class RandoopParser extends RunResultParserBase<RandoopTool> {
-    private final static Pattern TEST_COUNT_LINE_PATTERN = Pattern
+    private static final Pattern TEST_COUNT_LINE_PATTERN = Pattern
             .compile("^Writing (-?\\d+) junit tests$");
 
-    public RandoopParser(SnippetProject snippetProject, Path outputDir, RandoopTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public RandoopParser(RunnerProject runnerProject, RandoopTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
-            SnippetInputsXml inputsXml) throws Exception {
-        List<String> outputLines = outFiles.readOutputLines();
-        List<String> errorLines = outFiles.readErrorOutputLines();
-        Path lookUpDir = getRunnerProjectSettings().getBaseDir().resolve("test")
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = runnerProject.snippet(snippet).readOutputLines();
+        List<String> errorLines = runnerProject.snippet(snippet).readErrorOutputLines();
+
+        Path lookUpDir = runnerProject.getBaseDir().resolve("test")
                 .resolve(RunnerProjectUtils.getSnippetBaseFilename(snippet) + "_Test");
 
         // do not parse inputs
@@ -69,14 +69,13 @@ public class RandoopParser extends RunResultParserBase<RandoopTool> {
 
         if (outputLines.isEmpty()) {
             // FIXME extremely odd
-            throw new RuntimeException("output file empty: " + outFiles.outputFile);
+            throw new RuntimeException(
+                    "output file empty: " + runnerProject.snippet(snippet).getOutputFile());
         }
 
-        for (String infoLine : outFiles.readInfoLines()) {
-            if (infoLine.contains("Exit value: 1")) {
-                inputsXml.setResultType(ResultType.EX);
-                break;
-            }
+        SnippetInfoXml infoXml = runnerProject.snippet(snippet).readInfoXml();
+        if (infoXml.getExitValue() == 1) {
+            inputsXml.setResultType(ResultType.EX);
         }
 
         if (inputsXml.getResultType() == null && !exists(lookUpDir) && !errorLines.isEmpty()) {
@@ -104,13 +103,14 @@ public class RandoopParser extends RunResultParserBase<RandoopTool> {
                 // normal text on stderr, skip
             } else {
                 // TODO
-                throw new RuntimeException("TODO parser problem:" + outFiles.errorOutputFile);
+                throw new RuntimeException("TODO parser problem:"
+                        + runnerProject.snippet(snippet).getErrorOutputFile());
             }
         }
 
         if (inputsXml.getResultType() == null) {
             // always S for Randoop
-            if (snippet.getRequiredStatementCoverage() == 0) {
+            if (snippet.getRequiredStatementCoverage() <= 0.01) {
                 inputsXml.setResultType(ResultType.C);
             } else {
                 inputsXml.setResultType(ResultType.S);
@@ -163,7 +163,7 @@ public class RandoopParser extends RunResultParserBase<RandoopTool> {
     @Override
     protected void afterParse() {
         // fix compilation error in test suite files
-        Path testDir = getRunnerProjectSettings().getTestDir();
+        Path testDir = runnerProject.getTestDir();
 
         Iterator<Path> it = PathUtils.walk(testDir)
                 .filter(Files::isRegularFile)

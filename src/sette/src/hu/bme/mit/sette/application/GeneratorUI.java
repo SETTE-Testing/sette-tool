@@ -38,13 +38,12 @@ import hu.bme.mit.sette.core.util.io.PathUtils;
 public final class GeneratorUI implements BaseUI {
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        RunnerProjectGenerator generator = context.getTool().createRunnerProjectGenerator(
-                context.getSnippetProject(), context.getOutputDir(),
-                context.getRunnerProjectTag());
+        RunnerProjectGenerator generator = context.getTool()
+                .createRunnerProjectGenerator(context.getRunnerProject());
 
         // directories
         Path snippetProjectDir = generator.getSnippetProject().getBaseDir();
-        Path runnerProjectDir = generator.getRunnerProjectSettings().getBaseDir();
+        Path runnerProjectDir = generator.getRunnerProject().getBaseDir();
 
         context.getOutput().println("Snippet project: " + snippetProjectDir);
 

@@ -25,7 +25,7 @@ package hu.bme.mit.sette.tools.snippetinputchecker;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.ValidationException;
@@ -50,21 +50,17 @@ public final class SnippetInputCheckerTool extends Tool {
     }
 
     @Override
-    public SnippetInputCheckerGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new SnippetInputCheckerGenerator(snippetProject, outputDir, this, runnerProjectTag);
+    public SnippetInputCheckerGenerator createRunnerProjectGenerator(RunnerProject runnerProject) {
+        return new SnippetInputCheckerGenerator(runnerProject, this);
     }
 
     @Override
-    public SnippetInputCheckerRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new SnippetInputCheckerRunner(snippetProject, outputDir, this, runnerProjectTag);
+    public SnippetInputCheckerRunner createRunnerProjectRunner(RunnerProject runnerProject) {
+        return new SnippetInputCheckerRunner(runnerProject, this);
     }
 
     @Override
-    public SnippetInputCheckerParser createRunResultParser(SnippetProject snippetProject,
-            Path outputDir,
-            String runnerProjectTag) {
-        return new SnippetInputCheckerParser(snippetProject, outputDir, this, runnerProjectTag);
+    public SnippetInputCheckerParser createRunResultParser(RunnerProject runnerProject) {
+        return new SnippetInputCheckerParser(runnerProject, this);
     }
 }

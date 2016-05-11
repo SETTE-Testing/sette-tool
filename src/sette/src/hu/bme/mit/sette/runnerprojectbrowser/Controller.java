@@ -37,10 +37,14 @@ import java.util.ResourceBundle;
 
 import org.apache.commons.lang3.SystemUtils;
 
+import com.google.common.base.Throwables;
+
 import hu.bme.mit.sette.core.model.runner.RunnerProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProjectSnippet;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInfoXml;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 import javafx.beans.property.ObjectProperty;
@@ -69,7 +73,7 @@ public final class Controller implements Initializable {
     @FXML
     private TextField runnerProjectTagFilter;
     @FXML
-    private ListView<RunnerProject<Tool>> runnerProjectList;
+    private ListView<RunnerProject> runnerProjectList;
     @FXML
     private TextField snippetFilter;
     @FXML
@@ -101,8 +105,8 @@ public final class Controller implements Initializable {
     @FXML
     private Button openHtml;
 
-    private ObservableList<RunnerProject<Tool>> availableRunnerProjects;
-    private final ObjectProperty<RunnerProject<Tool>> selectedRunnerProject = new SimpleObjectProperty<>();
+    private ObservableList<RunnerProject> availableRunnerProjects;
+    private final ObjectProperty<RunnerProject> selectedRunnerProject = new SimpleObjectProperty<>();
 
     private ObservableList<Snippet> availableSnippets;
     private final ObjectProperty<Snippet> selectedSnippet = new SimpleObjectProperty<>();
@@ -187,12 +191,19 @@ public final class Controller implements Initializable {
     }
 
     private void updateRunnerProjectList() {
-        FilteredList<RunnerProject<Tool>> filteredList = availableRunnerProjects.filtered(rp -> {
-            return snippetProjectFilter.getSelectionModel().getSelectedItems()
-                    .contains(rp.getSnippetProject())
-                    && toolFilter.getSelectionModel().getSelectedItems().contains(rp.getTool())
-                    && rp.getTag().toLowerCase()
-                            .contains(runnerProjectTagFilter.getText().toLowerCase());
+        FilteredList<RunnerProject> filteredList = availableRunnerProjects.filtered(rp -> {
+            boolean snippetProjectSelected = snippetProjectFilter
+                    .getSelectionModel().getSelectedItems()
+                    .contains(rp.getSnippetProject());
+
+            boolean toolSelected = toolFilter.getSelectionModel().getSelectedItems().stream()
+                    .map(t -> t.getName())
+                    .anyMatch(tn -> tn.equals(rp.getToolName()));
+
+            boolean tagMatches = rp.getTag().toLowerCase()
+                    .contains(runnerProjectTagFilter.getText().toLowerCase());
+
+            return snippetProjectSelected && toolSelected && tagMatches;
         });
         runnerProjectList.setItems(new SortedList<>(filteredList));
 
@@ -212,89 +223,93 @@ public final class Controller implements Initializable {
     }
 
     private void updateInfoPane() {
-        if (selectedSnippet.get() == null) {
-            infoPane.setVisible(false);
-        } else {
-            infoPane.setVisible(true);
-
-            RunnerProject<Tool> runnerProject = selectedRunnerProject.get();
-            Snippet snippet = selectedSnippet.get();
-            SnippetContainer snippetContainer = snippet.getContainer();
-            SnippetProject snippetProject = snippetContainer.getSnippetProject();
-
-            List<String> infoLines = new ArrayList<>();
-            infoLines.add("Runner project:    " + runnerProject.getProjectName());
-            infoLines.add("Snippet container: " + snippet.getContainer().getName());
-            infoLines.add("Snippet id:        " + snippet.getId());
-            infoLines.add("Required coverage: " + snippet.getRequiredStatementCoverage());
-
-            if (!snippet.getIncludedConstructors().isEmpty()) {
-                infoLines.add("Incl. ctors:");
-                for (Constructor<?> ctor : snippet.getIncludedConstructors()) {
-                    infoLines.add("    " + ctor);
-                }
-            }
-
-            if (!snippet.getIncludedMethods().isEmpty()) {
-                infoLines.add("Incl. methods:");
-                for (Method method : snippet.getIncludedMethods()) {
-                    infoLines.add("    " + method);
-                }
-            }
-
-            infoLines.add("");
-
-            Path infoFile = runnerProject.getInfoFile(snippet);
-            if (PathUtils.exists(infoFile)) {
-                infoLines.addAll(PathUtils.readAllLines(infoFile));
+        try {
+            if (selectedSnippet.get() == null) {
+                infoPane.setVisible(false);
             } else {
-                infoLines.add("No .info file");
-            }
+                infoPane.setVisible(true);
 
-            snippetInfo.setText(String.join("\n", infoLines));
+                RunnerProject runnerProject = selectedRunnerProject.get();
+                Snippet snippet = selectedSnippet.get();
+                SnippetContainer snippetContainer = snippet.getContainer();
+                SnippetProject snippetProject = snippetContainer.getSnippetProject();
 
-            Path snippetSourceFile = snippetProject.getSourceDir().resolve(
-                    snippetContainer.getJavaClass().getName().replace('.', '/') + ".java");
+                List<String> infoLines = new ArrayList<>();
+                infoLines.add("Runner project:    " + runnerProject.getProjectName());
+                infoLines.add("Snippet container: " + snippet.getContainer().getName());
+                infoLines.add("Snippet id:        " + snippet.getId());
+                infoLines.add("Required coverage: " + snippet.getRequiredStatementCoverage());
 
-            Path snippetSourceInputFile;
-            if (snippetContainer.getInputFactoryContainer() != null) {
-                snippetSourceInputFile = snippetProject.getInputSourceDir().resolve(
-                        snippetContainer.getInputFactoryContainer().getJavaClass().getName()
-                                .replace('.', '/') + ".java");
-            } else {
-                snippetSourceInputFile = null;
-            }
+                if (!snippet.getIncludedConstructors().isEmpty()) {
+                    infoLines.add("Incl. ctors:");
+                    for (Constructor<?> ctor : snippet.getIncludedConstructors()) {
+                        infoLines.add("    " + ctor);
+                    }
+                }
 
-            // either file or a directory
-            Path testCodePath = runnerProject.getTestDirectory().resolve(
-                    snippetContainer.getJavaClass().getName().replace('.', '/') + '_'
-                            + snippet.getName() + "_Test");
-            Path testCodeEvosuiteScaffoldingPath = null;
-            if (!Files.exists(testCodePath)) {
-                String base = testCodePath.getFileName().toString();
-                testCodePath = testCodePath.resolveSibling(base + ".java");
+                if (!snippet.getIncludedMethods().isEmpty()) {
+                    infoLines.add("Incl. methods:");
+                    for (Method method : snippet.getIncludedMethods()) {
+                        infoLines.add("    " + method);
+                    }
+                }
 
+                infoLines.add("");
+
+                RunnerProjectSnippet rps = runnerProject.snippet(snippet);
+                SnippetInfoXml infoXml = rps.readInfoXml();
+                if (infoXml == null) {
+                    infoLines.add("No .info.xml file");
+                } else {
+                    infoLines.add(infoXml.toString());
+                }
+
+                snippetInfo.setText(String.join("\n", infoLines));
+
+                Path snippetSourceFile = snippetProject.getSourceDir().resolve(
+                        snippetContainer.getJavaClass().getName().replace('.', '/') + ".java");
+
+                Path snippetSourceInputFile;
+                if (snippetContainer.getInputFactoryContainer() != null) {
+                    snippetSourceInputFile = snippetProject.getInputSourceDir().resolve(
+                            snippetContainer.getInputFactoryContainer().getJavaClass().getName()
+                                    .replace('.', '/') + ".java");
+                } else {
+                    snippetSourceInputFile = null;
+                }
+
+                // either file or a directory
+                Path testCodePath = runnerProject.getTestDir().resolve(
+                        snippetContainer.getJavaClass().getName().replace('.', '/') + '_'
+                                + snippet.getName() + "_Test");
+                Path testCodeEvosuiteScaffoldingPath = null;
                 if (!Files.exists(testCodePath)) {
-                    base = base.replaceAll("_Test$", "") + '_' + snippet.getName() + "_Test";
+                    String base = testCodePath.getFileName().toString();
                     testCodePath = testCodePath.resolveSibling(base + ".java");
-                    testCodeEvosuiteScaffoldingPath = testCodePath
-                            .resolveSibling(base + "_scaffolding.java");
+
+                    if (!Files.exists(testCodePath)) {
+                        base = base.replaceAll("_Test$", "") + '_' + snippet.getName() + "_Test";
+                        testCodePath = testCodePath.resolveSibling(base + ".java");
+                        testCodeEvosuiteScaffoldingPath = testCodePath
+                                .resolveSibling(base + "_scaffolding.java");
+                    }
                 }
+
+                updateButton(openSnippetCode, snippetSourceFile);
+                updateButton(openSnippetInputCode, snippetSourceInputFile);
+                updateButton(openInfoFile, rps.getInfoXmlFile());
+                updateButton(openOutFile, rps.getOutputFile());
+                updateButton(openErrFile, rps.getErrorOutputFile());
+                updateButton(openTestCode, testCodePath);
+                updateButton(openTestCodeEvosuiteScaffolding, testCodeEvosuiteScaffoldingPath);
+                updateButton(openInputsXml, rps.getInputsXmlFile());
+                updateButton(openResultXml, rps.getResultXmlFile());
+                updateButton(openCoverageXml, rps.getCoverageXmlFile());
+                updateButton(openHtml, rps.getCoverageHtmlFile());
             }
-
-            updateButton(openSnippetCode, snippetSourceFile);
-            updateButton(openSnippetInputCode, snippetSourceInputFile);
-            updateButton(openInfoFile, infoFile);
-            updateButton(openOutFile, runnerProject.getOutputFile(snippet));
-            updateButton(openErrFile, runnerProject.getErrorOutputFile(snippet));
-            updateButton(openTestCode, testCodePath);
-            updateButton(openTestCodeEvosuiteScaffolding, testCodeEvosuiteScaffoldingPath);
-            updateButton(openInputsXml, runnerProject.getInputsXmlFile(snippet));
-            updateButton(openResultXml, runnerProject.getResultXmlFile(snippet));
-            updateButton(openCoverageXml, runnerProject.getCoverageXmlFile(snippet));
-            updateButton(openHtml, runnerProject.getCoverageHtmlFile(snippet));
+        } catch (Exception ex) {
+            Throwables.propagate(ex);
         }
-
     }
 
     private static void updateButton(Button button, Path path) {
@@ -386,9 +401,9 @@ public final class Controller implements Initializable {
         }
     }
 
-    private static final class RunnerProjectCell extends ListCell<RunnerProject<Tool>> {
+    private static final class RunnerProjectCell extends ListCell<RunnerProject> {
         @Override
-        protected void updateItem(RunnerProject<Tool> runnerProject, boolean empty) {
+        protected void updateItem(RunnerProject runnerProject, boolean empty) {
             super.updateItem(runnerProject, empty);
 
             if (empty || runnerProject == null) {

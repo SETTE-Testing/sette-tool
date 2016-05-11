@@ -38,16 +38,15 @@ public final class RunnerUI implements BaseUI {
     @Override
     public void execute(ExecutionContext context) throws Exception {
         RunnerProjectRunner runner = context.getTool().createRunnerProjectRunner(
-                context.getSnippetProject(), context.getOutputDir(),
-                context.getRunnerProjectTag());
+                context.getRunnerProject());
         runner.setTimeoutInMs(context.getRunnerTimeoutInMs());
         runner.setSnippetSelector(context.getSnippetSelector());
         log.info("Created {} for {} @ {} ms timeout", runner.getClass().getSimpleName(),
-                runner.getRunnerProjectSettings().getProjectName(), runner.getTimeoutInMs());
+                runner.getRunnerProject().getProjectName(), runner.getTimeoutInMs());
 
         // directories
         Path snippetProjectDir = runner.getSnippetProject().getBaseDir();
-        Path runnerProjectDir = runner.getRunnerProjectSettings().getBaseDir();
+        Path runnerProjectDir = runner.getRunnerProject().getBaseDir();
 
         context.getOutput().println("Snippet project: " + snippetProjectDir);
         context.getOutput().println("Runner project: " + runnerProjectDir);

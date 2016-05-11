@@ -26,7 +26,7 @@ package hu.bme.mit.sette.tools.catg;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.ValidationException;
@@ -47,20 +47,17 @@ public final class CatgTool extends Tool {
     }
 
     @Override
-    public CatgGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new CatgGenerator(snippetProject, outputDir, this, runnerProjectTag);
+    public CatgGenerator createRunnerProjectGenerator(RunnerProject runnerProject) {
+        return new CatgGenerator(runnerProject, this);
     }
 
     @Override
-    public CatgRunner createRunnerProjectRunner(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new CatgRunner(snippetProject, outputDir, this, runnerProjectTag);
+    public CatgRunner createRunnerProjectRunner(RunnerProject runnerProject) {
+        return new CatgRunner(runnerProject, this);
     }
 
     @Override
-    public CatgParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new CatgParser(snippetProject, outputDir, this, runnerProjectTag);
+    public CatgParser createRunResultParser(RunnerProject runnerProject) {
+        return new CatgParser(runnerProject, this);
     }
 }

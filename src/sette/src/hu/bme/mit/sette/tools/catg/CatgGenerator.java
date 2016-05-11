@@ -39,16 +39,15 @@ import hu.bme.mit.sette.core.descriptors.eclipse.EclipseClasspathEntry;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseClasspathEntryKind;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.descriptors.java.JavaFileWithMainBuilder;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class CatgGenerator extends RunnerProjectGeneratorBase<CatgTool> {
-    public CatgGenerator(SnippetProject snippetProject, Path outputDir, CatgTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public CatgGenerator(RunnerProject runnerProject, CatgTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
@@ -147,7 +146,7 @@ public class CatgGenerator extends RunnerProjectGeneratorBase<CatgTool> {
                 String relativePath = main.getFullClassName().replace('.', '/');
                 String relativePathMain = relativePath.replace('.', '/') + ".java";
 
-                Path targetMainFile = getRunnerProjectSettings().getGeneratedDir().resolve(
+                Path targetMainFile = runnerProject.getGeneratedDir().resolve(
                         relativePathMain);
                 PathUtils.createDir(targetMainFile.getParent());
                 PathUtils.write(targetMainFile, main.build());
@@ -157,12 +156,12 @@ public class CatgGenerator extends RunnerProjectGeneratorBase<CatgTool> {
 
     private void copyTool(EclipseProject eclipseProject) throws SetteConfigurationException {
         PathUtils.copy(tool.getToolDir().resolve("tool"),
-                getRunnerProjectSettings().getBaseDir());
+                runnerProject.getBaseDir());
 
         // edit build.xml
         // TODO make better
 
-        Path buildXml = getRunnerProjectSettings().getBaseDir().resolve("build.xml");
+        Path buildXml = runnerProject.getBaseDir().resolve("build.xml");
         List<String> newLines = new ArrayList<>();
 
         List<String> lines = PathUtils.readAllLines(buildXml);

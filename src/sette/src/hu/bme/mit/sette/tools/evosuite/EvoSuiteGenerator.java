@@ -39,24 +39,23 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class EvoSuiteGenerator extends RunnerProjectGeneratorBase<EvoSuiteTool> {
-    public EvoSuiteGenerator(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public EvoSuiteGenerator(RunnerProject runnerProject, EvoSuiteTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
     protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         createSpecialSnippetFiles();
 
-        Path buildXml = getRunnerProjectSettings().getBaseDir().resolve("build.xml");
+        Path buildXml = runnerProject.getBaseDir().resolve("build.xml");
         PathUtils.copy(tool.getDefaultBuildXml(), buildXml);
     }
 
@@ -74,7 +73,7 @@ public class EvoSuiteGenerator extends RunnerProjectGeneratorBase<EvoSuiteTool> 
                 String methodName = snippet.getMethod().getName();
                 String newJavaClassName = javaClassName + '_' + methodName;
 
-                Path originalSourceFile = getRunnerProjectSettings().getSnippetSourceDir().resolve(
+                Path originalSourceFile = runnerProject.getSnippetSourceDir().resolve(
                         javaPackageName.replace('.', '/') + '/' + javaClassName + ".java");
                 if (!PathUtils.exists(originalSourceFile)) {
                     throw new RuntimeException(

@@ -20,7 +20,7 @@
  * express or implied. See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-package hu.bme.mit.sette.core.exceptions;
+package hu.bme.mit.sette.core.util.xml;
 
 /**
  * Exception class for XML related exceptions.

@@ -31,15 +31,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 
 public final class EvoSuiteRunner extends RunnerProjectRunnerBase<EvoSuiteTool> {
-    public EvoSuiteRunner(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public EvoSuiteRunner(RunnerProject runnerProject, EvoSuiteTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
@@ -50,12 +49,11 @@ public final class EvoSuiteRunner extends RunnerProjectRunnerBase<EvoSuiteTool> 
     @Override
     protected void afterPrepare() {
         // ant build
-        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
+        AntExecutor.executeAnt(runnerProject.getBaseDir(), null);
     }
 
     @Override
-    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
-            throws SetteConfigurationException {
+    protected void runOne(Snippet snippet) throws SetteConfigurationException {
         // TODO make better
         // e.g.
 
@@ -110,7 +108,7 @@ public final class EvoSuiteRunner extends RunnerProjectRunnerBase<EvoSuiteTool> 
         System.out.println("  command: " + StringUtils.join(cmd, ' '));
 
         // run process
-        executeToolProcess(cmd, infoFile, outputFile, errorFile);
+        executeToolProcess(snippet, cmd);
     }
 
     @Override

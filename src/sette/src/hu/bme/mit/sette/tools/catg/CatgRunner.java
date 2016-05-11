@@ -29,8 +29,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 import hu.bme.mit.sette.core.SetteException;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
@@ -40,9 +40,8 @@ import hu.bme.mit.sette.core.validator.ValidationException;
 public final class CatgRunner extends RunnerProjectRunnerBase<CatgTool> {
     private static final int TRIAL_COUNT = 100;
 
-    public CatgRunner(SnippetProject snippetProject, Path outputDir, CatgTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public CatgRunner(RunnerProject runnerProject, CatgTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
@@ -53,14 +52,13 @@ public final class CatgRunner extends RunnerProjectRunnerBase<CatgTool> {
     @Override
     protected void afterPrepare() {
         // ant build
-        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
+        AntExecutor.executeAnt(runnerProject.getBaseDir(), null);
     }
 
     @Override
-    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
-            throws ValidationException {
+    protected void runOne(Snippet snippet) throws ValidationException {
         // TODO make better
-        Path concolic = getRunnerProjectSettings().getBaseDir().resolve("concolic");
+        Path concolic = runnerProject.getBaseDir().resolve("concolic");
         concolic.toFile().setExecutable(true);
 
         PathValidator.forRegularFile(concolic, true, null, true, null).validate();
@@ -70,7 +68,7 @@ public final class CatgRunner extends RunnerProjectRunnerBase<CatgTool> {
 
         String filename = methodName.replace('.', '/') + ".java";
 
-        Path file = getRunnerProjectSettings().getGeneratedDir().resolve(filename);
+        Path file = runnerProject.getGeneratedDir().resolve(filename);
 
         if (!exists(file)) {
             System.err.println("Not found: " + file);
@@ -93,8 +91,7 @@ public final class CatgRunner extends RunnerProjectRunnerBase<CatgTool> {
         System.out.println("  command: " + cmd.toString());
 
         // run process
-        executeToolProcess(Arrays.asList(cmd.toString().split("\\s+")), infoFile, outputFile,
-                errorFile);
+        executeToolProcess(snippet, Arrays.asList(cmd.toString().split("\\s+")));
     }
 
     @Override

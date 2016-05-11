@@ -48,29 +48,28 @@ import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
-    public EvoSuiteParser(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public EvoSuiteParser(RunnerProject runnerProject, EvoSuiteTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
     protected void beforeParse() {
-        Path testDir = getRunnerProjectSettings().getTestDir();
+        Path testDir = runnerProject.getTestDir();
 
         if (!PathUtils.exists(testDir)) {
             return;
         }
 
-        Path testDirBackup = getRunnerProjectSettings().getBaseDir().resolve("test-original");
+        Path testDirBackup = runnerProject.getBaseDir().resolve("test-original");
 
         if (PathUtils.exists(testDirBackup)) {
             PathUtils.deleteIfExists(testDir);
@@ -81,17 +80,16 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
-            SnippetInputsXml inputsXml) throws Exception {
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
         // do not parse inputs
         inputsXml.setGeneratedInputs(null);
 
         // out files
-        List<String> outputLines = outFiles.readOutputLines();
-        List<String> errorLines = outFiles.readErrorOutputLines();
+        List<String> outputLines = runnerProject.snippet(snippet).readOutputLines();
+        List<String> errorLines = runnerProject.snippet(snippet).readErrorOutputLines();
 
         // test files
-        Path testDir = getRunnerProjectSettings().getTestDir();
+        Path testDir = runnerProject.getTestDir();
         String classNameWithSlashes = snippet.getContainer().getJavaClass().getName()
                 .replace('.', '/');
         String snippetName = snippet.getName();
@@ -147,11 +145,12 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
 
                 if (containsAny(line, failLines)) {
                     System.out.println("==========================================");
-                    System.out.println(outFiles.errorOutputFile);
+                    System.out.println(runnerProject.snippet(snippet).getErrorOutputFile());
                     System.out.println(line);
                     System.out.println("==========================================");
                     System.out.println(
-                            new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
+                            new String(PathUtils.readAllBytes(
+                                    runnerProject.snippet(snippet).getErrorOutputFile())));
                     System.out.println("==========================================");
                     System.out.println("==========================================");
                     throw new RuntimeException("Problematic line: " + line);
@@ -163,11 +162,12 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
                     // skip
                 } else {
                     System.out.println("==========================================");
-                    System.out.println(outFiles.errorOutputFile);
+                    System.out.println(runnerProject.snippet(snippet).getErrorOutputFile());
                     System.out.println(line);
                     System.out.println("==========================================");
                     System.out.println(
-                            new String(PathUtils.readAllBytes(outFiles.errorOutputFile)));
+                            new String(PathUtils.readAllBytes(
+                                    runnerProject.snippet(snippet).getErrorOutputFile())));
                     System.out.println("==========================================");
                     System.out.println("==========================================");
                     throw new RuntimeException("Problematic line: " + line);
@@ -235,7 +235,8 @@ public class EvoSuiteParser extends RunResultParserBase<EvoSuiteTool> {
             boolean computationFinished = isComputationFinished(outputLines);
 
             if (!computationFinished) {
-                throw new RuntimeException("Not finished: " + outFiles.outputFile.toString());
+                throw new RuntimeException(
+                        "Not finished: " + runnerProject.snippet(snippet).getOutputFile());
             }
 
             // delete scaffolding file

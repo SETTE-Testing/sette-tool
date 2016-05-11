@@ -27,17 +27,16 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
-    public SpfRunner(SnippetProject snippetProject, Path outputDir, SpfTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public SpfRunner(RunnerProject runnerProject, SpfTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
@@ -48,12 +47,11 @@ public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
     @Override
     protected void afterPrepare() {
         // ant build
-        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
+        AntExecutor.executeAnt(runnerProject.getBaseDir(), null);
     }
 
     @Override
-    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
-            throws SetteConfigurationException {
+    protected void runOne(Snippet snippet) throws SetteConfigurationException {
         // TODO make better
         /*
          * e.g.:
@@ -67,7 +65,7 @@ public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
 
         String filenameBase = snippet.getContainer().getJavaClass().getName().replace('.', '/')
                 + "_" + snippet.getMethod().getName();
-        Path configFile = getRunnerProjectSettings().getGeneratedDir()
+        Path configFile = runnerProject.getGeneratedDir()
                 .resolve(filenameBase + ".jpf");
 
         // create command
@@ -84,8 +82,7 @@ public final class SpfRunner extends RunnerProjectRunnerBase<SpfTool> {
         System.out.println("  command: " + cmd.toString());
 
         // run process
-        executeToolProcess(Arrays.asList(cmd.toString().split("\\s+")), infoFile, outputFile,
-                errorFile);
+        executeToolProcess(snippet, Arrays.asList(cmd.toString().split("\\s+")));
     }
 
     @Override

@@ -21,21 +21,25 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.convert.Convert;
 
 import hu.bme.mit.sette.core.model.runner.ParameterType;
+import hu.bme.mit.sette.core.model.xml.converter.ParameterTypeConverter;
+import hu.bme.mit.sette.core.util.xml.XmlElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
 
 /**
  * Base class for different parameter elements.
  */
+@Data
 public abstract class AbstractParameterElement implements XmlElement {
     /** The type of the parameter. */
-    @Element(name = "type")
+    @Element
     @Convert(ParameterTypeConverter.class)
     private ParameterType type;
 
@@ -43,6 +47,7 @@ public abstract class AbstractParameterElement implements XmlElement {
      * Instantiates a new abstract parameter element.
      */
     public AbstractParameterElement() {
+        // default constructor is required for deserialization
     }
 
     /**
@@ -52,25 +57,6 @@ public abstract class AbstractParameterElement implements XmlElement {
      *            the type of the parameter
      */
     public AbstractParameterElement(ParameterType type) {
-        this.type = type;
-    }
-
-    /**
-     * Gets the type of the parameter.
-     *
-     * @return the type of the parameter
-     */
-    public final ParameterType getType() {
-        return type;
-    }
-
-    /**
-     * Sets the type of the parameter.
-     *
-     * @param type
-     *            the new type of the parameter
-     */
-    public final void setType(ParameterType type) {
         this.type = type;
     }
 

@@ -26,7 +26,7 @@ package hu.bme.mit.sette.tools.spf;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.PathValidator;
@@ -60,20 +60,17 @@ public final class SpfTool extends Tool {
     }
 
     @Override
-    public SpfGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new SpfGenerator(snippetProject, outputDir, this, runnerProjectTag);
+    public SpfGenerator createRunnerProjectGenerator(RunnerProject runnerProject) {
+        return new SpfGenerator(runnerProject, this);
     }
 
     @Override
-    public SpfRunner createRunnerProjectRunner(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new SpfRunner(snippetProject, outputDir, this, runnerProjectTag);
+    public SpfRunner createRunnerProjectRunner(RunnerProject runnerProject) {
+        return new SpfRunner(runnerProject, this);
     }
 
     @Override
-    public SpfParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new SpfParser(snippetProject, outputDir, this, runnerProjectTag);
+    public SpfParser createRunResultParser(RunnerProject runnerProject) {
+        return new SpfParser(runnerProject, this);
     }
 }

@@ -37,27 +37,24 @@ import java.util.List;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.convert.AnnotationStrategy;
-import org.simpleframework.xml.core.Persister;
 
 import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
 
 import hu.bme.mit.sette.core.exceptions.TestSuiteGeneratorException;
-import hu.bme.mit.sette.core.model.parserxml.AbstractParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.InputElement;
-import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.AbstractParameterElement;
+import hu.bme.mit.sette.core.model.xml.InputElement;
+import hu.bme.mit.sette.core.model.xml.ParameterElement;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.util.io.PathUtils;
+import hu.bme.mit.sette.core.util.xml.XmlUtils;
 
 public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
     public static final String ANT_BUILD_TEST_FILENAME;
@@ -95,18 +92,17 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
         ANT_BUILD_TEST_DATA = String.join("\n", lines);
     }
 
-    public TestSuiteGenerator(SnippetProject snippetProject, Path outputDir, Tool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public TestSuiteGenerator(RunnerProject runnerProject, Tool tool) {
+        super(runnerProject, tool);
     }
 
     public void generate() throws Exception {
-        if (!exists(RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()))) {
+        if (!exists(runnerProject.getRunnerLogFile())) {
             throw new TestSuiteGeneratorException(
                     "Run the tool on the runner project first (and then parse)");
         }
 
-        Path testDir = getRunnerProjectSettings().getTestDir();
+        Path testDir = runnerProject.getTestDir();
 
         // FIXME
         if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
@@ -114,8 +110,6 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
         }
 
         PathUtils.createDir(testDir);
-
-        Serializer serializer = new Persister(new AnnotationStrategy());
 
         //
         // Generate test classes
@@ -133,8 +127,7 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
 
             // foreach snippets
             for (Snippet snippet : container.getSnippets().values()) {
-                Path inputsXmlFile = RunnerProjectUtils
-                        .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
+                Path inputsXmlFile = runnerProject.snippet(snippet).getInputsXmlFile();
 
                 if (!exists(inputsXmlFile)) {
                     System.err.println("Missing: " + inputsXmlFile);
@@ -148,8 +141,8 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
                 Thread.currentThread().setContextClassLoader(getSnippetProject().getClassLoader());
 
                 // read data
-                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class,
-                        inputsXmlFile.toFile());
+                SnippetInputsXml inputsXml = XmlUtils.deserializeFromXml(SnippetInputsXml.class,
+                        inputsXmlFile);
 
                 // set back the original class loader
                 Thread.currentThread().setContextClassLoader(originalClassLoader);
@@ -236,9 +229,9 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
         // Generate ant build file and copy junit.jar
         //
         // FIXME
-        Path antBuildTestFile = getRunnerProjectSettings().getBaseDir()
+        Path antBuildTestFile = runnerProject.getBaseDir()
                 .resolve(ANT_BUILD_TEST_FILENAME);
-        Path jUnitJar = getRunnerProjectSettings().getBaseDir().resolve("junit.jar");
+        Path jUnitJar = runnerProject.getBaseDir().resolve("junit.jar");
         if (!exists(antBuildTestFile)) {
             PathUtils.write(antBuildTestFile, ANT_BUILD_TEST_DATA.getBytes());
         }
@@ -411,7 +404,7 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
     }
 
     // public final void generate() throws Exception {
-    // if (!RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings())
+    // if (!RunnerProjectUtils.getRunnerLogFile(runnerProject)
     // .exists()) {
     // throw new SetteGeneralException(
     // "Run the tool on the runner project first (and then parse)");
@@ -439,7 +432,7 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
     // inputsXml.validate();
     //
     // File inputsXmlFile = RunnerProjectUtils
-    // .getSnippetInputsFile(getRunnerProjectSettings(),
+    // .getSnippetInputsFile(runnerProject,
     // snippet);
     //
     // FileUtils.forceMkdir(inputsXmlFile.getParentFile());
@@ -465,7 +458,7 @@ public final class TestSuiteGenerator extends EvaluationTaskBase<Tool> {
     //
     // // TODO more doc is needed
     // File infoFile = RunnerProjectUtils.getSnippetInfoFile(
-    // getRunnerProjectSettings(), snippet);
+    // runnerProject, snippet);
     //
     // if (!infoFile.exists()) {
     // inputsXml.setResultType(ResultType.NA);

@@ -30,26 +30,22 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.convert.AnnotationStrategy;
-import org.simpleframework.xml.core.Persister;
 
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.core.model.parserxml.SnippetResultXml;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInfoXml;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.xml.SnippetResultXml;
+import hu.bme.mit.sette.core.model.xml.converter.DoublePercentConverter;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public final class CsvGenerator extends EvaluationTaskBase<Tool> {
     private static final String FIELD_SEP = ",";
 
-    public CsvGenerator(SnippetProject snippetProject, Path outputDir, Tool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public CsvGenerator(RunnerProject runnerProject, Tool tool) {
+        super(runnerProject, tool);
     }
 
     public void generate() throws Exception {
@@ -81,7 +77,7 @@ public final class CsvGenerator extends EvaluationTaskBase<Tool> {
     }
 
     public Path getCsvFile() {
-        return getRunnerProjectSettings().getBaseDir().resolve("sette-evaluation.csv");
+        return runnerProject.getBaseDir().resolve("sette-evaluation.csv");
     }
 
     // Category: B1a
@@ -105,29 +101,13 @@ public final class CsvGenerator extends EvaluationTaskBase<Tool> {
 
     private String createRow(Snippet snippet) throws Exception {
         // parse data
-        Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(), snippet);
-        Path inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(getRunnerProjectSettings(),
-                snippet);
-        Path resultXmlFile = RunnerProjectUtils.getSnippetResultFile(getRunnerProjectSettings(),
-                snippet);
+        SnippetInputsXml inputsXml = runnerProject.snippet(snippet).readInputsXml();
+        SnippetResultXml resultXml = runnerProject.snippet(snippet).readResultXml();
+        SnippetInfoXml infoXml = runnerProject.snippet(snippet).readInfoXml();
 
-        Serializer serializer = new Persister(new AnnotationStrategy());
-        SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class,
-                inputsXmlFile.toFile());
-        inputsXml.validate();
-
-        SnippetResultXml resultXml = serializer.read(SnippetResultXml.class,
-                resultXmlFile.toFile());
-        resultXml.validate();
-
-        // example: Elapsed time: 2002 ms
         String elapsedTime;
-        if (PathUtils.exists(infoFile)) {
-            elapsedTime = PathUtils.lines(infoFile)
-                    .filter(line -> !StringUtils.isBlank(line)
-                            && line.trim().startsWith("Elapsed time:"))
-                    .map(line -> line.replaceAll("Elapsed time:", "").trim()).findAny().get()
-                    .replaceAll("ms", "").trim();
+        if (infoXml != null) {
+            elapsedTime = String.valueOf(infoXml.getElapsedTimeInMs());
         } else {
             elapsedTime = "";
         }
@@ -151,11 +131,10 @@ public final class CsvGenerator extends EvaluationTaskBase<Tool> {
         fields.add(snippetShortName.split("_")[0]); // category
         fields.add(snippetShortName); // snippet
         fields.add(tool.getName()); // tool
-        fields.add(StringUtils.defaultIfEmpty(resultXml.getAchievedCoverage(), "").replace('%', ' ')
-                .trim()); // coverage
+        fields.add(DoublePercentConverter.toPercent(resultXml.getAchievedCoverage()));// coverage
         fields.add(resultXml.getResultType().toString()); // Status = ResultType
         fields.add(testCaseCount); // Size = TestCaseCount
-        fields.add(getRunnerProjectSettings().getTag()); // Run = TAG
+        fields.add(runnerProject.getTag()); // Run = TAG
         fields.add(elapsedTime); // Duration: 43243 ms
 
         if (tool.getName().startsWith("SnippetInputChecker")) {

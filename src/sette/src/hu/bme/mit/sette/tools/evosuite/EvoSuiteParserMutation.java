@@ -42,10 +42,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.convert.AnnotationStrategy;
-import org.simpleframework.xml.core.Persister;
-
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -55,24 +51,23 @@ import com.github.javaparser.ast.stmt.TryStmt;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tasks.EvaluationTaskBase;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.util.EscapeSpecialCharactersVisitor;
 import hu.bme.mit.sette.core.util.io.PathUtils;
+import hu.bme.mit.sette.core.util.xml.XmlUtils;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
 public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
-    public EvoSuiteParserMutation(SnippetProject snippetProject, Path outputDir, EvoSuiteTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public EvoSuiteParserMutation(RunnerProject runnerProject, EvoSuiteTool tool) {
+        super(runnerProject, tool);
     }
 
     public void parse() throws Exception {
@@ -80,14 +75,10 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
 
         for (SnippetContainer snippetContainer : getSnippetProject().getSnippetContainers()) {
             for (Snippet snippet : snippetContainer.getSnippets().values()) {
-                Path inputsXmlFile = RunnerProjectUtils.getSnippetInputsFile(
-                        getRunnerProjectSettings(),
-                        snippet);
+                Path inputsXmlFile = runnerProject.snippet(snippet).getInputsXmlFile();
 
-                Serializer serializer = new Persister(new AnnotationStrategy());
-                SnippetInputsXml inputsXml = serializer.read(SnippetInputsXml.class,
-                        inputsXmlFile.toFile());
-                inputsXml.validate();
+                SnippetInputsXml inputsXml = XmlUtils.deserializeFromXml(SnippetInputsXml.class,
+                        inputsXmlFile);
 
                 if (inputsXml.getResultType() == ResultType.NA
                         || inputsXml.getResultType() == ResultType.EX
@@ -102,14 +93,14 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
     }
 
     private void beforeParse() throws ValidationException {
-        Path testDir = getRunnerProjectSettings().getTestDir();
-        Path testDirBackup = getRunnerProjectSettings().getBaseDir().resolve("test-original");
+        Path testDir = runnerProject.getTestDir();
+        Path testDirBackup = runnerProject.getBaseDir().resolve("test-original");
 
         // require both test and test-original (test-mutation generated from formerly parsed tests)
         PathValidator.forDirectory(testDir, true, true, true).validate();
         PathValidator.forDirectory(testDirBackup, true, true, true).validate();
 
-        Path testDirMutation = getRunnerProjectSettings().getBaseDir().resolve("test-mutation");
+        Path testDirMutation = runnerProject.getBaseDir().resolve("test-mutation");
 
         if (PathUtils.exists(testDirMutation)) {
             PathUtils.delete(testDirMutation);
@@ -119,7 +110,7 @@ public class EvoSuiteParserMutation extends EvaluationTaskBase<EvoSuiteTool> {
 
     private void parseOne(Snippet snippet) throws Exception {
         // test files
-        Path testDirMutation = getRunnerProjectSettings().getBaseDir().resolve("test-mutation");
+        Path testDirMutation = runnerProject.getBaseDir().resolve("test-mutation");
         String classNameWithSlashes = snippet.getContainer().getJavaClass().getName()
                 .replace('.', '/');
         String snippetName = snippet.getName();

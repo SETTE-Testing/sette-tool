@@ -26,10 +26,9 @@ package hu.bme.mit.sette.tools.jpet;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectSettings;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.PathValidator;
@@ -64,30 +63,26 @@ public final class JPetTool extends Tool {
     }
 
     @Override
-    public JPetGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new JPetGenerator(snippetProject, outputDir, this, runnerProjectTag);
+    public JPetGenerator createRunnerProjectGenerator(RunnerProject runnerProject) {
+        return new JPetGenerator(runnerProject, this);
     }
 
     @Override
-    public JPetRunner createRunnerProjectRunner(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new JPetRunner(snippetProject, outputDir, this, runnerProjectTag);
+    public JPetRunner createRunnerProjectRunner(RunnerProject runnerProject) {
+        return new JPetRunner(runnerProject, this);
     }
 
-    public static Path getTestCasesDirectory(RunnerProjectSettings runnerProjectSettings) {
-        return runnerProjectSettings.getBaseDir().resolve(TESTCASES_DIRNAME);
+    public static Path getTestCasesDirectory(RunnerProject runnerProject) {
+        return runnerProject.getBaseDir().resolve(TESTCASES_DIRNAME);
     }
 
-    public static Path getTestCaseXmlFile(RunnerProjectSettings runnerProjectSettings,
-            Snippet snippet) {
-        return getTestCasesDirectory(runnerProjectSettings)
+    public static Path getTestCaseXmlFile(RunnerProject runnerProject, Snippet snippet) {
+        return getTestCasesDirectory(runnerProject)
                 .resolve(RunnerProjectUtils.getSnippetBaseFilename(snippet) + ".xml");
     }
 
     @Override
-    public JPetParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new JPetParser(snippetProject, outputDir, this, runnerProjectTag);
+    public JPetParser createRunResultParser(RunnerProject runnerProject) {
+        return new JPetParser(runnerProject, this);
     }
 }

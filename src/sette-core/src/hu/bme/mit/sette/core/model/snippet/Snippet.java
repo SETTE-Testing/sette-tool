@@ -46,7 +46,6 @@ import hu.bme.mit.sette.core.util.reflection.ExecutableComparator;
 import hu.bme.mit.sette.core.util.reflection.SetteAnnotationUtils;
 import hu.bme.mit.sette.core.validator.ClassExecutableValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
@@ -54,7 +53,6 @@ import lombok.val;
 /**
  * Represents a code snippet (which is a Java method).
  */
-@Data
 public final class Snippet implements Comparable<Snippet> {
     /**
      * The id of the snippet, which is generated from class name prefix and method name class + '_'

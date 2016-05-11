@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.convert.Convert;
@@ -30,102 +30,33 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.xml.converter.ResultTypeConverter;
+import hu.bme.mit.sette.core.util.xml.XmlElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
 
 /**
  * Base class for runner project snippet XML files.
  */
+@Data
 public abstract class SnippetBaseXml implements XmlElement {
     /** The name of the tool. */
-    @Element(name = "tool")
+    @Element
     private String toolName;
 
     /** The snippet project element. */
-    @Element(name = "snippetProject")
+    @Element
     private SnippetProjectElement snippetProjectElement;
 
     /** The snippet element. */
-    @Element(name = "snippet")
+    @Element
     private SnippetElement snippetElement;
 
     /** The result type. */
-    @Element(name = "result")
+    @Element
     @Convert(ResultTypeConverter.class)
     private ResultType resultType;
-
-    /**
-     * Instantiates a new snippet base xml.
-     */
-    public SnippetBaseXml() {
-        // default constructor is required for deserialization
-    }
-
-    /**
-     * Gets the name of the tool.
-     *
-     * @return the name of the tool
-     */
-    public final String getToolName() {
-        return toolName;
-    }
-
-    /**
-     * Sets the name of the tool.
-     *
-     * @param toolName
-     *            the new name of the tool
-     */
-    public final void setToolName(String toolName) {
-        this.toolName = toolName;
-    }
-
-    /**
-     * Gets the snippet project element.
-     *
-     * @return the snippet project element
-     */
-    public final SnippetProjectElement getSnippetProjectElement() {
-        return snippetProjectElement;
-    }
-
-    /**
-     * Sets the snippet project element.
-     *
-     * @param snippetProjectElement
-     *            the new snippet project element
-     */
-    public final void setSnippetProjectElement(SnippetProjectElement snippetProjectElement) {
-        this.snippetProjectElement = snippetProjectElement;
-    }
-
-    /**
-     * Gets the snippet element.
-     *
-     * @return the snippet element
-     */
-    public final SnippetElement getSnippetElement() {
-        return snippetElement;
-    }
-
-    /**
-     * Sets the snippet element.
-     *
-     * @param snippetElement
-     *            the new snippet element
-     */
-    public final void setSnippetElement(SnippetElement snippetElement) {
-        this.snippetElement = snippetElement;
-    }
-
-    /**
-     * Gets the result type.
-     *
-     * @return the result type
-     */
-    public final ResultType getResultType() {
-        return resultType;
-    }
 
     /**
      * Sets the result type.

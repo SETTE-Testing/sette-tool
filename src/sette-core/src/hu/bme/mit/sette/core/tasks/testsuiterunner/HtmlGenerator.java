@@ -26,10 +26,9 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-import hu.bme.mit.sette.core.model.parserxml.FileCoverageElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetCoverageXml;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.xml.FileCoverageElement;
+import hu.bme.mit.sette.core.model.xml.SnippetCoverageXml;
 import hu.bme.mit.sette.core.tasks.EvaluationTaskBase;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
@@ -45,11 +44,9 @@ public final class HtmlGenerator {
     }
 
     public void generate(Snippet snippet, SnippetCoverageXml coverageXml) {
-        Path htmlFile = RunnerProjectUtils.getSnippetHtmlFile(
-                this.testSuiteRunner.getRunnerProjectSettings(),
-                snippet);
+        Path htmlFile = testSuiteRunner.getRunnerProject().snippet(snippet).getCoverageHtmlFile();
 
-        String htmlTitle = this.testSuiteRunner.getRunnerProjectSettings().getTool().getName()
+        String htmlTitle = this.testSuiteRunner.getTool().getName()
                 + " - " + snippet.getContainer().getJavaClass().getName() + '.'
                 + snippet.getMethod().getName() + "()";
         StringBuilder htmlData = new StringBuilder();

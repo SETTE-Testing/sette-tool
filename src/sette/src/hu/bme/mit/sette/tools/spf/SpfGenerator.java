@@ -34,16 +34,15 @@ import com.google.common.primitives.Primitives;
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.descriptors.java.JavaFileWithMainBuilder;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class SpfGenerator extends RunnerProjectGeneratorBase<SpfTool> {
-    public SpfGenerator(SnippetProject snippetProject, Path outputDir, SpfTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public SpfGenerator(RunnerProject runnerProject, SpfTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
@@ -55,7 +54,7 @@ public class SpfGenerator extends RunnerProjectGeneratorBase<SpfTool> {
     protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
         createGeneratedFiles();
 
-        Path buildXml = getRunnerProjectSettings().getBaseDir().resolve("build.xml");
+        Path buildXml = runnerProject.getBaseDir().resolve("build.xml");
         PathUtils.copy(tool.getDefaultBuildXml(), buildXml);
     }
 
@@ -121,12 +120,12 @@ public class SpfGenerator extends RunnerProjectGeneratorBase<SpfTool> {
                 String relativePathJPF = relativePath + ".jpf";
                 String relativePathMain = relativePath + ".java";
 
-                Path targetJPFFile = getRunnerProjectSettings().getGeneratedDir()
+                Path targetJPFFile = runnerProject.getGeneratedDir()
                         .resolve(relativePathJPF);
                 PathUtils.createDir(targetJPFFile.getParent());
                 PathUtils.write(targetJPFFile, jpfConfig.generate().toString().getBytes());
 
-                Path targetMainFile = getRunnerProjectSettings().getGeneratedDir()
+                Path targetMainFile = runnerProject.getGeneratedDir()
                         .resolve(relativePathMain);
                 PathUtils.createDir(targetMainFile.getParent());
                 PathUtils.write(targetMainFile, main.build());

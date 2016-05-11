@@ -369,7 +369,7 @@ final class TestSuiteRunnerHelper {
             // System.out.println("ToCover: " + linesToCover);
             // System.out.println("Coverage: " + coverage);
             // System.out.println("ReqCoverage: " + snippet.getRequiredStatementCoverage());
-            // File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(getRunnerProjectSettings(),
+            // File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(runnerProject,
             // snippet);
             // System.out.println("file:///" + htmlFile.getAbsolutePath().replace('\\', '/'));
             // System.out.println("=============================================================");
@@ -415,6 +415,7 @@ final class TestSuiteRunnerHelper {
             String testClassName) {
         List<Class<?>> testClasses = new ArrayList<>();
 
+        System.out.println(testClassName);
         Class<?> testClass = classLoader.tryLoadClass(testClassName);
 
         if (testClass != null) {

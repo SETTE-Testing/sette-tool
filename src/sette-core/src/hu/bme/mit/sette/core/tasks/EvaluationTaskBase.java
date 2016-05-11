@@ -23,11 +23,12 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
-import java.nio.file.Path;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectSettings;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
@@ -43,11 +44,11 @@ import lombok.NonNull;
 public abstract class EvaluationTaskBase<T extends Tool> implements EvaluationTask {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected T tool;
+    protected final T tool;
 
-    /** The snippet project. */
+    /** The runner project. */
     @Getter
-    private final SnippetProject snippetProject;
+    protected final RunnerProject runnerProject;
 
     /** The runner project settings. */
     @Getter
@@ -56,26 +57,29 @@ public abstract class EvaluationTaskBase<T extends Tool> implements EvaluationTa
     /**
      * Instantiates a new SETTE task.
      *
-     * @param snippetProject
-     *            the snippet project
-     * @param outputDir
-     *            the output directory
+     * @param runnerProject
+     *            the runner project
      * @param tool
      *            the tool
-     * @param runnerProjectTag
-     *            tag for the runner project
      */
-    public EvaluationTaskBase(@NonNull SnippetProject snippetProject,
-            @NonNull Path outputDir,
-            @NonNull T tool,
-            @NonNull String runnerProjectTag) {
+    public EvaluationTaskBase(@NonNull RunnerProject runnerProject, @NonNull T tool) {
+        checkArgument(runnerProject.getToolName().equals(tool.getName()));
+
         log.info(
-                "Instantiated {} (snippet project: {}, output dir: {}, tool: {}, runner project tag: {}",
-                getClass().getSimpleName(), snippetProject.getBaseDir(), outputDir, tool.getName(),
-                runnerProjectTag);
+                "Instantiated {} with {} and {}", getClass().getSimpleName(), runnerProject, tool);
+        this.runnerProject = runnerProject;
         this.tool = tool;
-        this.snippetProject = snippetProject;
-        this.runnerProjectSettings = new RunnerProjectSettings(snippetProject, outputDir, tool,
-                runnerProjectTag);
+        this.runnerProjectSettings = new RunnerProjectSettings(runnerProject.getSnippetProject(),
+                runnerProject.getBaseDir().getParent(), tool, runnerProject.getTag());
+    }
+
+    @Override
+    public SnippetProject getSnippetProject() {
+        return runnerProject.getSnippetProject();
+    }
+
+    @Override
+    public Tool getTool() {
+        return tool;
     }
 }

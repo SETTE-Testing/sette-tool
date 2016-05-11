@@ -42,6 +42,7 @@ import lombok.NonNull;
  * @param <T>
  *            The type of the tool.
  */
+@Deprecated
 public final class RunnerProjectSettings {
     /** Name of the directory containing the compiled files of the runner project. */
     public static final String BINARY_DIRNAME = "build";

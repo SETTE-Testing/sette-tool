@@ -48,7 +48,7 @@ public final class Model {
     @Getter
     private final ImmutableSortedSet<Tool> tools;
     @Getter
-    private final ImmutableSortedSet<RunnerProject<Tool>> runnerProjects;
+    private final ImmutableSortedSet<RunnerProject> runnerProjects;
 
     private Model() throws Exception {// TODO be more specific on exception
         LOG.info("Loading Runner Project Browser model");
@@ -80,12 +80,12 @@ public final class Model {
         tools = ImmutableSortedSet.copyOf(toolsIt);
 
         // find runner projects
-        Iterator<RunnerProject<Tool>> runnerProjIt = Files.list(configuration.getOutputDir())
+        Iterator<RunnerProject> runnerProjIt = Files.list(configuration.getOutputDir())
                 .filter(Files::isDirectory)
                 .filter(dir -> !dir.getFileName().toString().startsWith("."))
                 .map(dir -> {
                     try {
-                        return RunnerProject.parse(snippetProjects, tools, dir);
+                        return RunnerProject.parse(snippetProjects, dir);
                     } catch (Exception ex) {
                         LOG.info(ex.getMessage());
                         return null;

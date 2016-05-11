@@ -45,10 +45,10 @@ import com.google.common.io.Resources;
 import hu.bme.mit.sette.common.snippets.SnippetInputContainer;
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
 import hu.bme.mit.sette.core.model.snippet.SnippetInputFactoryContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
@@ -58,9 +58,8 @@ public final class SnippetInputCheckerRunner
     private final String testTemplate;
     private final ExecutorService executor;
 
-    public SnippetInputCheckerRunner(SnippetProject snippetProject, Path outputDir,
-            SnippetInputCheckerTool tool, String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public SnippetInputCheckerRunner(RunnerProject runnerProject, SnippetInputCheckerTool tool) {
+        super(runnerProject, tool);
         executor = Executors.newFixedThreadPool(16);
 
         String templateFilename = "snippet-input-checker-test-case.template";
@@ -81,15 +80,14 @@ public final class SnippetInputCheckerRunner
     @Override
     protected void afterPrepare() {
         // ant build
-        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
+        AntExecutor.executeAnt(runnerProject.getBaseDir(), null);
 
         // delete test dir if exists
-        PathUtils.deleteIfExists(getRunnerProjectSettings().getTestDir());
+        PathUtils.deleteIfExists(runnerProject.getTestDir());
     }
 
     @Override
-    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
-            throws SetteConfigurationException {
+    protected void runOne(Snippet snippet) throws SetteConfigurationException {
         if (snippet.getContainer().getInputFactoryContainer() == null) {
             // no inputs => N/A
             return;
@@ -107,7 +105,7 @@ public final class SnippetInputCheckerRunner
                     command = Arrays.asList("/bin/bash", "-c", "echo");
                 }
 
-                executeToolProcess(command, infoFile, outputFile, errorFile);
+                executeToolProcess(snippet, command);
                 return null;
             }
         });
@@ -115,7 +113,7 @@ public final class SnippetInputCheckerRunner
         // generate and save test cases
         String testSource = generateTestSource(snippet);
 
-        Path target = getRunnerProjectSettings().getTestDir()
+        Path target = runnerProject.getTestDir()
                 .resolve(snippet.getContainer().getJavaClass().getName().replace('.', '/')
                         + "_" + snippet.getName() + "_Test.java");
         PathUtils.write(target, testSource.getBytes());

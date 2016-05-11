@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -33,6 +33,8 @@ import com.google.common.base.Strings;
 
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents an XML <code>&lt;parameter></code> which represents a parameter for an input. The
@@ -55,9 +57,11 @@ import hu.bme.mit.sette.core.validator.Validator;
  * </code>
  * </pre>
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 public final class ParameterElement extends AbstractParameterElement {
     /** The value of the parameter. */
-    @Element(name = "value", data = true)
+    @Element(data = true)
     private String value;
 
     /**
@@ -79,15 +83,6 @@ public final class ParameterElement extends AbstractParameterElement {
     public ParameterElement(ParameterType type, String value) {
         super(type);
         setValue(value);
-    }
-
-    /**
-     * Gets the value of the parameter.
-     *
-     * @return the value of the parameter
-     */
-    public String getValue() {
-        return value;
     }
 
     /**

@@ -32,12 +32,12 @@ import hu.bme.mit.sette.core.tasks.RunResultParser;
 public final class ParserUI implements BaseUI {
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        RunResultParser parser = context.getTool().createRunResultParser(
-                context.getSnippetProject(), context.getOutputDir(), context.getRunnerProjectTag());
+        RunResultParser parser = context.getTool()
+                .createRunResultParser(context.getRunnerProject());
 
         // directories
         Path snippetProjectDir = parser.getSnippetProject().getBaseDir();
-        Path runnerProjectDir = parser.getRunnerProjectSettings().getBaseDir();
+        Path runnerProjectDir = parser.getRunnerProject().getBaseDir();
 
         context.getOutput().println("Snippet project: " + snippetProjectDir);
         context.getOutput().println("Runner project: " + runnerProjectDir);

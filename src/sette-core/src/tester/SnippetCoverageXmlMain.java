@@ -30,11 +30,11 @@ import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.stream.Format;
 
-import hu.bme.mit.sette.core.model.parserxml.FileCoverageElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetCoverageXml;
-import hu.bme.mit.sette.core.model.parserxml.SnippetElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetProjectElement;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.xml.FileCoverageElement;
+import hu.bme.mit.sette.core.model.xml.SnippetCoverageXml;
+import hu.bme.mit.sette.core.model.xml.SnippetElement;
+import hu.bme.mit.sette.core.model.xml.SnippetProjectElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
 public final class SnippetCoverageXmlMain {
@@ -72,9 +72,10 @@ public final class SnippetCoverageXmlMain {
             throw new RuntimeException(ex);
         }
 
+        StringWriter s = new StringWriter();
+
         Serializer serializer = new Persister(new AnnotationStrategy(),
                 new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-        StringWriter s = new StringWriter();
 
         try {
             serializer.write(snippetCoverageXml, s);
@@ -85,7 +86,8 @@ public final class SnippetCoverageXmlMain {
 
         System.out.println(s);
 
-        snippetCoverageXml = serializer.read(SnippetCoverageXml.class, s.getBuffer().toString());
+        serializer.read(SnippetCoverageXml.class,
+                s.getBuffer().toString());
         s = new StringWriter();
 
         serializer.write(snippetCoverageXml, s);

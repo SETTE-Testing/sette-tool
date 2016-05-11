@@ -26,7 +26,7 @@ package hu.bme.mit.sette.tools.randoop;
 import java.nio.file.Path;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
 import hu.bme.mit.sette.core.validator.PathValidator;
@@ -60,20 +60,17 @@ public final class RandoopTool extends Tool {
     }
 
     @Override
-    public RandoopGenerator createRunnerProjectGenerator(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new RandoopGenerator(snippetProject, outputDir, this, runnerProjectTag);
+    public RandoopGenerator createRunnerProjectGenerator(RunnerProject runnerProject) {
+        return new RandoopGenerator(runnerProject, this);
     }
 
     @Override
-    public RandoopRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag) {
-        return new RandoopRunner(snippetProject, outputDir, this, runnerProjectTag);
+    public RandoopRunner createRunnerProjectRunner(RunnerProject runnerProject) {
+        return new RandoopRunner(runnerProject, this);
     }
 
     @Override
-    public RandoopParser createRunResultParser(SnippetProject snippetProject, Path outputDir,
-            String runnerProjectTag) {
-        return new RandoopParser(snippetProject, outputDir, this, runnerProjectTag);
+    public RandoopParser createRunResultParser(RunnerProject runnerProject) {
+        return new RandoopParser(runnerProject, this);
     }
 }

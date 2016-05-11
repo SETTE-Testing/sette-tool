@@ -181,7 +181,7 @@ public final class TestSuiteRunner2Helper {
             // System.out.println("ToCover: " + linesToCover);
             // System.out.println("Coverage: " + coverage);
             // System.out.println("ReqCoverage: " + snippet.getRequiredStatementCoverage());
-            // File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(getRunnerProjectSettings(),
+            // File htmlFile = RunnerProjectUtils.getSnippetHtmlFile(runnerProject,
             // snippet);
             // System.out.println("file:///" + htmlFile.getAbsolutePath().replace('\\', '/'));
             // System.out.println("=============================================================");

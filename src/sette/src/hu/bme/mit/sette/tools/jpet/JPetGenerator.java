@@ -27,19 +27,18 @@ import java.nio.file.Path;
 
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGeneratorBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 
 public class JPetGenerator extends RunnerProjectGeneratorBase<JPetTool> {
-    public JPetGenerator(SnippetProject snippetProject, Path outputDir, JPetTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public JPetGenerator(RunnerProject runnerProject, JPetTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
     protected void afterWriteRunnerProject(EclipseProject eclipseProject) throws SetteException {
-        Path buildXml = getRunnerProjectSettings().getBaseDir().resolve("build.xml");
+        Path buildXml = runnerProject.getBaseDir().resolve("build.xml");
         PathUtils.copy(tool.getDefaultBuildXml(), buildXml);
     }
 }

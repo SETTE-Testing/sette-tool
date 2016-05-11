@@ -30,14 +30,14 @@ import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.stream.Format;
 
-import hu.bme.mit.sette.core.model.parserxml.ArrayParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.InputElement;
-import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.core.model.parserxml.SnippetProjectElement;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.xml.ArrayParameterElement;
+import hu.bme.mit.sette.core.model.xml.InputElement;
+import hu.bme.mit.sette.core.model.xml.ParameterElement;
+import hu.bme.mit.sette.core.model.xml.SnippetElement;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.xml.SnippetProjectElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
 public final class SnippetInputsXmlMain {

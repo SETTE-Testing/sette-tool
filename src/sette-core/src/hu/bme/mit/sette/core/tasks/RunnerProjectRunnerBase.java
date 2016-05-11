@@ -36,16 +36,20 @@ import java.util.regex.Pattern;
 import hu.bme.mit.sette.core.SetteException;
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.exceptions.RunnerProjectRunnerException;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInfoXml;
 import hu.bme.mit.sette.core.random.SplitterOutputStream;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.util.process.ProcessExecutionResult;
 import hu.bme.mit.sette.core.util.process.ProcessExecutor;
 import hu.bme.mit.sette.core.util.process.ProcessExecutorListener;
+import hu.bme.mit.sette.core.util.xml.XmlException;
+import hu.bme.mit.sette.core.validator.PathValidator;
+import hu.bme.mit.sette.core.validator.ValidationException;
+import hu.bme.mit.sette.core.validator.Validator;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -73,19 +77,8 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
     @Setter
     private Pattern snippetSelector = null;
 
-    /**
-     * Instantiates a new runner project runner.
-     *
-     * @param snippetProject
-     *            the snippet project
-     * @param outputDir
-     *            the output directory
-     * @param tool
-     *            the tool
-     */
-    public RunnerProjectRunnerBase(SnippetProject snippetProject, Path outputDir, T tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public RunnerProjectRunnerBase(RunnerProject runnerProject, T tool) {
+        super(runnerProject, tool);
         this.timeoutInMs = RunnerProjectRunnerBase.DEFAULT_TIMEOUT;
     }
 
@@ -117,7 +110,7 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
             afterPrepare();
 
             // create logger
-            Path runnerLogFile = RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings());
+            Path runnerLogFile = runnerProject.getRunnerLogFile();
 
             if (loggerStream != null) {
                 loggerStream.println("Log file: " + runnerLogFile);
@@ -165,7 +158,7 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
     private void validate() throws SetteConfigurationException {
         // TODO currently snippet project validation can fail even if it is
         // valid getSnippetProjectSettings().validateExists();
-        getRunnerProjectSettings().validateExists();
+        runnerProject.validateExists();
     }
 
     /**
@@ -173,13 +166,13 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
      */
     private void prepare() {
         // delete previous outputs
-        if (exists(getRunnerProjectSettings().getRunnerOutputDir())) {
-            Path dir = getRunnerProjectSettings().getRunnerOutputDir();
+        if (exists(runnerProject.getRunnerOutputDir())) {
+            Path dir = runnerProject.getRunnerOutputDir();
             PathUtils.delete(dir);
         }
 
         // create output directory
-        PathUtils.createDir(getRunnerProjectSettings().getRunnerOutputDir());
+        PathUtils.createDir(runnerProject.getRunnerOutputDir());
     }
 
     @FunctionalInterface
@@ -199,7 +192,7 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
         // foreach snippets
         for (Snippet snippet : getSnippetProject().getSnippets(snippetSelector)) {
             SnippetContainer container = snippet.getContainer();
-            
+
             // skip container with higher java version than supported
             if (!tool.supportsJavaVersion(container.getRequiredJavaVersion())) {
                 // TODO error/warning handling
@@ -219,20 +212,11 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
                 continue;
             }
 
-            String filenameBase = getFilenameBase(snippet);
-
-            Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
-                    snippet);
-            Path outputFile = RunnerProjectUtils
-                    .getSnippetOutputFile(getRunnerProjectSettings(), snippet);
-            Path errorFile = RunnerProjectUtils.getSnippetErrorFile(getRunnerProjectSettings(),
-                    snippet);
-
             try {
                 String timestamp = dateFormat.format(new Date());
                 runnerLoggerOut
-                        .println("[" + timestamp + "] Running for snippet: " + filenameBase);
-                this.runOne(snippet, infoFile, outputFile, errorFile);
+                        .println("[" + timestamp + "] Running for snippet: " + snippet.getId());
+                this.runOne(snippet);
                 this.cleanUp();
             } catch (Exception ex) {
                 runnerLoggerOut.println("Exception: " + ex.getMessage());
@@ -276,32 +260,27 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
      *
      * @param snippet
      *            the snippet
-     * @param infoFile
-     *            the info file for the snippet
-     * @param outputFile
-     *            the output file for the snippet
-     * @param errorFile
-     *            the error file for the snippet
      * @throws SetteException
      *             if a SETTE problem occurred
      */
-    protected abstract void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
-            throws SetteException;
+    protected abstract void runOne(Snippet snippet) throws SetteException;
 
     protected static final String getFilenameBase(Snippet snippet) {
         return snippet.getContainer().getJavaClass().getName().replace('.', '/') + "_"
                 + snippet.getMethod().getName();
     }
 
-    protected final void executeToolProcess(List<String> command, Path infoFile, Path outputFile,
-            Path errorFile) {
-        PathUtils.createDir(infoFile.getParent());
+    protected final void executeToolProcess(Snippet snippet, List<String> command) {
+        Path outputFile = runnerProject.snippet(snippet).getOutputFile();
+        Path errorOutputFile = runnerProject.snippet(snippet).getErrorOutputFile();
 
-        Path workingDirectory = getRunnerProjectSettings().getBaseDir();
+        PathUtils.createDir(outputFile.getParent());
+
+        Path workingDirectory = runnerProject.getBaseDir();
 
         ProcessBuilder pb = new ProcessBuilder(command).directory(workingDirectory.toFile());
         pb.redirectOutput(outputFile.toFile());
-        pb.redirectError(errorFile.toFile());
+        pb.redirectError(errorOutputFile.toFile());
 
         try {
             ProcessExecutor pe = new ProcessExecutor(pb,
@@ -310,23 +289,18 @@ public abstract class RunnerProjectRunnerBase<T extends Tool> extends Evaluation
                 @Override
                 public void onComplete(ProcessExecutionResult result) {
                     // save info
-                    StringBuffer infoData = new StringBuffer();
+                    SnippetInfoXml infoXml = new SnippetInfoXml();
+                    infoXml.setWorkingDirectory(workingDirectory);
+                    infoXml.setCommand(command);
+                    infoXml.setExitValue(result.getExitValue());
+                    infoXml.setDestroyed(result.isDestroyed());
+                    infoXml.setElapsedTimeInMs(result.getElapsedTimeInMs());
 
-                    infoData.append("Command: ").append(command).append('\n');
-                    infoData.append("Exit value: ").append(result.getExitValue()).append('\n');
-
-                    infoData.append("Destroyed: ");
-                    if (result.isDestroyed()) {
-                        infoData.append("yes");
-                    } else {
-                        infoData.append("no");
+                    try {
+                        runnerProject.snippet(snippet).writeInfoXml(infoXml);
+                    } catch (XmlException ex) {
+                        throw new RuntimeException(ex);
                     }
-                    infoData.append('\n');
-
-                    infoData.append("Elapsed time: ").append(result.getElapsedTimeInMs())
-                            .append(" ms\n");
-
-                    PathUtils.write(infoFile, infoData.toString().getBytes());
                 }
             });
         } catch (Exception ex) {

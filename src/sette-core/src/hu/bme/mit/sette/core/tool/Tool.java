@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 import hu.bme.mit.sette.common.snippets.JavaVersion;
 import hu.bme.mit.sette.core.configuration.SetteToolConfiguration;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tasks.RunResultParser;
 import hu.bme.mit.sette.core.tasks.RunnerProjectGenerator;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunner;
@@ -155,40 +155,30 @@ public abstract class Tool implements Comparable<Tool> {
     /**
      * Creates a runner project generator.
      *
-     * @param snippetProject
-     *            the snippet project
-     * @param outputDir
-     *            the output directory
+     * @param runnerProject
+     *            the runner project
      * @return the runner project generator
      */
     public abstract RunnerProjectGenerator createRunnerProjectGenerator(
-            SnippetProject snippetProject, Path outputDir, String runnerProjectTag);
+            RunnerProject runnerProject);
 
     /**
      * Creates a runner project runner.
      *
-     * @param snippetProject
-     *            the snippet project
-     * @param outputDir
-     *            the output directory
+     * @param runnerProject
+     *            the runner project
      * @return the runner project runner
      */
-    public abstract RunnerProjectRunner createRunnerProjectRunner(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag);
+    public abstract RunnerProjectRunner createRunnerProjectRunner(RunnerProject runnerProject);
 
     /**
      * Creates a run result parser.
-     *
-     * @param snippetProject
-     *            the snippet project
-     * @param outputDir
-     *            the output directory
-     * @param runnerProjectTag
-     *            the tag of the runner project
+     * 
+     * @param runnerProject
+     *            the runner project
      * @return the run result parser
      */
-    public abstract RunResultParser createRunResultParser(SnippetProject snippetProject,
-            Path outputDir, String runnerProjectTag);
+    public abstract RunResultParser createRunResultParser(RunnerProject runnerProject);
 
     @Override
     public final int compareTo(@NonNull Tool o) { // NOSONAR: default equals() and hashCode()

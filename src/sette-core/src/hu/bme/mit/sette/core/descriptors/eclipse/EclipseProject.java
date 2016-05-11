@@ -26,9 +26,9 @@ import java.nio.file.Path;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import hu.bme.mit.sette.core.exceptions.XmlException;
-import hu.bme.mit.sette.core.random.XmlUtils;
 import hu.bme.mit.sette.core.util.io.PathUtils;
+import hu.bme.mit.sette.core.util.xml.XmlException;
+import hu.bme.mit.sette.core.util.xml.XmlUtils;
 import hu.bme.mit.sette.core.validator.PathValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import lombok.Getter;

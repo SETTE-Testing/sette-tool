@@ -30,12 +30,12 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import hu.bme.mit.sette.core.model.parserxml.AbstractParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.InputElement;
-import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
+import hu.bme.mit.sette.core.model.xml.AbstractParameterElement;
+import hu.bme.mit.sette.core.model.xml.InputElement;
+import hu.bme.mit.sette.core.model.xml.ParameterElement;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.tools.jpet.JPetTypeConverter;
 import hu.bme.mit.sette.tools.jpet.xmlparser.HeapElement.HeapArray;

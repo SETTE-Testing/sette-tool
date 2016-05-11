@@ -23,51 +23,40 @@
 // NOTE revise this file
 package hu.bme.mit.sette.core.tasks;
 
+import static com.google.common.base.Preconditions.checkState;
 import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
 
 import java.lang.reflect.Parameter;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.Validate;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.convert.AnnotationStrategy;
-import org.simpleframework.xml.core.Persister;
-import org.simpleframework.xml.stream.Format;
 
 import com.google.common.primitives.Primitives;
 
 import hu.bme.mit.sette.core.exceptions.RunResultParserException;
-import hu.bme.mit.sette.core.model.parserxml.InputElement;
-import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
-import hu.bme.mit.sette.core.model.parserxml.SnippetProjectElement;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectSettings;
-import hu.bme.mit.sette.core.model.runner.RunnerProjectUtils;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
 import hu.bme.mit.sette.core.model.snippet.SnippetContainer;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.InputElement;
+import hu.bme.mit.sette.core.model.xml.ParameterElement;
+import hu.bme.mit.sette.core.model.xml.SnippetElement;
+import hu.bme.mit.sette.core.model.xml.SnippetInfoXml;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
+import hu.bme.mit.sette.core.model.xml.SnippetProjectElement;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.tool.ToolOutputType;
-import hu.bme.mit.sette.core.util.io.PathUtils;
-import hu.bme.mit.sette.core.validator.PathType;
-import hu.bme.mit.sette.core.validator.PathValidator;
 
 public abstract class RunResultParserBase<T extends Tool> extends EvaluationTaskBase<T>
         implements RunResultParser {
-    public RunResultParserBase(SnippetProject snippetProject, Path outputDir, T tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public RunResultParserBase(RunnerProject runnerProject, T tool) {
+        super(runnerProject, tool);
     }
 
     @Override
     public final void parse() throws Exception {
-        if (!exists(RunnerProjectUtils.getRunnerLogFile(getRunnerProjectSettings()))) {
-            throw new RunResultParserException("Run the tool on the runner project first");
+        if (!exists(runnerProject.getRunnerLogFile())) {
+            throw new RunResultParserException(
+                    "Run the tool on the runner project first (missing log file)");
         }
 
         beforeParse();
@@ -97,58 +86,26 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
                                     snippet.getMethod().getName()));
                     inputsXml.setResultType(ResultType.NA);
                     inputsXml.validate();
-
-                    Path inputsXmlFile = RunnerProjectUtils
-                            .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
-
-                    PathUtils.createDir(inputsXmlFile.getParent());
-
-                    PathUtils.deleteIfExists(inputsXmlFile);
-
-                    Serializer serializer = new Persister(new AnnotationStrategy(),
-                            new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-                    serializer.write(inputsXml, inputsXmlFile.toFile());
+                    runnerProject.snippet(snippet).writeInputsXml(inputsXml);
                     continue;
                 }
 
                 SnippetInputsXml inputsXml = parseSnippet(snippet);
-                // TODO further validation
-                inputsXml.validate();
-
-                Path inputsXmlFile = RunnerProjectUtils
-                        .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
-
-                PathUtils.createDir(inputsXmlFile.getParent());
-
-                PathUtils.deleteIfExists(inputsXmlFile);
-
-                Serializer serializer = new Persister(new AnnotationStrategy(),
-                        new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-                serializer.write(inputsXml, inputsXmlFile.toFile());
+                runnerProject.snippet(snippet).writeInputsXml(inputsXml);
             }
         }
 
         afterParse();
 
         // NOTE check whether all inputs and info files are created
-        // foreach containers
-        for (SnippetContainer container : getSnippetProject().getSnippetContainers()) {
-            // foreach snippets
-            for (Snippet snippet : container.getSnippets().values()) {
-                Path inputsXmlFile = RunnerProjectUtils
-                        .getSnippetInputsFile(getRunnerProjectSettings(), snippet);
-                Path infoFile = RunnerProjectUtils.getSnippetInfoFile(getRunnerProjectSettings(),
-                        snippet);
+        for (Snippet snippet : getSnippetProject().getSnippets()) {
+            SnippetInfoXml infoXml = runnerProject.snippet(snippet).readInfoXml();
+            SnippetInputsXml inputsXml = runnerProject.snippet(snippet).readInputsXml();
 
-                new PathValidator(inputsXmlFile).type(PathType.REGULAR_FILE).validate();
-                if (!PathUtils.exists(infoFile)) {
-                    SnippetInputsXml inputsXml = new Persister(new AnnotationStrategy())
-                            .read(SnippetInputsXml.class, inputsXmlFile.toFile());
-
-                    Validate.isTrue(inputsXml.getResultType() == ResultType.NA,
-                            "If there is no .info file, the result must be N/A: " + inputsXmlFile);
-
-                }
+            checkState(inputsXml != null, "Missing info XML for %s", snippet.getId());
+            if (infoXml == null) {
+                checkState(inputsXml.getResultType() == ResultType.NA,
+                        "If there is no .info file, the result must be N/A: %s", snippet.getId());
             }
         }
     }
@@ -166,20 +123,16 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
         inputsXml.setSnippetElement(new SnippetElement(
                 snippet.getContainer().getJavaClass().getName(), snippet.getMethod().getName()));
 
-        SnippetOutFiles outFiles = new SnippetOutFiles(snippet, getRunnerProjectSettings());
+        SnippetInfoXml infoXml = runnerProject.snippet(snippet).readInfoXml();
 
         // detect N/A and T/M
-        if (!PathUtils.exists(outFiles.infoFile)) {
+        if (infoXml == null) {
             inputsXml.setResultType(ResultType.NA);
+        } else if (infoXml.isDestroyed()) {
+            inputsXml.setResultType(ResultType.TM);
         } else {
-            if (PathUtils.lines(outFiles.infoFile).anyMatch(s -> s.startsWith("Destroyed: yes"))) {
-                inputsXml.setResultType(ResultType.TM);
-            }
-        }
-
-        // if not detected, parse
-        if (inputsXml.getResultType() == null) {
-            parseSnippet(snippet, outFiles, inputsXml);
+            // if not detected, parse
+            parseSnippet(snippet, inputsXml);
 
             if (inputsXml.getResultType() == null) {
                 throw new RuntimeException("Result type must be set at this point");
@@ -214,33 +167,6 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
         }
 
         return inputsXml;
-    }
-
-    public static final class SnippetOutFiles {
-        public final Path infoFile;
-        public final Path outputFile;
-        public final Path errorOutputFile;
-
-        public SnippetOutFiles(Snippet snippet, RunnerProjectSettings runnerProjectSettings) {
-            infoFile = RunnerProjectUtils.getSnippetInfoFile(runnerProjectSettings,
-                    snippet);
-            outputFile = RunnerProjectUtils.getSnippetOutputFile(runnerProjectSettings,
-                    snippet);
-            errorOutputFile = RunnerProjectUtils.getSnippetErrorFile(runnerProjectSettings,
-                    snippet);
-        }
-
-        public List<String> readInfoLines() {
-            return PathUtils.readAllLinesOrEmpty(infoFile);
-        }
-
-        public List<String> readOutputLines() {
-            return PathUtils.readAllLinesOrEmpty(outputFile);
-        }
-
-        public List<String> readErrorOutputLines() {
-            return PathUtils.readAllLinesOrEmpty(errorOutputFile);
-        }
     }
 
     // TODO visibility or refactor to other place
@@ -321,8 +247,8 @@ public abstract class RunResultParserBase<T extends Tool> extends EvaluationTask
         }
     }
 
-    protected abstract void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
-            SnippetInputsXml inputsXml) throws Exception;
+    protected abstract void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml)
+            throws Exception;
 
     protected void beforeParse() {
         // can be overridden by the children

@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -34,27 +34,30 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
+import hu.bme.mit.sette.core.util.xml.XmlElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
 
 /**
  * Represents a file coverage element.
  */
-public class FileCoverageElement implements XmlElement {
+@Data
+public final class FileCoverageElement implements XmlElement {
     /** The name. */
-    @Element(name = "name", data = true)
+    @Element(data = true)
     private String name;
 
     /** The fully covered lines. */
-    @Element(name = "fullyCoveredLines", data = true)
+    @Element(data = true)
     private String fullyCoveredLines;
 
     /** The partially covered lines. */
-    @Element(name = "partiallyCoveredLines", data = true)
+    @Element(data = true)
     private String partiallyCoveredLines;
 
     /** The not covered lines. */
-    @Element(name = "notCoveredLines", data = true)
+    @Element(data = true)
     private String notCoveredLines;
 
     /**
@@ -62,82 +65,6 @@ public class FileCoverageElement implements XmlElement {
      */
     public FileCoverageElement() {
         // default constructor is required for deserialization
-    }
-
-    /**
-     * Gets the name.
-     *
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the name.
-     *
-     * @param name
-     *            the new name
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Gets the fully covered lines.
-     *
-     * @return the fully covered lines
-     */
-    public String getFullyCoveredLines() {
-        return fullyCoveredLines;
-    }
-
-    /**
-     * Sets the fully covered lines.
-     *
-     * @param fullyCoveredLines
-     *            the new fully covered lines
-     */
-    public void setFullyCoveredLines(String fullyCoveredLines) {
-        this.fullyCoveredLines = fullyCoveredLines;
-    }
-
-    /**
-     * Gets the partially covered lines.
-     *
-     * @return the partially covered lines
-     */
-    public String getPartiallyCoveredLines() {
-        return partiallyCoveredLines;
-    }
-
-    /**
-     * Sets the partially covered lines.
-     *
-     * @param partiallyCoveredLines
-     *            the new partially covered lines
-     */
-    public void setPartiallyCoveredLines(String partiallyCoveredLines) {
-        this.partiallyCoveredLines = partiallyCoveredLines;
-    }
-
-    /**
-     * Gets the not covered lines.
-     *
-     * @return the not covered lines
-     */
-    public String getNotCoveredLines() {
-        return notCoveredLines;
-    }
-
-    /**
-     * Sets the not covered lines.
-     *
-     * @param notCoveredLines
-     *            the new not covered lines
-     */
-    public void setNotCoveredLines(String notCoveredLines) {
-        this.notCoveredLines = notCoveredLines;
     }
 
     @Override

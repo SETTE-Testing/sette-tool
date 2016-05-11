@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
@@ -56,9 +57,11 @@ public final class CsvBatchGenerator {
         // generate for each
         for (Tool tool : tools) {
             for (String tag : runnerProjectTags) {
-                CsvGenerator gen = new CsvGenerator(snippetProject, outputDir, tool, tag);
+                RunnerProject runnerProject = new RunnerProject(snippetProject, outputDir,
+                        tool.getName(), tag);
+                CsvGenerator gen = new CsvGenerator(runnerProject, tool);
                 System.err.println("CsvBatchGenerator.generate for: "
-                        + gen.getRunnerProjectSettings().getProjectName());
+                        + runnerProject.getProjectName());
                 try {
                     gen.generate();
                     filesToMerge.add(gen.getCsvFile());

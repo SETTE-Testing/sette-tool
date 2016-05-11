@@ -44,6 +44,7 @@ import com.google.common.base.Function;
 import hu.bme.mit.sette.core.configuration.SetteConfiguration;
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
 import hu.bme.mit.sette.core.configuration.SetteToolConfiguration;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.CsvBatchGenerator;
 import hu.bme.mit.sette.core.tasks.CsvGenerator;
@@ -122,7 +123,7 @@ public final class SetteApplication {
             }
 
             // Determine the tool if needed
-            Tool tool = null;
+            final Tool tool;
             if (applicationTask.requiresTool()) {
                 if (toolConfiguration == null) {
                     toolConfiguration = selectToolConfiguration(
@@ -138,6 +139,7 @@ public final class SetteApplication {
                     LOG.debug(msg);
                     toolConfiguration = null;
                 }
+                tool = null;
             }
 
             // Determine the runner project tag if needed
@@ -170,14 +172,20 @@ public final class SetteApplication {
             // Execute the specified task
             //
             final SnippetProject snippetProject;
+            final RunnerProject runnerProject;
             final ExecutionContext context;
+
             if (applicationTask.requiresSnippetProject()) {
                 snippetProject = SnippetProject.parse(snippetProjectDir);
+                runnerProject = new RunnerProject(snippetProject, configuration.getOutputDir(),
+                        tool.getName(), runnerProjectTag);
+
                 context = new ExecutionContext(input, output, errorOutput,
-                        snippetProject, tool, runnerProjectTag, runnerTimeoutInMs,
-                        argParser.getSnippetSelector(), backupPolicy, configuration.getOutputDir());
+                        runnerProject, tool, runnerTimeoutInMs, argParser.getSnippetSelector(),
+                        backupPolicy);
             } else {
                 snippetProject = null;
+                runnerProject = null;
                 context = null;
             }
 
@@ -199,9 +207,8 @@ public final class SetteApplication {
 
                 case PARSER_EVOSUITE_MUTATION:
                     Objects.requireNonNull(context);
-                    new EvoSuiteParserMutation(context.getSnippetProject(), context.getOutputDir(),
-                            (EvoSuiteTool) context.getTool(), context.getRunnerProjectTag())
-                                    .parse();
+                    new EvoSuiteParserMutation(context.getRunnerProject(),
+                            (EvoSuiteTool) context.getTool()).parse();
                     break;
 
                 case TEST_GENERATOR:
@@ -209,8 +216,8 @@ public final class SetteApplication {
                     // ant
                     // build file
                     // if (tool.getOutputType() == ToolOutputType.INPUT_VALUES) {
-                    new TestSuiteGenerator(snippetProject, configuration.getOutputDir(), tool,
-                            runnerProjectTag).generate();
+                    new TestSuiteGenerator(context.getRunnerProject(), context.getTool())
+                            .generate();
                     // } else {
                     // out.println("This tool has already generated a test suite");
                     // }
@@ -228,8 +235,8 @@ public final class SetteApplication {
                     // testSuiteRunner.analyze();
                     // } else {
                     // FIXME update: manually parsed results are burned into Evo Parser for now
-                    TestSuiteRunner testSuiteRunner = new TestSuiteRunner(snippetProject,
-                            configuration.getOutputDir(), tool, runnerProjectTag);
+                    TestSuiteRunner testSuiteRunner = new TestSuiteRunner(
+                            context.getRunnerProject(), context.getTool());
                     if (context != null) {
                         testSuiteRunner.setSnippetSelector(context.getSnippetSelector());
                     }
@@ -252,8 +259,7 @@ public final class SetteApplication {
                     break;
 
                 case EXPORT_CSV:
-                    new CsvGenerator(snippetProject, configuration.getOutputDir(), tool,
-                            runnerProjectTag).generate();
+                    new CsvGenerator(context.getRunnerProject(), context.getTool()).generate();
                     break;
 
                 case EXPORT_CSV_BATCH:

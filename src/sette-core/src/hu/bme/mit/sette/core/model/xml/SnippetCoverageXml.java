@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,56 +29,31 @@ import java.util.List;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
+import org.simpleframework.xml.convert.Convert;
 
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.xml.converter.DoublePercentConverter;
+import hu.bme.mit.sette.core.util.ListUtils;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents an XML file containing the coverage information for a snippet.
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 @Root(name = "setteSnippetCoverage")
 public final class SnippetCoverageXml extends SnippetBaseXml {
     /** The achieved coverage. */
-    @Element(name = "achievedCoverage")
-    private String achievedCoverage;
+    @Element
+    @Convert(DoublePercentConverter.class)
+    private Double achievedCoverage;
 
     /** The coverage. */
-    @ElementList(name = "coverage", entry = "file", type = FileCoverageElement.class)
-    private List<FileCoverageElement> coverage;
-
-    /**
-     * Instantiates a new snippet coverage XML.
-     */
-    public SnippetCoverageXml() {
-        // default constructor is required for deserialization
-        super();
-        coverage = new ArrayList<>();
-    }
-
-    public String getAchievedCoverage() {
-        return achievedCoverage;
-    }
-
-    public void setAchievedCoverage(String achievedCoverage) {
-        this.achievedCoverage = achievedCoverage;
-    }
-
-    /**
-     * E.g.: 50.623453 -> 50.62%
-     */
-    public void setAchievedCoverage(double achievedCoverage) {
-        this.achievedCoverage = String.format("%.2f%%", achievedCoverage);
-    }
-
-    /**
-     * Gets the coverage.
-     *
-     * @return the coverage
-     */
-    public List<FileCoverageElement> getCoverage() {
-        return coverage;
-    }
+    @ElementList(entry = "file")
+    private ArrayList<FileCoverageElement> coverage = new ArrayList<>();
 
     /**
      * Sets the coverage.
@@ -87,7 +62,7 @@ public final class SnippetCoverageXml extends SnippetBaseXml {
      *            the new coverage
      */
     public void setCoverage(List<FileCoverageElement> coverage) {
-        this.coverage = coverage;
+        this.coverage = ListUtils.asArrayList(coverage);
     }
 
     @Override

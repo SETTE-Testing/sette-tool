@@ -23,8 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.jpet;
 
-import static hu.bme.mit.sette.core.util.io.PathUtils.exists;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +30,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
@@ -41,10 +39,8 @@ import hu.bme.mit.sette.core.util.process.ProcessExecutionException;
 import hu.bme.mit.sette.core.util.process.ProcessUtils;
 
 public final class JPetRunner extends RunnerProjectRunnerBase<JPetTool> {
-
-    public JPetRunner(SnippetProject snippetProject, Path outputDir, JPetTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public JPetRunner(RunnerProject runnerProject, JPetTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
@@ -55,23 +51,19 @@ public final class JPetRunner extends RunnerProjectRunnerBase<JPetTool> {
     @Override
     protected void afterPrepare() {
         // ant build
-        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
+        AntExecutor.executeAnt(runnerProject.getBaseDir(), null);
 
         // delete test cases directory
-        Path testCasesDirectory = JPetTool.getTestCasesDirectory(getRunnerProjectSettings());
-        if (exists(testCasesDirectory)) {
-            Path dir = getRunnerProjectSettings().getBaseDir().resolve(JPetTool.TESTCASES_DIRNAME);
-            PathUtils.delete(dir);
-        }
+        Path testCasesDirectory = JPetTool.getTestCasesDirectory(runnerProject);
+        PathUtils.delete(testCasesDirectory);
     }
 
     @Override
-    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
-            throws SetteConfigurationException {
+    protected void runOne(Snippet snippet) throws SetteConfigurationException {
         // TODO extract, make more clear
         Path pet = tool.getPetExecutable();
 
-        Path testCaseXml = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(), snippet);
+        Path testCaseXml = JPetTool.getTestCaseXmlFile(runnerProject, snippet);
 
         PathUtils.createDir(testCaseXml.getParent());
 
@@ -136,7 +128,7 @@ public final class JPetRunner extends RunnerProjectRunnerBase<JPetTool> {
         System.out.println("  command: " + StringUtils.join(cmd, ' '));
 
         // run process
-        executeToolProcess(cmd, infoFile, outputFile, errorFile);
+        executeToolProcess(snippet, cmd);
     }
 
     @Override

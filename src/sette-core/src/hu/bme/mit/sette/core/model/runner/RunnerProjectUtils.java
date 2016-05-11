@@ -35,6 +35,7 @@ import lombok.NonNull;
 /**
  * Helper class for runner projects.
  */
+@Deprecated
 public final class RunnerProjectUtils {
     /** The relative path of the runner log file. */
     public static final String RUNNER_LOG_FILE = "runner.log";

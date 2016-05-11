@@ -23,7 +23,6 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.catg;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -34,13 +33,13 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
-import hu.bme.mit.sette.core.model.parserxml.InputElement;
-import hu.bme.mit.sette.core.model.parserxml.ParameterElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ParameterType;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.InputElement;
+import hu.bme.mit.sette.core.model.xml.ParameterElement;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 
 public class CatgParser extends RunResultParserBase<CatgTool> {
@@ -58,16 +57,14 @@ public class CatgParser extends RunResultParserBase<CatgTool> {
                 .toArray(Pattern[]::new);
     }
 
-    public CatgParser(SnippetProject snippetProject, Path outputDir, CatgTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public CatgParser(RunnerProject runnerProject, CatgTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
-            SnippetInputsXml inputsXml) throws Exception {
-        List<String> outputLines = outFiles.readOutputLines();
-        List<String> errorLines = outFiles.readErrorOutputLines();
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = runnerProject.snippet(snippet).readOutputLines();
+        List<String> errorLines = runnerProject.snippet(snippet).readErrorOutputLines();
 
         if (!errorLines.isEmpty()) {
             // error / warning from CATG
@@ -95,10 +92,10 @@ public class CatgParser extends RunResultParserBase<CatgTool> {
                             return ResultType.EX;
                         } else {
                             System.err.println(snippet.getMethod());
-                            System.err.println(outFiles.errorOutputFile);
+                            System.err.println(runnerProject.snippet(snippet).getErrorOutputFile());
                             System.err.println("NOT HANDLED EXCEPTION TYPE: " + exceptionType);
                             throw new RuntimeException("SETTE parser problem" + snippet.getId()
-                                    + " - " + getRunnerProjectSettings().getProjectName());
+                                    + " - " + runnerProject.getProjectName());
                         }
                     }).collect(Collectors.toSet());
 
@@ -132,7 +129,7 @@ public class CatgParser extends RunResultParserBase<CatgTool> {
                             System.err.println(String.join("\n", errorLines));
                             System.err.println("Unknown line: " + errorLine);
                             throw new RuntimeException("SETTE parser problem: " + snippet.getId()
-                                    + " - " + getRunnerProjectSettings().getProjectName());
+                                    + " - " + runnerProject.getProjectName());
                         }
                     }
                 }
@@ -154,7 +151,8 @@ public class CatgParser extends RunResultParserBase<CatgTool> {
                 || inputsXml.getResultType() == ResultType.C) {
             // collect inputs
             if (!outputLines.get(0).startsWith("Now testing ")) {
-                throw new RuntimeException("File beginning problem: " + outFiles.outputFile);
+                throw new RuntimeException("File beginning problem: "
+                        + runnerProject.snippet(snippet).getOutputFile());
             }
 
             Pattern p = Pattern.compile("\\[Input (\\d+)\\]");
@@ -171,7 +169,8 @@ public class CatgParser extends RunResultParserBase<CatgTool> {
                         System.err.println("Current input should be: " + inputNumber);
                         System.err.println("Current input line: " + line);
                         throw new RuntimeException(
-                                "File input problem (" + line + "): " + outFiles.outputFile);
+                                "File input problem (" + line + "): "
+                                        + runnerProject.snippet(snippet).getOutputFile());
                     }
 
                     // find end of generated input
@@ -212,8 +211,8 @@ public class CatgParser extends RunResultParserBase<CatgTool> {
 
                             ie.getParameters().add(pe);
                         } else {
-                            throw new RuntimeException(
-                                    "File input problem (" + l + "): " + outFiles.outputFile);
+                            throw new RuntimeException("File input problem (" + l + "): "
+                                    + runnerProject.snippet(snippet).getOutputFile());
                         }
                     }
 
@@ -223,8 +222,8 @@ public class CatgParser extends RunResultParserBase<CatgTool> {
 
                     // TODO now NOT dealing with result and exception
                 } else {
-                    throw new RuntimeException(
-                            "File input problem (" + line + "): " + outFiles.outputFile);
+                    throw new RuntimeException("File input problem (" + line + "): "
+                            + runnerProject.snippet(snippet).getOutputFile());
                 }
             }
         }

@@ -29,10 +29,10 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 
-import hu.bme.mit.sette.core.model.parserxml.SnippetElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetProjectElement;
-import hu.bme.mit.sette.core.model.parserxml.SnippetResultXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.xml.SnippetElement;
+import hu.bme.mit.sette.core.model.xml.SnippetProjectElement;
+import hu.bme.mit.sette.core.model.xml.SnippetResultXml;
 import hu.bme.mit.sette.core.validator.ValidationException;
 
 public final class SnippetResultXmlMain {

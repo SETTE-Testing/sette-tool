@@ -40,8 +40,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import hu.bme.mit.sette.core.configuration.SetteConfigurationException;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tasks.AntExecutor;
 import hu.bme.mit.sette.core.tasks.RunnerProjectRunnerBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
@@ -51,9 +51,8 @@ import hu.bme.mit.sette.core.util.process.ProcessUtils;
 public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
     private final Random seedGenerator;
 
-    public RandoopRunner(SnippetProject snippetProject, Path outputDir, RandoopTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public RandoopRunner(RunnerProject runnerProject, RandoopTool tool) {
+        super(runnerProject, tool);
         this.seedGenerator = new Random();
     }
 
@@ -65,12 +64,11 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
     @Override
     protected void afterPrepare() {
         // ant build
-        AntExecutor.executeAnt(getRunnerProjectSettings().getBaseDir(), null);
+        AntExecutor.executeAnt(runnerProject.getBaseDir(), null);
     }
 
     @Override
-    protected void runOne(Snippet snippet, Path infoFile, Path outputFile, Path errorFile)
-            throws SetteConfigurationException {
+    protected void runOne(Snippet snippet) throws SetteConfigurationException {
         // TODO make better
         /*
          * e.g.:
@@ -100,7 +98,7 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
 
         for (Path libraryFile : getSnippetProject().getJavaLibFiles()) {
             classpath += SystemUtils.PATH_SEPARATOR
-                    + getRunnerProjectSettings().getSnippetLibraryDir().getFileName().toString()
+                    + runnerProject.getSnippetLibraryDir().getFileName().toString()
                     + SystemUtils.FILE_SEPARATOR + libraryFile.toFile().getName();
         }
 
@@ -109,7 +107,7 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
                 + snippet.getMethod().getName() + "_Test";
 
         // create method list file
-        Path methodList = getRunnerProjectSettings().getBaseDir()
+        Path methodList = runnerProject.getBaseDir()
                 .resolve("methodlist_" + junitPackageName + ".tmp"); // TODO better file name
 
         PathUtils.write(methodList, createMethodListLines(snippet));
@@ -148,7 +146,7 @@ public final class RandoopRunner extends RunnerProjectRunnerBase<RandoopTool> {
         // run process
         // Randoop will stop generation at the given time limit (however, it
         // needs extra time for dumping test cases)
-        executeToolProcess(cmd, infoFile, outputFile, errorFile);
+        executeToolProcess(snippet, cmd);
 
         // TODO preserve for reproduction
         // delete method list file

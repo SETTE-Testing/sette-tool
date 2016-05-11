@@ -184,6 +184,14 @@ public final class PathUtils {
         return Files.exists(path);
     }
 
+    public static boolean isDirectory(Path path) {
+        return Files.isDirectory(path);
+    }
+
+    public static boolean isRegularFile(Path path) {
+        return Files.isRegularFile(path);
+    }
+
     public static Stream<String> lines(Path path) {
         try {
             return Files.lines(path);

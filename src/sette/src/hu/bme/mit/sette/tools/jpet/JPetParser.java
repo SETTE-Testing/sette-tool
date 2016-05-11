@@ -31,10 +31,10 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 import hu.bme.mit.sette.core.util.io.PathUtils;
 import hu.bme.mit.sette.core.validator.PathType;
@@ -43,9 +43,8 @@ import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCaseXmlParser;
 import hu.bme.mit.sette.tools.jpet.xmlparser.JPetTestCasesConverter;
 
 public class JPetParser extends RunResultParserBase<JPetTool> {
-    public JPetParser(SnippetProject snippetProject, Path outputDir, JPetTool tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public JPetParser(RunnerProject runnerProject, JPetTool tool) {
+        super(runnerProject, tool);
     }
 
     private static final Pattern PATTERN_FULL_CODE = Pattern
@@ -54,10 +53,9 @@ public class JPetParser extends RunResultParserBase<JPetTool> {
             .compile("^Top Code Coverage of '.*': (\\d+(.\\d+)?)% \\(.*\\)$");
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
-            SnippetInputsXml inputsXml) throws Exception {
-        List<String> outputLines = outFiles.readOutputLines();
-        List<String> errorLines = outFiles.readErrorOutputLines();
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
+        List<String> outputLines = runnerProject.snippet(snippet).readOutputLines();
+        List<String> errorLines = runnerProject.snippet(snippet).readErrorOutputLines();
 
         if (!errorLines.isEmpty()) {
             // TODO enhance this section and make it clear
@@ -152,7 +150,7 @@ public class JPetParser extends RunResultParserBase<JPetTool> {
                 }
 
                 if (inputsXml.getResultType() == null) {
-                    if (snippet.getRequiredStatementCoverage() == 0) {
+                    if (snippet.getRequiredStatementCoverage() <= 0.01) {
                         inputsXml.setResultType(ResultType.C);
                     } else {
                         inputsXml.setResultType(ResultType.S);
@@ -162,8 +160,7 @@ public class JPetParser extends RunResultParserBase<JPetTool> {
                 // extract inputs
                 outputLines = null;
 
-                Path testCasesFile = JPetTool.getTestCaseXmlFile(getRunnerProjectSettings(),
-                        snippet);
+                Path testCasesFile = JPetTool.getTestCaseXmlFile(runnerProject, snippet);
                 new PathValidator(testCasesFile).type(PathType.REGULAR_FILE).validate();
 
                 if (PathUtils.size(testCasesFile) / 1000.0 / 1000.0 > 10) {

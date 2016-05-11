@@ -23,23 +23,19 @@
 // NOTE revise this file
 package hu.bme.mit.sette.tools.snippetinputchecker;
 
-import java.nio.file.Path;
-
-import hu.bme.mit.sette.core.model.parserxml.SnippetInputsXml;
 import hu.bme.mit.sette.core.model.runner.ResultType;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.snippet.Snippet;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.xml.SnippetInputsXml;
 import hu.bme.mit.sette.core.tasks.RunResultParserBase;
 
 public class SnippetInputCheckerParser extends RunResultParserBase<SnippetInputCheckerTool> {
-    public SnippetInputCheckerParser(SnippetProject snippetProject, Path outputDir,
-            SnippetInputCheckerTool tool, String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public SnippetInputCheckerParser(RunnerProject runnerProject, SnippetInputCheckerTool tool) {
+        super(runnerProject, tool);
     }
 
     @Override
-    protected void parseSnippet(Snippet snippet, SnippetOutFiles outFiles,
-            SnippetInputsXml inputsXml) throws Exception {
+    protected void parseSnippet(Snippet snippet, SnippetInputsXml inputsXml) throws Exception {
         inputsXml.setResultType(ResultType.S);
         inputsXml.setGeneratedInputCount(snippet.getInputFactory().getInputs().size());
         inputsXml.validate();

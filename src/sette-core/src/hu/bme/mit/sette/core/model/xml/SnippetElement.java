@@ -21,25 +21,28 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import org.simpleframework.xml.Element;
 
 import com.google.common.base.Strings;
 
+import hu.bme.mit.sette.core.util.xml.XmlElement;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
 
 /**
  * Represents a snippet element.
  */
+@Data
 public final class SnippetElement implements XmlElement {
     /** The name of the snippet container. */
-    @Element(name = "container", data = true)
+    @Element(data = true)
     private String containerName;
 
     /** The name of the code snippet. */
-    @Element(name = "name", data = true)
+    @Element(data = true)
     private String name;
 
     /**
@@ -59,44 +62,6 @@ public final class SnippetElement implements XmlElement {
      */
     public SnippetElement(String containerName, String name) {
         this.containerName = containerName;
-        this.name = name;
-    }
-
-    /**
-     * Gets the name of the snippet container.
-     *
-     * @return the name of the snippet container
-     */
-    public String getContainerName() {
-        return containerName;
-    }
-
-    /**
-     * Sets the name of the snippet container.
-     *
-     * @param containerName
-     *            the new name of the snippet container
-     */
-    public void setContainerName(String containerName) {
-        this.containerName = containerName;
-    }
-
-    /**
-     * Gets the name of the code snippet.
-     *
-     * @return the name of the code snippet
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the name of the code snippet.
-     *
-     * @param name
-     *            the new name of the code snippet
-     */
-    public void setName(String name) {
         this.name = name;
     }
 

@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 // NOTE revise this file
-package hu.bme.mit.sette.core.model.parserxml;
+package hu.bme.mit.sette.core.model.xml;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,23 +29,26 @@ import java.util.List;
 import org.simpleframework.xml.ElementList;
 
 import hu.bme.mit.sette.core.model.runner.ParameterType;
+import hu.bme.mit.sette.core.util.ListUtils;
 import hu.bme.mit.sette.core.validator.Validator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents an array parameter element.
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 public final class ArrayParameterElement extends AbstractParameterElement {
     /** The elements of the array parameter. */
-    @ElementList(inline = true, entry = "element", data = true, type = String.class)
-    private List<String> elements;
+    @ElementList(inline = true, data = true)
+    private ArrayList<String> elements = new ArrayList<>();
 
     /**
      * Instantiates a new array parameter element.
      */
     public ArrayParameterElement() {
         // default constructor is required for deserialization
-        super();
-        elements = new ArrayList<>();
     }
 
     /**
@@ -56,16 +59,6 @@ public final class ArrayParameterElement extends AbstractParameterElement {
      */
     public ArrayParameterElement(ParameterType type) {
         super(type);
-        elements = new ArrayList<>();
-    }
-
-    /**
-     * Gets the list of elements of the array parameter.
-     *
-     * @return the list of elements of the array parameter
-     */
-    public List<String> getElements() {
-        return elements;
     }
 
     /**
@@ -75,7 +68,7 @@ public final class ArrayParameterElement extends AbstractParameterElement {
      *            the new list of elements
      */
     public void setElements(List<String> elements) {
-        this.elements = elements;
+        this.elements = ListUtils.asArrayList(elements);
     }
 
     @Override

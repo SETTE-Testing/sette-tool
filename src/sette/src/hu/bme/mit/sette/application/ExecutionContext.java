@@ -24,10 +24,9 @@ package hu.bme.mit.sette.application;
 
 import java.io.BufferedReader;
 import java.io.PrintStream;
-import java.nio.file.Path;
 import java.util.regex.Pattern;
 
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import lombok.Data;
 
@@ -38,11 +37,9 @@ public final class ExecutionContext {
     private final PrintStream output;
     private final PrintStream errorOutput;
 
-    private final SnippetProject snippetProject;
+    private final RunnerProject runnerProject;
     private final Tool tool;
-    private final String runnerProjectTag;
     private final int runnerTimeoutInMs;
     private final Pattern snippetSelector;
     private final BackupPolicy backupPolicy;
-    private final Path outputDir;
 }

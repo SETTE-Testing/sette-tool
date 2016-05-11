@@ -48,7 +48,6 @@ import hu.bme.mit.sette.core.validator.ClassFieldValidator;
 import hu.bme.mit.sette.core.validator.ClassValidator;
 import hu.bme.mit.sette.core.validator.ValidationException;
 import hu.bme.mit.sette.core.validator.Validator;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
@@ -56,7 +55,6 @@ import lombok.val;
 /**
  * Represents a snippet container (which is a Java class).
  */
-@Data
 public final class SnippetContainer implements Comparable<SnippetContainer> {
     /** The snippet project to which the instance belongs to. */
     @Getter

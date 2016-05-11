@@ -56,11 +56,11 @@ import hu.bme.mit.sette.core.descriptors.eclipse.EclipseClasspathEntryKind;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProject;
 import hu.bme.mit.sette.core.descriptors.eclipse.EclipseProjectDescriptor;
 import hu.bme.mit.sette.core.exceptions.RunnerProjectGeneratorException;
-import hu.bme.mit.sette.core.exceptions.XmlException;
+import hu.bme.mit.sette.core.model.runner.RunnerProject;
 import hu.bme.mit.sette.core.model.runner.RunnerProjectSettings;
-import hu.bme.mit.sette.core.model.snippet.SnippetProject;
 import hu.bme.mit.sette.core.tool.Tool;
 import hu.bme.mit.sette.core.util.io.PathUtils;
+import hu.bme.mit.sette.core.util.xml.XmlException;
 
 /**
  * A SETTE task which provides base for runner project generation. The phases are the following:
@@ -74,21 +74,8 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
     /** The Eclipse project. */
     private EclipseProject eclipseProject;
 
-    /**
-     * Instantiates a new runner project generator.
-     *
-     * @param snippetProject
-     *            the snippet project
-     * @param outputDir
-     *            the output directory
-     * @param tool
-     *            the tool
-     * @param runnerProjectTag
-     *            the tag of the runner project
-     */
-    public RunnerProjectGeneratorBase(SnippetProject snippetProject, Path outputDir, T tool,
-            String runnerProjectTag) {
-        super(snippetProject, outputDir, tool, runnerProjectTag);
+    public RunnerProjectGeneratorBase(RunnerProject runnerProject, T tool) {
+        super(runnerProject, tool);
     }
 
     @Override
@@ -130,7 +117,7 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
     private void validate() throws SetteConfigurationException {
         // TODO snippet project validation can fail even if it is valid
         // getSnippetProjectSettings().validateExists();
-        getRunnerProjectSettings().validateNotExists();
+        runnerProject.validateNotExists();
     }
 
     /**
@@ -156,7 +143,7 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
         }
 
         // create the Eclipse project
-        String projectName = getRunnerProjectSettings().getProjectName();
+        String projectName = runnerProject.getProjectName();
         eclipseProject = new EclipseProject(new EclipseProjectDescriptor(projectName, null), cp);
     }
 
@@ -172,18 +159,18 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
         // TODO revise whole method
         // TODO now using a newer JAPA (suuports java 8), -> maybe ANTLR supports better
 
-        PathUtils.createDir(getRunnerProjectSettings().getBaseDir());
+        PathUtils.createDir(runnerProject.getBaseDir());
 
         // copy snippets
         PathUtils.copy(getSnippetProject().getSourceDir(),
-                getRunnerProjectSettings().getSnippetSourceDir());
+                runnerProject.getSnippetSourceDir());
 
         // create INFO file
         writeInfoFile();
 
         // remove SETTE annotations and imports from file
         Collection<Path> filesWritten = PathUtils
-                .walk(getRunnerProjectSettings().getSnippetSourceDir())
+                .walk(runnerProject.getSnippetSourceDir())
                 .filter(Files::isRegularFile)
                 .sorted().collect(Collectors.toList());
 
@@ -260,16 +247,16 @@ public abstract class RunnerProjectGeneratorBase<T extends Tool> extends Evaluat
         // copy libraries
         if (getSnippetProject().getLibDir().toFile().exists()) {
             PathUtils.copy(getSnippetProject().getLibDir(),
-                    getRunnerProjectSettings().getSnippetLibraryDir());
+                    runnerProject.getSnippetLibraryDir());
         }
 
         // create project
-        this.eclipseProject.save(getRunnerProjectSettings().getBaseDir());
+        this.eclipseProject.save(runnerProject.getBaseDir());
     }
 
     private void writeInfoFile() {
         // TODO later maybe use an XML file!!!
-        Path infoFile = getRunnerProjectSettings().getBaseDir().resolve("SETTE-INFO");
+        Path infoFile = runnerProject.getBaseDir().resolve("SETTE-INFO");
 
         StringBuilder infoFileData = new StringBuilder();
         infoFileData.append("Runner project name: " + getSnippetProject().getName())
