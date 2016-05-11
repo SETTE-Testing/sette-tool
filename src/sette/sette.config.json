@@ -1,5 +1,5 @@
 {
-  "baseDirs":["/home/sette", "D:/SETTE"],
+  "baseDirs":["/home/sette/sette", "D:/SETTE"],
   "outputDir":"sette-results",
   "runnerTimeoutInMs":30000,
   "snippetProjectDirs":[
