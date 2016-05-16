@@ -2,7 +2,7 @@
 sette-all.jar
 sette*.log
 sette.config.json
-explog/*
+experiment-log/*
 
 src/sette/resources/junit.jar.res
 
