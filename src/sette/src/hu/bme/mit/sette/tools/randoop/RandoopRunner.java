@@ -130,7 +130,7 @@ public final class RandoopRunner extends RunnerProjectRunner<RandoopTool> {
         cmd.add("--methodlist=" + methodList.getAbsolutePath().replace('\\', '/'));
         cmd.add("--timelimit=" + timelimit);
         // cmd.add("--forbid-null=false"); // use default false
-        // cmd.add("--null-ratio=0.5"); // use default 0.05
+        cmd.add("--null-ratio=0.5"); // default 0.05 rarely generates tests with null
         cmd.add("--junit-output-dir=test");
         cmd.add("--junit-package-name=" + junitPackageName);
         cmd.add("--randomseed=" + seedGenerator.nextInt());
