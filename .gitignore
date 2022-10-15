@@ -73,6 +73,9 @@ hs_err_pid*
 
 # Created by https://www.gitignore.io/api/gradle,eclipse,java
 
+### IntelliJ IDEA ###
+.idea/
+
 ### Gradle ###
 .gradle
 build/
