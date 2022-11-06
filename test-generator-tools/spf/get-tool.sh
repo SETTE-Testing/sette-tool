@@ -12,8 +12,8 @@ rm -R -f "$CWD/jpf-symbc"
 rm -R -f ~/.jpf
 
 # clone repositories
-hg clone "http://babelfish.arc.nasa.gov/hg/jpf/jpf-core" "$CWD/jpf-core"
-hg clone "http://babelfish.arc.nasa.gov/hg/jpf/jpf-symbc" "$CWD/jpf-symbc"
+git clone "https://github.com/javapathfinder/jpf-core.git" "$CWD/jpf-core"
+git clone "https://github.com/javapathfinder/jpf-symbc.git" "$CWD/jpf-symbc"
 
 # configure JPF
 mkdir ~/.jpf
